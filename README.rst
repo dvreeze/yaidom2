@@ -12,7 +12,7 @@ XBRL knowledge.
 There are several reasons to work on a 2nd generation of yaidom. Hence this project. Some of these reasons are:
 
 * Yaidom is starting to show its age. Having learned which parts carry their weight and which parts don't, yaidom should become smaller, cleaner but also more consistent.
-* Yaidom is being used for in-memory querying/processing of many thousands of XML documents simultaneously, so performance and memory footprint are quite important. It therefore helps leverage the improved collections API in (upcoming) Scala 2.13.0.
+* Yaidom is being used for in-memory querying/processing of many thousands of XML documents simultaneously, so performance and memory footprint are quite important. It is therefore desirable to leverage the improved collections API in the (upcoming) Scala 2.13.0 version.
 * With the Saxon 9.9 library, the state of the art of XML processing in Java has improved dramatically, so good interop with Saxon 9.9 may be desirable.
 
 .. _`yaidom`: https://github.com/dvreeze/yaidom
