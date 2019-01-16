@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze
+package eu.cdevreeze.yaidom2
 
 /**
- * <em>Yaidom2</em> is yet another Scala XML query API.
+ * The query API of yaidom2.
  *
  * @author Chris de Vreeze
  */
-package object yaidom2
+package object queryapi
