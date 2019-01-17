@@ -41,9 +41,9 @@ trait ElemApi extends Any {
 
   def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem]
 
-  def findAllTopmostElems(p: ThisElem => Boolean): Seq[ThisElem]
+  def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem]
 
-  def findAllTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem]
+  def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem]
 }
 
 object ElemApi {

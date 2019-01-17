@@ -36,11 +36,22 @@ trait ClarkElemApi extends Any with ElemApi {
 
   def localName: String
 
-  def findAttribute(attributeName: EName): Option[String]
+  def attrOption(attributeName: EName): Option[String]
 
-  def getAttribute(attributeName: EName): String
+  def attrOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String]
 
-  def findAttributeByLocalName(attributeLocalName: String): Option[String]
+  def attrOption(attributeNamespace: String, attributeLocalName: String): Option[String]
+
+  /**
+   * Finds an attribute by local name, if any, ignoring the namespace, if any.
+   */
+  def attrOption(attributeLocalName: String): Option[String]
+
+  def attr(attributeName: EName): String
+
+  def attr(attributeNamespaceOption: Option[String], attributeLocalName: String): String
+
+  def attr(attributeNamespace: String, attributeLocalName: String): String
 
   def text: String
 
