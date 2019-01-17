@@ -66,7 +66,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings(
     // By all means, override this version of Saxon if needed, possibly with a Saxon-EE release!
 
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.8.0-14",
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.0-2",
 
     libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.0" % "test"
   )
