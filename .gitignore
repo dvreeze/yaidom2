@@ -4,6 +4,7 @@
 .cache-tests
 .classpath
 .project
+.idea
 .worksheet/
 .settings/
 target/
