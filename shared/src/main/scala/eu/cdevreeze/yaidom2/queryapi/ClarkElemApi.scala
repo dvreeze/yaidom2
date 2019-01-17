@@ -24,6 +24,9 @@ import eu.cdevreeze.yaidom2.core.EName
  * Clark elements know about expanded names of elements and attributes, but not about qualified names, nor
  * namespace scopes.
  *
+ * This query API trait has been named after James Clark, who came up with a minimal XML abstraction in which
+ * only expanded names (for elements and attributes) occur, and no qualified names.
+ *
  * @author Chris de Vreeze
  */
 trait ClarkElemApi extends Any with ElemApi {
