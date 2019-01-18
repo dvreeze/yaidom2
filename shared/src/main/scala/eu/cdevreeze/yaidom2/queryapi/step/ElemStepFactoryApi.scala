@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi
+package eu.cdevreeze.yaidom2.queryapi.step
 
 import eu.cdevreeze.yaidom2.core.EName
 
@@ -28,7 +28,7 @@ import eu.cdevreeze.yaidom2.core.EName
  */
 trait ElemStepFactoryApi {
 
-  type Elem
+  type Elem <: Any
 
   type Step <: ElemStep[Elem]
 

@@ -21,7 +21,7 @@ package eu.cdevreeze.yaidom2.queryapi
  *
  * @author Chris de Vreeze
  */
-trait HasChildNodesApi {
+trait HasChildNodesApi extends Any {
 
   /**
    * The node type, that is a super-type of the element type, but also of corresponding text node types etc.
