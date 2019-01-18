@@ -19,6 +19,10 @@ package eu.cdevreeze.yaidom2
 /**
  * The query API of yaidom2.
  *
+ * Most yaidom2 users do not directly use these query API traits, but use concrete element implementations instead.
+ * Still, concrete element implementations mix in these query API traits, and new element implementations can be
+ * invented that do the same.
+ *
  * @author Chris de Vreeze
  */
 package object queryapi
