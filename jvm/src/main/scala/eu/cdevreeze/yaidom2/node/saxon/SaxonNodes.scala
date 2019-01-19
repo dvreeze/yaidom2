@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package eu.cdevreeze.yaidom2.node.saxon
 
 import java.net.URI
@@ -208,7 +209,7 @@ object SaxonNodes {
     def scope: Scope = {
       validate()
 
-      val stream = xdmNode.select(child(isNamespace))
+      val stream = xdmNode.select(namespace())
 
       val result = stream.asListOfNodes.asScala.to(ArraySeq).map { n =>
         // Not very transparent: prefix is "display name" and namespace URI is "string value"
