@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.predicates
+package eu.cdevreeze.yaidom2.queryapi
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.ClarkElemApi
 
 /**
- * Fast predicates on Clark elements, to be used in queries.
+ * Fast predicates on Clark (and other) elements, to be used in queries.
  *
  * @author Chris de Vreeze
  */
-object ClarkElemPredicates {
+package object predicates {
+
+  val anyElem: ElemApi => Boolean = {
+    _ => true
+  }
 
   def havingName(name: EName): ClarkElemApi => Boolean = {
     havingName(name.namespaceUriOption, name.localPart)

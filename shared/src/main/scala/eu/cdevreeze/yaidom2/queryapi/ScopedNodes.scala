@@ -40,7 +40,7 @@ object ScopedNodes {
   /**
    * Arbitrary element node, offering the `ScopedElemApi with HasChildNodesApi` element query API
    */
-  trait Elem extends Any with CanBeDocumentChild with ClarkNodes.Elem with ScopedElemApi with HasChildNodesApi {
+  trait Elem extends Any with CanBeDocumentChild with ClarkNodes.Elem with ScopedElemApi {
 
     type ThisElem <: Elem
 

@@ -46,7 +46,7 @@ object BackingNodes {
   /**
    * Arbitrary element node, offering the `BackingElemApi with HasChildNodesApi` element query API.
    */
-  trait Elem extends Any with CanBeDocumentChild with ScopedNodes.Elem with BackingElemApi with HasChildNodesApi {
+  trait Elem extends Any with CanBeDocumentChild with ScopedNodes.Elem with BackingElemApi {
 
     type ThisElem <: Elem
 

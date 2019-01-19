@@ -23,12 +23,12 @@ package eu.cdevreeze.yaidom2.queryapi
  */
 trait HasChildNodesApi extends Any {
 
+  type ThisElem <: HasChildNodesApi
+
   /**
    * The node type, that is a super-type of the element type, but also of corresponding text node types etc.
    */
   type ThisNode >: ThisElem
-
-  type ThisElem <: HasChildNodesApi
 
   /**
    * Returns all child nodes, of any kind of node (element node, text node etc.).

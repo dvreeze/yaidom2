@@ -20,7 +20,7 @@ import java.io.File
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.queryapi.predicates.ClarkElemPredicates._
+import eu.cdevreeze.yaidom2.queryapi.predicates._
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.streams.Predicates._
 import net.sf.saxon.s9api.streams.Steps._

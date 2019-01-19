@@ -24,6 +24,10 @@ import eu.cdevreeze.yaidom2.core.EName
  * This API has been highly inspired by the Saxon 9.9 streaming API. Unlike the Saxon API, this API is Scala-centric
  * instead of Java-centric, this API limits itself to element nodes only, and it is generic.
  *
+ * There is an important difference with the Saxon 9.9 API, in that step factories that take a local name expect the
+ * name to have no namespace, instead of ignoring the namespace, if any. If the namespace must be ignored, consider
+ * using methods that clearly indicate that they indeed ignore the namespace, if any.
+ *
  * @author Chris de Vreeze
  */
 trait ElemStepFactoryApi {
@@ -46,6 +50,8 @@ trait ElemStepFactoryApi {
 
   def childElems(ename: EName): Step
 
+  def childElemsIgnoringNamespace(localName: String): Step
+
   // Descendant axis, for element nodes only
 
   def descendantElems(p: Elem => Boolean): Step
@@ -59,6 +65,8 @@ trait ElemStepFactoryApi {
   def descendantElems(namespaceOption: Option[String], localName: String): Step
 
   def descendantElems(ename: EName): Step
+
+  def descendantElemsIgnoringNamespace(localName: String): Step
 
   // Descendant-or-self axis, for element nodes only
 
@@ -74,6 +82,8 @@ trait ElemStepFactoryApi {
 
   def descendantElemsOrSelf(ename: EName): Step
 
+  def descendantElemsOrSelfIgnoringNamespace(localName: String): Step
+
   // Descendant axis, short-circuiting, for element nodes only
 
   def topmostElems(p: Elem => Boolean): Step
@@ -86,6 +96,8 @@ trait ElemStepFactoryApi {
 
   def topmostElems(ename: EName): Step
 
+  def topmostElemsIgnoringNamespace(localName: String): Step
+
   // Descendant-or-self axis, short-circuiting, for element nodes only
 
   def topmostElemsOrSelf(p: Elem => Boolean): Step
@@ -97,6 +109,8 @@ trait ElemStepFactoryApi {
   def topmostElemsOrSelf(namespaceOption: Option[String], localName: String): Step
 
   def topmostElemsOrSelf(ename: EName): Step
+
+  def topmostElemsOrSelfIgnoringNamespace(localName: String): Step
 }
 
 object ElemStepFactoryApi {

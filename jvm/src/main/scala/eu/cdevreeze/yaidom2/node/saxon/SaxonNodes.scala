@@ -102,18 +102,28 @@ object SaxonNodes {
       stream.asOptionalNode.asScala.map(n => Elem(n))
     }
 
+    // TODO Make the following 2 methods more efficient
+
     def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
       validate()
 
-      // TODO
-      ???
+      filterChildElems(_ => true).to(Vector).flatMap(_.findTopmostElemsOrSelf(p)).to(ArraySeq)
     }
 
     def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
       validate()
 
-      // TODO
-      ???
+      def findTopmostElemsOrSelf(e: ThisElem): Seq[ThisElem] = {
+        if (p(e)) {
+          Vector(e)
+        } else {
+          // Recursive calls
+
+          filterChildElems(_ => true).to(Vector).flatMap(findTopmostElemsOrSelf)
+        }
+      }
+
+      findTopmostElemsOrSelf(this).to(ArraySeq)
     }
 
     // ClarkElemApi
@@ -212,7 +222,7 @@ object SaxonNodes {
       validate()
 
       // TODO
-      ???
+      text.trim
     }
 
     def trimmedText: String = {
