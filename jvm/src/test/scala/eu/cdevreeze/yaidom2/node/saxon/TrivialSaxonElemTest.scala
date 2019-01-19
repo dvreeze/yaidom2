@@ -55,6 +55,16 @@ class TrivialSaxonElemTest extends FunSuite {
       saxonRootElem.filterDescendantElems(_.name == EName(Some(XbrldiNs), "explicitMember"))
         .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
     }
+
+    assertResult(true) {
+      saxonRootElem.filterDescendantElems(_.name == EName(Some(XbrldiNs), "explicitMember"))
+        .forall(_.findAncestorElem(_.name == EName(Some(XbrliNs), "context")).nonEmpty)
+    }
+
+    assertResult(true) {
+      saxonRootElem.filterDescendantElems(_.name == EName(Some(XbrldiNs), "explicitMember"))
+        .forall(_.rootElem.name == EName(Some(XbrliNs), "xbrl"))
+    }
   }
 
   private val XbrliNs = "http://www.xbrl.org/2003/instance"
