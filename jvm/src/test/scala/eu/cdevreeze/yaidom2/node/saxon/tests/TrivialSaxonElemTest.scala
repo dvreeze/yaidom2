@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.saxon
+package eu.cdevreeze.yaidom2.node.saxon.tests
 
 import java.io.File
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
+import eu.cdevreeze.yaidom2.queryapi.predicates.ClarkElemPredicates._
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.streams.Predicates._
 import net.sf.saxon.s9api.streams.Steps._
@@ -39,31 +41,34 @@ class TrivialSaxonElemTest extends FunSuite {
       saxonRootElem.filterDescendantElemsOrSelf(_ => true).size >= 100
     }
 
-    assertResult(Set("xbrl", "context", "unit", "entity", "identifier", "segment", "period", "instant", "startDate", "endDate", "measure")) {
+    val knownXbrliLocalNames =
+      Set("xbrl", "context", "unit", "entity", "identifier", "segment", "period", "instant", "startDate", "endDate", "measure")
+
+    assertResult(knownXbrliLocalNames) {
       saxonRootElem.filterDescendantElemsOrSelf(_.name.namespaceUriOption.contains(XbrliNs)).map(_.localName).toSet
     }
 
-    assertResult(Set("context", "unit", "entity", "identifier", "segment", "period", "instant", "startDate", "endDate", "measure")) {
+    assertResult(knownXbrliLocalNames.diff(Set("xbrl"))) {
       saxonRootElem.filterDescendantElems(_.name.namespaceUriOption.contains(XbrliNs)).map(_.localName).toSet
     }
 
-    assertResult(Set(EName.parse(s"{$XbrldiNs}explicitMember"))) {
-      saxonRootElem.filterDescendantElemsOrSelf(_.attrOption(None, "dimension").nonEmpty).map(_.name).toSet
+    assertResult(Set(EName(XbrldiNs, "explicitMember"))) {
+      saxonRootElem.filterDescendantElemsOrSelf(_.attrOption("dimension").nonEmpty).map(_.name).toSet
     }
 
     assertResult(Set(GaapNs)) {
-      saxonRootElem.filterDescendantElems(_.name == EName(Some(XbrldiNs), "explicitMember"))
+      saxonRootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
         .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
     }
 
     assertResult(true) {
-      saxonRootElem.filterDescendantElems(_.name == EName(Some(XbrldiNs), "explicitMember"))
-        .forall(_.findAncestorElem(_.name == EName(Some(XbrliNs), "context")).nonEmpty)
+      saxonRootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
+        .forall(_.findAncestorElem(havingName(XbrliNs, "context")).nonEmpty)
     }
 
     assertResult(true) {
-      saxonRootElem.filterDescendantElems(_.name == EName(Some(XbrldiNs), "explicitMember"))
-        .forall(_.rootElem.name == EName(Some(XbrliNs), "xbrl"))
+      saxonRootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
+        .forall(e => havingName(XbrliNs, "xbrl")(e.rootElem))
     }
   }
 

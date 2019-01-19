@@ -57,10 +57,10 @@ object QName {
   }
 
   /** Creates a `PrefixedName` from a prefix and a localPart */
-  def prefixed(prefix: String, localPart: String): QName = PrefixedName(prefix, localPart)
+  def apply(prefix: String, localPart: String): QName = PrefixedName(prefix, localPart)
 
   /** Creates an `UnprefixedName` from a localPart */
-  def unprefixed(localPart: String): QName = UnprefixedName(localPart)
+  def fromLocalName(localPart: String): QName = UnprefixedName(localPart)
 
   /**
    * Parses a `String` into a `QName`. The `String` (after trimming) must conform to the `toString` format of

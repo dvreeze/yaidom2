@@ -37,7 +37,23 @@ trait ClarkElemApi extends Any with ElemApi {
 
   def attributes: Iterable[(EName, String)]
 
+  /**
+   * Returns the local name. That is, returns the local part of the name of the element.
+   * This method must be fast in order to support fast local name queries.
+   */
   def localName: String
+
+  /**
+   * Returns the optional namespace. That is, returns the optional namespace of the name of the element.
+   * This method must be fast in order to support fast namespace queries.
+   */
+  def namespaceOption: Option[String]
+
+  /**
+   * Returns the equivalent of `namespaceOption.getOrElse("")`.
+   * This method must be fast in order to support fast namespace queries.
+   */
+  def namespaceAsString: String
 
   def attrOption(attributeName: EName): Option[String]
 
@@ -46,7 +62,7 @@ trait ClarkElemApi extends Any with ElemApi {
   def attrOption(attributeNamespace: String, attributeLocalName: String): Option[String]
 
   /**
-   * Finds an attribute by local name, if any, ignoring the namespace, if any.
+   * Finds an attribute that has no namespace by local name, if any.
    */
   def attrOption(attributeLocalName: String): Option[String]
 
@@ -55,6 +71,11 @@ trait ClarkElemApi extends Any with ElemApi {
   def attr(attributeNamespaceOption: Option[String], attributeLocalName: String): String
 
   def attr(attributeNamespace: String, attributeLocalName: String): String
+
+  /**
+   * Gets an attribute that has no namespace by local name, throwing if no such attribute is found.
+   */
+  def attr(attributeLocalName: String): String
 
   def text: String
 

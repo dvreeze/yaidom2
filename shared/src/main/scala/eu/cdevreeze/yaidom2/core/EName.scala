@@ -49,10 +49,10 @@ final case class EName(namespaceUriOption: Option[String], localPart: String) {
 object EName {
 
   /** Creates an `EName` from a namespaceUri and a localPart */
-  def namespaced(namespaceUri: String, localPart: String): EName = EName(Some(namespaceUri), localPart)
+  def apply(namespaceUri: String, localPart: String): EName = EName(Some(namespaceUri), localPart)
 
   /** Creates an `EName` from just a localPart */
-  def local(localPart: String): EName = EName(None, localPart)
+  def fromLocalName(localPart: String): EName = EName(None, localPart)
 
   /**
    * Parses a `String` into an `EName`. The `String` (after trimming) must conform to the `toString` format of an `EName`.

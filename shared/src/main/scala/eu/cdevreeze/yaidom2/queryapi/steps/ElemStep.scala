@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.step
+package eu.cdevreeze.yaidom2.queryapi.steps
 
 /**
  * Element step, which is a function from elements to collections of elements. This is a monoid. See

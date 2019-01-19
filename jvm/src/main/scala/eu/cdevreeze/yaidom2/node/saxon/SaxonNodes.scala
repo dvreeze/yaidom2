@@ -132,9 +132,20 @@ object SaxonNodes {
     }
 
     def localName: String = {
-      validate()
-
+      // No validation for speed
       xdmNode.getUnderlyingNode.getLocalPart
+    }
+
+    def namespaceOption: Option[String] = {
+      // No validation for speed
+      val nsAsString = namespaceAsString
+
+      if (nsAsString.isEmpty) None else Some(nsAsString)
+    }
+
+    def namespaceAsString: String = {
+      // No validation for speed
+      xdmNode.getUnderlyingNode.getURI
     }
 
     def attrOption(attributeName: EName): Option[String] = {
@@ -162,7 +173,7 @@ object SaxonNodes {
     def attrOption(attributeLocalName: String): Option[String] = {
       validate()
 
-      val stream = xdmNode.select(attribute(attributeLocalName))
+      val stream = xdmNode.select(attribute("", attributeLocalName))
       stream.asOptionalNode.asScala.map(_.getStringValue)
     }
 
@@ -182,6 +193,12 @@ object SaxonNodes {
       validate()
 
       attrOption(attributeNamespace, attributeLocalName).get
+    }
+
+    def attr(attributeLocalName: String): String = {
+      validate()
+
+      attrOption(attributeLocalName).get
     }
 
     def text: String = {

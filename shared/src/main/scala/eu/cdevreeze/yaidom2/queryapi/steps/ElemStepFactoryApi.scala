@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.step
+package eu.cdevreeze.yaidom2.queryapi.steps
 
 import eu.cdevreeze.yaidom2.core.EName
 
