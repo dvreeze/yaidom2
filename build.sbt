@@ -68,6 +68,8 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.0-2",
 
+    libraryDependencies += "org.scala-lang.modules" %%% "scala-java8-compat" % "0.9.0",
+
     libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.0" % "test"
   )
   .jsSettings(

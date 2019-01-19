@@ -33,7 +33,7 @@ trait HasChildNodesApi extends Any {
   /**
    * Returns all child nodes, of any kind of node (element node, text node etc.).
    */
-  def children: IndexedSeq[ThisNode]
+  def children: Seq[ThisNode]
 }
 
 object HasChildNodesApi {
