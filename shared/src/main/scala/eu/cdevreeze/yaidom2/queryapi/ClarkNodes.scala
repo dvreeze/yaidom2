@@ -39,7 +39,7 @@ object ClarkNodes {
   /**
    * Arbitrary element node, offering the `ClarkElemApi with HasChildNodesApi` element query API
    */
-  trait Elem extends Any with CanBeDocumentChild with Nodes.Elem with ClarkElemApi with HasChildNodesApi {
+  trait Elem extends Any with CanBeDocumentChild with Nodes.Elem with ClarkElemApi with ElemStepAware with HasChildNodesApi {
 
     type ThisElem <: Elem
 

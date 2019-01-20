@@ -19,6 +19,7 @@ package eu.cdevreeze.yaidom2.queryapi.steps
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.BackingElemApi
 import eu.cdevreeze.yaidom2.queryapi.ClarkElemApi
+import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.predicates._
 
 /**

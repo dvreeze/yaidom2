@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.steps
+package eu.cdevreeze.yaidom2.queryapi
 
 /**
  * API trait for elements that can use the ElemStep API.
