@@ -18,9 +18,9 @@ package eu.cdevreeze.yaidom2.node.saxon
 
 import java.net.URI
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.ArraySeq
 import scala.compat.java8.OptionConverters._
+import scala.compat.java8.StreamConverters._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
@@ -65,7 +65,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(child(isElement).where(n => p(Elem(n))))
-      stream.asListOfNodes.asScala.to(ArraySeq).map(n => Elem(n))
+      stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -79,7 +79,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(descendant(isElement).where(n => p(Elem(n))))
-      stream.asListOfNodes.asScala.to(ArraySeq).map(n => Elem(n))
+      stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -93,7 +93,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(descendantOrSelf(isElement).where(n => p(Elem(n))))
-      stream.asListOfNodes.asScala.to(ArraySeq).map(n => Elem(n))
+      stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -139,7 +139,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(attribute())
-      stream.asListOfNodes.asScala.to(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue)
+      stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue)
     }
 
     def localName: String = {
@@ -216,14 +216,13 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(child(isText))
-      stream.asListOfNodes.asScala.to(ArraySeq).map(_.getUnderlyingNode.getStringValue).mkString
+      stream.toScala(ArraySeq).map(_.getUnderlyingNode.getStringValue).mkString
     }
 
     def normalizedText: String = {
       validate()
 
-      // TODO
-      text.trim
+      normalizeString(text)
     }
 
     def trimmedText: String = {
@@ -239,7 +238,7 @@ object SaxonNodes {
 
       val stream = xdmNode.select(namespace())
 
-      val result = stream.asListOfNodes.asScala.to(ArraySeq).map { n =>
+      val result = stream.toScala(ArraySeq).map { n =>
         // Not very transparent: prefix is "display name" and namespace URI is "string value"
         val prefix = n.getUnderlyingNode.getDisplayName
         val nsUri = n.getUnderlyingNode.getStringValue
@@ -258,7 +257,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(attribute())
-      stream.asListOfNodes.asScala.to(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue)
+      stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue)
     }
 
     def textAsQName: QName = {
@@ -374,7 +373,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(ancestor(isElement).where(n => p(Elem(n))))
-      stream.asListOfNodes.asScala.to(ArraySeq).map(n => Elem(n))
+      stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -388,7 +387,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(ancestorOrSelf(isElement).where(n => p(Elem(n))))
-      stream.asListOfNodes.asScala.to(ArraySeq).map(n => Elem(n))
+      stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -434,7 +433,7 @@ object SaxonNodes {
       validate()
 
       val stream = xdmNode.select(child())
-      stream.asListOfNodes.asScala.to(ArraySeq).flatMap(n => Node.opt(n))
+      stream.toScala(ArraySeq).flatMap(n => Node.opt(n))
     }
 
     def select(step: ElemStep[Elem]): Seq[Elem] = {
@@ -447,6 +446,22 @@ object SaxonNodes {
 
     def validate(): Unit = {
       require(xdmNode.getNodeKind == XdmNodeKind.ELEMENT, s"Not an element node: $xdmNode")
+    }
+
+    // Private methods
+
+    /**
+     * Normalizes the string, removing surrounding whitespace and normalizing internal whitespace to a single space.
+     * Whitespace includes #x20 (space), #x9 (tab), #xD (carriage return), #xA (line feed). If there is only whitespace,
+     * the empty string is returned. Inspired by the JDOM library.
+     */
+    private def normalizeString(s: String): String = {
+      require(s ne null) // scalastyle:off null
+
+      val separators = Array(' ', '\t', '\r', '\n')
+      val words: Seq[String] = s.split(separators).toSeq.filterNot(_.isEmpty)
+
+      words.mkString(" ") // Returns empty string if words.isEmpty
     }
   }
 

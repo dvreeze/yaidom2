@@ -18,7 +18,8 @@ package eu.cdevreeze.yaidom2.node.saxon.tests
 
 import java.io.File
 
-import scala.collection.JavaConverters._
+import scala.collection.immutable.ArraySeq
+import scala.compat.java8.StreamConverters._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
@@ -227,7 +228,7 @@ class TrivialSaxonElemTest extends FunSuite {
         descendant(XbrliNs, "context").where {
           (e: XdmNode) => e.select(child(XbrliNs, "entity").`then`(descendant(XbrldiNs, "explicitMember"))).exists
         }
-      }.asListOfNodes.asScala.map(n => SaxonNodes.Elem(n))
+      }.toScala(ArraySeq).map(n => SaxonNodes.Elem(n))
 
     assertResult(true) {
       dimensionalContexts.size >= 10
