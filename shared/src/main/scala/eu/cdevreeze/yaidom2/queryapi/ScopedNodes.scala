@@ -17,7 +17,7 @@
 package eu.cdevreeze.yaidom2.queryapi
 
 /**
- * '''Core API''' for element nodes that offer the central `ScopedElemApi with HasChildNodesApi` query API. Each element implementation that
+ * '''Core API''' for element nodes that offer the central `ScopedElemApi` query API. Each element implementation that
  * knows about expanded names as well as qualified name should directly or indirectly implement this API.
  *
  * This API is directly implemented by elements that know about expanded names and about qualified names,
@@ -38,7 +38,7 @@ object ScopedNodes {
   trait CanBeDocumentChild extends Any with Node with ClarkNodes.CanBeDocumentChild
 
   /**
-   * Arbitrary element node, offering the `ScopedElemApi with HasChildNodesApi` element query API
+   * Arbitrary element node, offering the `ScopedElemApi` element query API
    */
   trait Elem extends Any with CanBeDocumentChild with ClarkNodes.Elem with ScopedElemApi {
 

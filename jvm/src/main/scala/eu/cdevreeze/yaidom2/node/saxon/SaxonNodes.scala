@@ -50,7 +50,7 @@ object SaxonNodes {
   sealed trait CanBeDocumentChild extends Any with Node with BackingNodes.CanBeDocumentChild
 
   /**
-   * Saxon element node, offering the `BackingElemApi with HasChildNodesApi` element query API.
+   * Saxon element node, offering the `BackingNodes.Elem` element query API.
    * Note that this is a value class, so no object creation is done for these "wrapper elements".
    */
   final case class Elem(xdmNode: XdmNode) extends AnyVal with CanBeDocumentChild with BackingNodes.Elem {

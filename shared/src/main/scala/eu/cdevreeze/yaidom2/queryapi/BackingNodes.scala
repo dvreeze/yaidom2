@@ -17,7 +17,7 @@
 package eu.cdevreeze.yaidom2.queryapi
 
 /**
- * '''Core API''' for element nodes that offer the central `BackingElemApi with HasChildNodesApi` query API. Each element implementation that
+ * '''Core API''' for element nodes that offer the central `BackingElemApi` query API (and more). Each element implementation that
  * knows about expanded names as well as qualified name and that also knows about ancestor elements, should directly or indirectly
  * implement this API.
  *
@@ -44,7 +44,7 @@ object BackingNodes {
   trait CanBeDocumentChild extends Any with Node with ScopedNodes.CanBeDocumentChild
 
   /**
-   * Arbitrary element node, offering the `BackingElemApi with HasChildNodesApi` element query API.
+   * Arbitrary element node, offering the `BackingElemApi` element query API.
    */
   trait Elem extends Any with CanBeDocumentChild with ScopedNodes.Elem with BackingElemApi {
 

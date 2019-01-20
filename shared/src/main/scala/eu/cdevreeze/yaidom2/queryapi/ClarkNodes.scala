@@ -17,7 +17,7 @@
 package eu.cdevreeze.yaidom2.queryapi
 
 /**
- * '''Core API''' for element nodes that offer the central `ClarkElemApi with HasChildNodesApi` query API. Each element implementation should
+ * '''Core API''' for element nodes that offer the central `ClarkElemApi` query API. Each element implementation should
  * directly or indirectly implement this API.
  *
  * This API is directly implemented by elements that know about expanded names but not about qualified names.
@@ -37,13 +37,23 @@ object ClarkNodes {
   trait CanBeDocumentChild extends Any with Node with Nodes.CanBeDocumentChild
 
   /**
-   * Arbitrary element node, offering the `ClarkElemApi with HasChildNodesApi` element query API
+   * Arbitrary element node, offering the `ClarkElemApi` element query API (and more)
    */
-  trait Elem extends Any with CanBeDocumentChild with Nodes.Elem with ClarkElemApi with ElemStepAwareApi with HasChildNodesApi {
+  trait Elem extends Any with CanBeDocumentChild with Nodes.Elem with ClarkElemApi {
 
     type ThisElem <: Elem
 
     type ThisNode >: ThisElem <: Node
+
+    /**
+     * Returns all child nodes, of any kind of node (element node, text node etc.).
+     */
+    def children: Seq[ThisNode]
+
+    /**
+     * Applies the given element step to this element.
+     */
+    def select(step: ElemStep[ThisElem]): Seq[ThisElem]
   }
 
   /**
