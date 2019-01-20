@@ -18,11 +18,14 @@ package eu.cdevreeze.yaidom2.node.saxon.tests
 
 import java.io.File
 
+import scala.collection.JavaConverters._
+
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.queryapi.predicates._
 import eu.cdevreeze.yaidom2.queryapi.steps.ElemSteps._
 import net.sf.saxon.s9api.Processor
+import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.streams.Predicates._
 import net.sf.saxon.s9api.streams.Steps._
 import org.scalatest.FunSuite
@@ -199,6 +202,37 @@ class TrivialSaxonElemTest extends FunSuite {
       dimensionalContexts
     }
     assertResult(expectedDimensionalContexts3) {
+      dimensionalContexts
+    }
+  }
+
+  test("testSemanticsOfStepsAgainstSaxon") {
+    val processor = new Processor(false)
+    val docBuilder = processor.newDocumentBuilder()
+
+    val file = new File(classOf[TrivialSaxonElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
+    val doc = docBuilder.build(file)
+
+    val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+
+    val dimensionalContexts =
+      saxonRootElem.select {
+        descendantElems(XbrliNs, "context").where {
+          _.select(childElems(XbrliNs, "entity") / descendantElems(XbrldiNs, "explicitMember")).nonEmpty
+        }
+      }
+
+    val expectedDimensionalContexts =
+      saxonRootElem.xdmNode.select {
+        descendant(XbrliNs, "context").where {
+          (e: XdmNode) => e.select(child(XbrliNs, "entity").`then`(descendant(XbrldiNs, "explicitMember"))).exists
+        }
+      }.asListOfNodes.asScala.map(n => SaxonNodes.Elem(n))
+
+    assertResult(true) {
+      dimensionalContexts.size >= 10
+    }
+    assertResult(expectedDimensionalContexts) {
       dimensionalContexts
     }
   }

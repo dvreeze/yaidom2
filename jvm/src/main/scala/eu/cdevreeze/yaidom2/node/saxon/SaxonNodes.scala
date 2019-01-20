@@ -59,12 +59,6 @@ object SaxonNodes {
 
     type ThisNode = Node
 
-    // Steps
-
-    def select(step: ElemStep[Elem]): Seq[Elem] = {
-      step(this)
-    }
-
     // ElemApi
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -441,6 +435,12 @@ object SaxonNodes {
 
       val stream = xdmNode.select(child())
       stream.asListOfNodes.asScala.to(ArraySeq).flatMap(n => Node.opt(n))
+    }
+
+    def select(step: ElemStep[Elem]): Seq[Elem] = {
+      validate()
+
+      step(this)
     }
 
     // Other methods
