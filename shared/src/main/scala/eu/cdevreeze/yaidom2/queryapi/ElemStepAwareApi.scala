@@ -21,9 +21,9 @@ package eu.cdevreeze.yaidom2.queryapi
  *
  * @author Chris de Vreeze
  */
-trait ElemStepAware extends Any {
+trait ElemStepAwareApi extends Any {
 
-  type ThisElem <: ElemStepAware
+  type ThisElem <: ElemStepAwareApi
 
   /**
    * Applies the given element step to this element.
@@ -31,12 +31,12 @@ trait ElemStepAware extends Any {
   def select(step: ElemStep[ThisElem]): Seq[ThisElem]
 }
 
-object ElemStepAware {
+object ElemStepAwareApi {
 
   /**
    * This query API type, restricting ThisElem to the type parameter.
    *
    * @tparam E The element self type
    */
-  type Aux[E] = ElemStepAware { type ThisElem = E }
+  type Aux[E] = ElemStepAwareApi { type ThisElem = E }
 }
