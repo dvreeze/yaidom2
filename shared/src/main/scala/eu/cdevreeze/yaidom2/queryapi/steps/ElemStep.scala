@@ -27,7 +27,7 @@ package eu.cdevreeze.yaidom2.queryapi.steps
  *
  * @author Chris de Vreeze
  */
-trait ElemStep[E] extends Function1[E, IndexedSeq[E]] {
+trait ElemStep[E] extends Function1[E, Seq[E]] {
 
   /**
    * Associative operation to combine 2 steps.

@@ -26,6 +26,8 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.steps.ElemStep
+import eu.cdevreeze.yaidom2.queryapi.steps.ElemStepAware
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
 import net.sf.saxon.s9api.streams.Predicates._
@@ -52,11 +54,17 @@ object SaxonNodes {
    * Saxon element node, offering the `BackingElemApi with HasChildNodesApi` element query API.
    * Note that this is a value class, so no object creation is done for these "wrapper elements".
    */
-  final case class Elem(xdmNode: XdmNode) extends AnyVal with CanBeDocumentChild with BackingNodes.Elem {
+  final case class Elem(xdmNode: XdmNode) extends AnyVal with CanBeDocumentChild with BackingNodes.Elem with ElemStepAware {
 
     type ThisElem = Elem
 
     type ThisNode = Node
+
+    // Steps
+
+    def select(step: ElemStep[Elem]): Seq[Elem] = {
+      step(this)
+    }
 
     // ElemApi
 
