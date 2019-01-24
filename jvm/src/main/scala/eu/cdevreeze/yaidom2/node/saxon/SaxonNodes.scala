@@ -54,6 +54,7 @@ object SaxonNodes {
    * Note that this is a value class, so no object creation is done for these "wrapper elements".
    */
   final case class Elem(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.Elem {
+    require(xdmNode.getNodeKind == XdmNodeKind.ELEMENT, s"Not an element node: $xdmNode")
 
     type ThisElem = Elem
 
@@ -62,43 +63,31 @@ object SaxonNodes {
     // ElemApi
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(child(isElement).where(n => p(Elem(n))))
       stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(child(isElement).where(n => p(Elem(n))))
       stream.asOptionalNode.asScala.map(n => Elem(n))
     }
 
     def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(descendant(isElement).where(n => p(Elem(n))))
       stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(descendant(isElement).where(n => p(Elem(n))))
       stream.asOptionalNode.asScala.map(n => Elem(n))
     }
 
     def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(descendantOrSelf(isElement).where(n => p(Elem(n))))
       stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(descendantOrSelf(isElement).where(n => p(Elem(n))))
       stream.asOptionalNode.asScala.map(n => Elem(n))
     }
@@ -106,14 +95,10 @@ object SaxonNodes {
     // TODO Make the following 2 methods more efficient
 
     def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      validate()
-
       filterChildElems(_ => true).to(Vector).flatMap(_.findTopmostElemsOrSelf(p)).to(ArraySeq)
     }
 
     def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      validate()
-
       def findTopmostElemsOrSelf(e: ThisElem): Seq[ThisElem] = {
         if (p(e)) {
           Vector(e)
@@ -130,14 +115,10 @@ object SaxonNodes {
     // ClarkElemApi
 
     def name: EName = {
-      validate()
-
       Node.extractEName(xdmNode)
     }
 
     def attributes: Iterable[(EName, String)] = {
-      validate()
-
       val stream = xdmNode.select(attribute())
       stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue)
     }
@@ -160,21 +141,16 @@ object SaxonNodes {
     }
 
     def attrOption(attributeName: EName): Option[String] = {
-      validate()
-
       val stream = xdmNode.select(attribute(attributeName.namespaceUriOption.getOrElse(""), attributeName.localPart))
       stream.asOptionalNode.asScala.map(_.getStringValue)
     }
 
     def attrOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
-      validate()
-
       val stream = xdmNode.select(attribute(attributeNamespaceOption.getOrElse(""), attributeLocalName))
       stream.asOptionalNode.asScala.map(_.getStringValue)
     }
 
     def attrOption(attributeNamespace: String, attributeLocalName: String): Option[String] = {
-      validate()
       require(attributeNamespace.nonEmpty, s"Empty namespace URI not allowed")
 
       val stream = xdmNode.select(attribute(attributeNamespace, attributeLocalName))
@@ -182,60 +158,42 @@ object SaxonNodes {
     }
 
     def attrOption(attributeLocalName: String): Option[String] = {
-      validate()
-
       val stream = xdmNode.select(attribute("", attributeLocalName))
       stream.asOptionalNode.asScala.map(_.getStringValue)
     }
 
     def attr(attributeName: EName): String = {
-      validate()
-
       attrOption(attributeName).get
     }
 
     def attr(attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
-      validate()
-
       attrOption(attributeNamespaceOption, attributeLocalName).get
     }
 
     def attr(attributeNamespace: String, attributeLocalName: String): String = {
-      validate()
-
       attrOption(attributeNamespace, attributeLocalName).get
     }
 
     def attr(attributeLocalName: String): String = {
-      validate()
-
       attrOption(attributeLocalName).get
     }
 
     def text: String = {
-      validate()
-
       val stream = xdmNode.select(child(isText))
       stream.toScala(ArraySeq).map(_.getUnderlyingNode.getStringValue).mkString
     }
 
     def normalizedText: String = {
-      validate()
-
       normalizeString(text)
     }
 
     def trimmedText: String = {
-      validate()
-
       text.trim
     }
 
     // ScopedElemApi
 
     def scope: Scope = {
-      validate()
-
       val stream = xdmNode.select(namespace())
 
       val result = stream.toScala(ArraySeq).map { n =>
@@ -248,73 +206,51 @@ object SaxonNodes {
     }
 
     def qname: QName = {
-      validate()
-
       Node.extractQName(xdmNode)
     }
 
     def attributesByQName: Iterable[(QName, String)] = {
-      validate()
-
       val stream = xdmNode.select(attribute())
       stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue)
     }
 
     def textAsQName: QName = {
-      validate()
-
       QName.parse(text.trim)
     }
 
     def textAsResolvedQName: EName = {
-      validate()
-
       scope.resolveQNameOption(textAsQName).getOrElse(
         sys.error(s"Could not resolve QName-valued element text $textAsQName, given scope [${scope}]"))
     }
 
     def attrAsQNameOption(attributeName: EName): Option[QName] = {
-      validate()
-
       attrOption(attributeName).map(v => QName.parse(v.trim))
     }
 
     def attrAsQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
-      validate()
-
       attrOption(attributeNamespaceOption, attributeLocalName).map(v => QName.parse(v.trim))
     }
 
     def attrAsQNameOption(attributeNamespace: String, attributeLocalName: String): Option[QName] = {
-      validate()
-
       attrOption(attributeNamespace, attributeLocalName).map(v => QName.parse(v.trim))
     }
 
     def attrAsQName(attributeName: EName): QName = {
-      validate()
-
       attrAsQNameOption(attributeName).getOrElse(
         sys.error(s"Missing QName-valued attribute $attributeName"))
     }
 
     def attrAsQName(attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
-      validate()
-
       attrAsQNameOption(attributeNamespaceOption, attributeLocalName).getOrElse(
         sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
     }
 
     def attrAsQName(attributeNamespace: String, attributeLocalName: String): QName = {
-      validate()
-
       attrAsQNameOption(attributeNamespace, attributeLocalName).getOrElse(
         sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
     }
 
     def attrAsResolvedQNameOption(attributeName: EName): Option[EName] = {
-      validate()
-
       attrAsQNameOption(attributeName).map { qn =>
         scope.resolveQNameOption(qn).getOrElse(
           sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope}]"))
@@ -322,8 +258,6 @@ object SaxonNodes {
     }
 
     def attrAsResolvedQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
-      validate()
-
       attrAsQNameOption(attributeNamespaceOption, attributeLocalName).map { qn =>
         scope.resolveQNameOption(qn).getOrElse(
           sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope}]"))
@@ -331,8 +265,6 @@ object SaxonNodes {
     }
 
     def attrAsResolvedQNameOption(attributeNamespace: String, attributeLocalName: String): Option[EName] = {
-      validate()
-
       attrAsQNameOption(attributeNamespace, attributeLocalName).map { qn =>
         scope.resolveQNameOption(qn).getOrElse(
           sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope}]"))
@@ -340,22 +272,16 @@ object SaxonNodes {
     }
 
     def attrAsResolvedQName(attributeName: EName): EName = {
-      validate()
-
       attrAsResolvedQNameOption(attributeName).getOrElse(
         sys.error(s"Missing QName-valued attribute $attributeName"))
     }
 
     def attrAsResolvedQName(attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
-      validate()
-
       attrAsResolvedQNameOption(attributeNamespaceOption, attributeLocalName).getOrElse(
         sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
     }
 
     def attrAsResolvedQName(attributeNamespace: String, attributeLocalName: String): EName = {
-      validate()
-
       attrAsResolvedQNameOption(attributeNamespace, attributeLocalName).getOrElse(
         sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
     }
@@ -363,89 +289,59 @@ object SaxonNodes {
     // BackingElemApi
 
     def findParentElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(parent(isElement).where(n => p(Elem(n))))
       stream.asOptionalNode.asScala.map(n => Elem(n))
     }
 
     def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(ancestor(isElement).where(n => p(Elem(n))))
       stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(ancestor(isElement).where(n => p(Elem(n))))
       stream.asOptionalNode.asScala.map(n => Elem(n))
     }
 
     def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(ancestorOrSelf(isElement).where(n => p(Elem(n))))
       stream.toScala(ArraySeq).map(n => Elem(n))
     }
 
     def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
-      validate()
-
       val stream = xdmNode.select(ancestorOrSelf(isElement).where(n => p(Elem(n))))
       stream.asOptionalNode.asScala.map(n => Elem(n))
     }
 
     def baseUriOption: Option[URI] = {
-      validate()
-
       Option(xdmNode.getUnderlyingNode.getBaseURI).map(u => URI.create(u))
     }
 
     def baseUri: URI = {
-      validate()
-
       baseUriOption.getOrElse(Node.EmptyUri)
     }
 
     def docUriOption: Option[URI] = {
-      validate()
-
       Option(xdmNode.getUnderlyingNode.getSystemId).map(u => URI.create(u))
     }
 
     def docUri: URI = {
-      validate()
-
       docUriOption.getOrElse(Node.EmptyUri)
     }
 
     def rootElem: ThisElem = {
-      validate()
-
       filterAncestorElemsOrSelf(_ => true).last
     }
 
     // ClarkNodes.Elem
 
     def children: Seq[ThisNode] = {
-      validate()
-
       val stream = xdmNode.select(child())
       stream.toScala(ArraySeq).flatMap(n => Node.opt(n))
     }
 
     def select(step: ElemStep[Elem]): Seq[Elem] = {
-      validate()
-
       step(this)
-    }
-
-    // Other methods
-
-    def validate(): Unit = {
-      require(xdmNode.getNodeKind == XdmNodeKind.ELEMENT, s"Not an element node: $xdmNode")
     }
 
     // Private methods
@@ -469,14 +365,10 @@ object SaxonNodes {
    * Saxon text node
    */
   final case class Text(xdmNode: XdmNode) extends Node with BackingNodes.Text {
+    require(xdmNode.getNodeKind == XdmNodeKind.TEXT, s"Not a text node: $xdmNode")
 
     def text: String = {
-      validate()
       xdmNode.getUnderlyingNode.getStringValue
-    }
-
-    def validate(): Unit = {
-      require(xdmNode.getNodeKind == XdmNodeKind.TEXT, s"Not a text node: $xdmNode")
     }
   }
 
@@ -484,14 +376,10 @@ object SaxonNodes {
    * Saxon comment node
    */
   final case class Comment(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.Comment {
+    require(xdmNode.getNodeKind == XdmNodeKind.COMMENT, s"Not a comment node: $xdmNode")
 
     def text: String = {
-      validate()
       xdmNode.getUnderlyingNode.getStringValue
-    }
-
-    def validate(): Unit = {
-      require(xdmNode.getNodeKind == XdmNodeKind.COMMENT, s"Not a comment node: $xdmNode")
     }
   }
 
@@ -499,19 +387,14 @@ object SaxonNodes {
    * Saxon processing instruction node
    */
   final case class ProcessingInstruction(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.ProcessingInstruction {
+    require(xdmNode.getNodeKind == XdmNodeKind.PROCESSING_INSTRUCTION, s"Not a processing instruction node: $xdmNode")
 
     def target: String = {
-      validate()
       xdmNode.getUnderlyingNode.getDisplayName
     }
 
     def data: String = {
-      validate()
       xdmNode.getUnderlyingNode.getStringValue
-    }
-
-    def validate(): Unit = {
-      require(xdmNode.getNodeKind == XdmNodeKind.PROCESSING_INSTRUCTION, s"Not a processing instruction node: $xdmNode")
     }
   }
 
