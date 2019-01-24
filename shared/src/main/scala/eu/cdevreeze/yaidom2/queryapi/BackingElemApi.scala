@@ -26,7 +26,7 @@ import java.net.URI
  *
  * @author Chris de Vreeze
  */
-trait BackingElemApi extends Any with ScopedElemApi {
+trait BackingElemApi extends ScopedElemApi {
 
   type ThisElem <: BackingElemApi
 

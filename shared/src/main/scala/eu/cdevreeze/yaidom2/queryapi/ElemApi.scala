@@ -25,7 +25,7 @@ package eu.cdevreeze.yaidom2.queryapi
  *
  * @author Chris de Vreeze
  */
-trait ElemApi extends Any {
+trait ElemApi {
 
   type ThisElem <: ElemApi
 

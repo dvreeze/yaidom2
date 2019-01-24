@@ -29,17 +29,17 @@ object ClarkNodes {
   /**
    * Arbitrary node
    */
-  trait Node extends Any with Nodes.Node
+  trait Node extends Nodes.Node
 
   /**
    * Potential document child, so an element, processing instruction or comment
    */
-  trait CanBeDocumentChild extends Any with Node with Nodes.CanBeDocumentChild
+  trait CanBeDocumentChild extends Node with Nodes.CanBeDocumentChild
 
   /**
    * Arbitrary element node, offering the `ClarkElemApi` element query API (and more)
    */
-  trait Elem extends Any with CanBeDocumentChild with Nodes.Elem with ClarkElemApi {
+  trait Elem extends CanBeDocumentChild with Nodes.Elem with ClarkElemApi {
 
     type ThisElem <: Elem
 
@@ -59,17 +59,17 @@ object ClarkNodes {
   /**
    * Arbitrary text node
    */
-  trait Text extends Any with Node with Nodes.Text
+  trait Text extends Node with Nodes.Text
 
   /**
    * Arbitrary comment node
    */
-  trait Comment extends Any with CanBeDocumentChild with Nodes.Comment
+  trait Comment extends CanBeDocumentChild with Nodes.Comment
 
   /**
    * Arbitrary processing instruction node
    */
-  trait ProcessingInstruction extends Any with CanBeDocumentChild with Nodes.ProcessingInstruction
+  trait ProcessingInstruction extends CanBeDocumentChild with Nodes.ProcessingInstruction
 
   object Elem {
 

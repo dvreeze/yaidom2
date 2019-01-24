@@ -30,17 +30,17 @@ object ScopedNodes {
   /**
    * Arbitrary node
    */
-  trait Node extends Any with ClarkNodes.Node
+  trait Node extends ClarkNodes.Node
 
   /**
    * Potential document child, so an element, processing instruction or comment
    */
-  trait CanBeDocumentChild extends Any with Node with ClarkNodes.CanBeDocumentChild
+  trait CanBeDocumentChild extends Node with ClarkNodes.CanBeDocumentChild
 
   /**
    * Arbitrary element node, offering the `ScopedElemApi` element query API
    */
-  trait Elem extends Any with CanBeDocumentChild with ClarkNodes.Elem with ScopedElemApi {
+  trait Elem extends CanBeDocumentChild with ClarkNodes.Elem with ScopedElemApi {
 
     type ThisElem <: Elem
 
@@ -50,17 +50,17 @@ object ScopedNodes {
   /**
    * Arbitrary text node
    */
-  trait Text extends Any with Node with ClarkNodes.Text
+  trait Text extends Node with ClarkNodes.Text
 
   /**
    * Arbitrary comment node
    */
-  trait Comment extends Any with CanBeDocumentChild with ClarkNodes.Comment
+  trait Comment extends CanBeDocumentChild with ClarkNodes.Comment
 
   /**
    * Arbitrary processing instruction node
    */
-  trait ProcessingInstruction extends Any with CanBeDocumentChild with ClarkNodes.ProcessingInstruction
+  trait ProcessingInstruction extends CanBeDocumentChild with ClarkNodes.ProcessingInstruction
 
   object Elem {
 

@@ -41,12 +41,12 @@ object Nodes {
   /**
    * Potential document child, so an element, processing instruction or comment
    */
-  trait CanBeDocumentChild extends Any with Node
+  trait CanBeDocumentChild extends Node
 
   /**
    * Arbitrary element node
    */
-  trait Elem extends Any with CanBeDocumentChild {
+  trait Elem extends CanBeDocumentChild {
 
     final def nodeKind: NodeKind = ElementKind
   }
@@ -54,7 +54,7 @@ object Nodes {
   /**
    * Arbitrary text node
    */
-  trait Text extends Any with Node {
+  trait Text extends Node {
 
     final def nodeKind: NodeKind = TextKind
 
@@ -64,7 +64,7 @@ object Nodes {
   /**
    * Arbitrary comment node
    */
-  trait Comment extends Any with CanBeDocumentChild {
+  trait Comment extends CanBeDocumentChild {
 
     final def nodeKind: NodeKind = CommentKind
 
@@ -74,7 +74,7 @@ object Nodes {
   /**
    * Arbitrary processing instruction node
    */
-  trait ProcessingInstruction extends Any with CanBeDocumentChild {
+  trait ProcessingInstruction extends CanBeDocumentChild {
 
     final def nodeKind: NodeKind = ProcessingInstructionKind
 

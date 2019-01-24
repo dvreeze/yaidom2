@@ -29,7 +29,7 @@ import eu.cdevreeze.yaidom2.core.EName
  *
  * @author Chris de Vreeze
  */
-trait ClarkElemApi extends Any with ElemApi {
+trait ClarkElemApi extends ElemApi {
 
   type ThisElem <: ClarkElemApi
 

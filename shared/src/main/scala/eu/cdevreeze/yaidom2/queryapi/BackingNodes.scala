@@ -36,17 +36,17 @@ object BackingNodes {
   /**
    * Arbitrary node
    */
-  trait Node extends Any with ScopedNodes.Node
+  trait Node extends ScopedNodes.Node
 
   /**
    * Potential document child, so an element, processing instruction or comment
    */
-  trait CanBeDocumentChild extends Any with Node with ScopedNodes.CanBeDocumentChild
+  trait CanBeDocumentChild extends Node with ScopedNodes.CanBeDocumentChild
 
   /**
    * Arbitrary element node, offering the `BackingElemApi` element query API.
    */
-  trait Elem extends Any with CanBeDocumentChild with ScopedNodes.Elem with BackingElemApi {
+  trait Elem extends CanBeDocumentChild with ScopedNodes.Elem with BackingElemApi {
 
     type ThisElem <: Elem
 
@@ -56,17 +56,17 @@ object BackingNodes {
   /**
    * Arbitrary text node
    */
-  trait Text extends Any with Node with ScopedNodes.Text
+  trait Text extends Node with ScopedNodes.Text
 
   /**
    * Arbitrary comment node
    */
-  trait Comment extends Any with CanBeDocumentChild with ScopedNodes.Comment
+  trait Comment extends CanBeDocumentChild with ScopedNodes.Comment
 
   /**
    * Arbitrary processing instruction node
    */
-  trait ProcessingInstruction extends Any with CanBeDocumentChild with ScopedNodes.ProcessingInstruction
+  trait ProcessingInstruction extends CanBeDocumentChild with ScopedNodes.ProcessingInstruction
 
   object Elem {
 

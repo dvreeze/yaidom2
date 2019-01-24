@@ -42,18 +42,18 @@ object SaxonNodes {
   /**
    * Arbitrary Saxon node
    */
-  sealed trait Node extends Any with BackingNodes.Node
+  sealed trait Node extends BackingNodes.Node
 
   /**
    * Potential Saxon document child, so an element, processing instruction or comment
    */
-  sealed trait CanBeDocumentChild extends Any with Node with BackingNodes.CanBeDocumentChild
+  sealed trait CanBeDocumentChild extends Node with BackingNodes.CanBeDocumentChild
 
   /**
    * Saxon element node, offering the `BackingNodes.Elem` element query API.
    * Note that this is a value class, so no object creation is done for these "wrapper elements".
    */
-  final case class Elem(xdmNode: XdmNode) extends AnyVal with CanBeDocumentChild with BackingNodes.Elem {
+  final case class Elem(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.Elem {
 
     type ThisElem = Elem
 
@@ -468,7 +468,7 @@ object SaxonNodes {
   /**
    * Saxon text node
    */
-  final case class Text(xdmNode: XdmNode) extends AnyVal with Node with BackingNodes.Text {
+  final case class Text(xdmNode: XdmNode) extends Node with BackingNodes.Text {
 
     def text: String = {
       validate()
@@ -483,7 +483,7 @@ object SaxonNodes {
   /**
    * Saxon comment node
    */
-  final case class Comment(xdmNode: XdmNode) extends AnyVal with CanBeDocumentChild with BackingNodes.Comment {
+  final case class Comment(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.Comment {
 
     def text: String = {
       validate()
@@ -498,7 +498,7 @@ object SaxonNodes {
   /**
    * Saxon processing instruction node
    */
-  final case class ProcessingInstruction(xdmNode: XdmNode) extends AnyVal with CanBeDocumentChild with BackingNodes.ProcessingInstruction {
+  final case class ProcessingInstruction(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.ProcessingInstruction {
 
     def target: String = {
       validate()

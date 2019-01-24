@@ -25,7 +25,7 @@ import eu.cdevreeze.yaidom2.core.{EName, QName, Scope}
  *
  * @author Chris de Vreeze
  */
-trait ScopedElemApi extends Any with ClarkElemApi {
+trait ScopedElemApi extends ClarkElemApi {
 
   type ThisElem <: ScopedElemApi
 

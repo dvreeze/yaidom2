@@ -38,233 +38,233 @@ object ElemSteps {
 
   // Child axis, for element nodes only
 
-  def childElems[E <: Any with ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def childElems[E <: ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.filterChildElems(p) }
   }
 
-  def childElems[E <: Any with ClarkElemApi.Aux[E]](): ElemStep[E] = {
+  def childElems[E <: ClarkElemApi.Aux[E]](): ElemStep[E] = {
     { (elem: E) => elem.filterChildElems(anyElem) }
   }
 
-  def childElems[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def childElems[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterChildElems(havingName(localName)) }
   }
 
-  def childElems[E <: Any with ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def childElems[E <: ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterChildElems(havingName(namespace, localName)) }
   }
 
-  def childElems[E <: Any with ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def childElems[E <: ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterChildElems(havingName(namespaceOption, localName)) }
   }
 
-  def childElems[E <: Any with ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def childElems[E <: ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.filterChildElems(havingName(ename)) }
   }
 
-  def childElemsIgnoringNamespace[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def childElemsIgnoringNamespace[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterChildElems(havingLocalName(localName)) }
   }
 
   // Descendant axis, for element nodes only
 
-  def descendantElems[E <: Any with ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def descendantElems[E <: ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElems(p) }
   }
 
-  def descendantElems[E <: Any with ClarkElemApi.Aux[E]](): ElemStep[E] = {
+  def descendantElems[E <: ClarkElemApi.Aux[E]](): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElems(anyElem) }
   }
 
-  def descendantElems[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def descendantElems[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElems(havingName(localName)) }
   }
 
-  def descendantElems[E <: Any with ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def descendantElems[E <: ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElems(havingName(namespace, localName)) }
   }
 
-  def descendantElems[E <: Any with ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def descendantElems[E <: ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElems(havingName(namespaceOption, localName)) }
   }
 
-  def descendantElems[E <: Any with ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def descendantElems[E <: ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElems(havingName(ename)) }
   }
 
-  def descendantElemsIgnoringNamespace[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def descendantElemsIgnoringNamespace[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElems(havingLocalName(localName)) }
   }
 
   // Descendant-or-self axis, for element nodes only
 
-  def descendantElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def descendantElemsOrSelf[E <: ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElemsOrSelf(p) }
   }
 
-  def descendantElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](): ElemStep[E] = {
+  def descendantElemsOrSelf[E <: ClarkElemApi.Aux[E]](): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElemsOrSelf(anyElem) }
   }
 
-  def descendantElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def descendantElemsOrSelf[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElemsOrSelf(havingName(localName)) }
   }
 
-  def descendantElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def descendantElemsOrSelf[E <: ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElemsOrSelf(havingName(namespace, localName)) }
   }
 
-  def descendantElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def descendantElemsOrSelf[E <: ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElemsOrSelf(havingName(namespaceOption, localName)) }
   }
 
-  def descendantElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def descendantElemsOrSelf[E <: ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElemsOrSelf(havingName(ename)) }
   }
 
-  def descendantElemsOrSelfIgnoringNamespace[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def descendantElemsOrSelfIgnoringNamespace[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterDescendantElemsOrSelf(havingLocalName(localName)) }
   }
 
   // Descendant axis, short-circuiting, for element nodes only
 
-  def topmostElems[E <: Any with ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def topmostElems[E <: ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElems(p) }
   }
 
-  def topmostElems[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def topmostElems[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElems(havingName(localName)) }
   }
 
-  def topmostElems[E <: Any with ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def topmostElems[E <: ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElems(havingName(namespace, localName)) }
   }
 
-  def topmostElems[E <: Any with ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def topmostElems[E <: ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElems(havingName(namespaceOption, localName)) }
   }
 
-  def topmostElems[E <: Any with ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def topmostElems[E <: ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElems(havingName(ename)) }
   }
 
-  def topmostElemsIgnoringNamespace[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def topmostElemsIgnoringNamespace[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElems(havingLocalName(localName)) }
   }
 
   // Descendant-or-self axis, short-circuiting, for element nodes only
 
-  def topmostElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def topmostElemsOrSelf[E <: ClarkElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElemsOrSelf(p) }
   }
 
-  def topmostElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def topmostElemsOrSelf[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElemsOrSelf(havingName(localName)) }
   }
 
-  def topmostElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def topmostElemsOrSelf[E <: ClarkElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElemsOrSelf(havingName(namespace, localName)) }
   }
 
-  def topmostElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def topmostElemsOrSelf[E <: ClarkElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElemsOrSelf(havingName(namespaceOption, localName)) }
   }
 
-  def topmostElemsOrSelf[E <: Any with ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def topmostElemsOrSelf[E <: ClarkElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElemsOrSelf(havingName(ename)) }
   }
 
-  def topmostElemsOrSelfIgnoringNamespace[E <: Any with ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def topmostElemsOrSelfIgnoringNamespace[E <: ClarkElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.findTopmostElemsOrSelf(havingLocalName(localName)) }
   }
 
   // Parent axis, for element nodes only
 
-  def parentElem[E <: Any with BackingElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def parentElem[E <: BackingElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.findParentElem(p).toIndexedSeq }
   }
 
-  def parentElem[E <: Any with BackingElemApi.Aux[E]](): ElemStep[E] = {
+  def parentElem[E <: BackingElemApi.Aux[E]](): ElemStep[E] = {
     { (elem: E) => elem.findParentElem(anyElem).toIndexedSeq }
   }
 
-  def parentElem[E <: Any with BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def parentElem[E <: BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.findParentElem(havingName(localName)).toIndexedSeq }
   }
 
-  def parentElem[E <: Any with BackingElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def parentElem[E <: BackingElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.findParentElem(havingName(namespace, localName)).toIndexedSeq }
   }
 
-  def parentElem[E <: Any with BackingElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def parentElem[E <: BackingElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.findParentElem(havingName(namespaceOption, localName)).toIndexedSeq }
   }
 
-  def parentElem[E <: Any with BackingElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def parentElem[E <: BackingElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.findParentElem(havingName(ename)).toIndexedSeq }
   }
 
-  def parentElemIgnoringNamespace[E <: Any with BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def parentElemIgnoringNamespace[E <: BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.findParentElem(havingLocalName(localName)).toIndexedSeq }
   }
 
   // Ancestor axis, for element nodes only
 
-  def ancestorElems[E <: Any with BackingElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def ancestorElems[E <: BackingElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElems(p) }
   }
 
-  def ancestorElems[E <: Any with BackingElemApi.Aux[E]](): ElemStep[E] = {
+  def ancestorElems[E <: BackingElemApi.Aux[E]](): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElems(anyElem) }
   }
 
-  def ancestorElems[E <: Any with BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def ancestorElems[E <: BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElems(havingName(localName)) }
   }
 
-  def ancestorElems[E <: Any with BackingElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def ancestorElems[E <: BackingElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElems(havingName(namespace, localName)) }
   }
 
-  def ancestorElems[E <: Any with BackingElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def ancestorElems[E <: BackingElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElems(havingName(namespaceOption, localName)) }
   }
 
-  def ancestorElems[E <: Any with BackingElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def ancestorElems[E <: BackingElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElems(havingName(ename)) }
   }
 
-  def ancestorElemsIgnoringNamespace[E <: Any with BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def ancestorElemsIgnoringNamespace[E <: BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElems(havingLocalName(localName)) }
   }
 
   // Ancestor-or-self axis, for element nodes only
 
-  def ancestorElemsOrSelf[E <: Any with BackingElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
+  def ancestorElemsOrSelf[E <: BackingElemApi.Aux[E]](p: E => Boolean): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElemsOrSelf(p) }
   }
 
-  def ancestorElemsOrSelf[E <: Any with BackingElemApi.Aux[E]](): ElemStep[E] = {
+  def ancestorElemsOrSelf[E <: BackingElemApi.Aux[E]](): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElemsOrSelf(anyElem) }
   }
 
-  def ancestorElemsOrSelf[E <: Any with BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def ancestorElemsOrSelf[E <: BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElemsOrSelf(havingName(localName)) }
   }
 
-  def ancestorElemsOrSelf[E <: Any with BackingElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
+  def ancestorElemsOrSelf[E <: BackingElemApi.Aux[E]](namespace: String, localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElemsOrSelf(havingName(namespace, localName)) }
   }
 
-  def ancestorElemsOrSelf[E <: Any with BackingElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
+  def ancestorElemsOrSelf[E <: BackingElemApi.Aux[E]](namespaceOption: Option[String], localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElemsOrSelf(havingName(namespaceOption, localName)) }
   }
 
-  def ancestorElemsOrSelf[E <: Any with BackingElemApi.Aux[E]](ename: EName): ElemStep[E] = {
+  def ancestorElemsOrSelf[E <: BackingElemApi.Aux[E]](ename: EName): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElemsOrSelf(havingName(ename)) }
   }
 
-  def ancestorElemsOrSelfIgnoringNamespace[E <: Any with BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
+  def ancestorElemsOrSelfIgnoringNamespace[E <: BackingElemApi.Aux[E]](localName: String): ElemStep[E] = {
     { (elem: E) => elem.filterAncestorElemsOrSelf(havingLocalName(localName)) }
   }
 }
