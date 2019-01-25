@@ -27,67 +27,67 @@ import eu.cdevreeze.yaidom2.queryapi.ElemStep
  */
 trait ClarkElemOpsApi extends ElemOpsApi {
 
-  type Elem
+  type ElemType
 
-  type Node >: Elem
+  type NodeType >: ElemType
 
-  def name(thisElem: Elem): EName
+  def name(elem: ElemType): EName
 
-  def attributes(thisElem: Elem): Iterable[(EName, String)]
+  def attributes(elem: ElemType): Iterable[(EName, String)]
 
   /**
    * Returns the local name. That is, returns the local part of the name of the element.
    * This method must be fast in order to support fast local name queries.
    */
-  def localName(thisElem: Elem): String
+  def localName(elem: ElemType): String
 
   /**
    * Returns the optional namespace. That is, returns the optional namespace of the name of the element.
    * This method must be fast in order to support fast namespace queries.
    */
-  def namespaceOption(thisElem: Elem): Option[String]
+  def namespaceOption(elem: ElemType): Option[String]
 
   /**
    * Returns the equivalent of `namespaceOption.getOrElse("")`.
    * This method must be fast in order to support fast namespace queries.
    */
-  def namespaceAsString(thisElem: Elem): String
+  def namespaceAsString(elem: ElemType): String
 
-  def attrOption(thisElem: Elem, attributeName: EName): Option[String]
+  def attrOption(elem: ElemType, attributeName: EName): Option[String]
 
-  def attrOption(thisElem: Elem, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String]
+  def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String]
 
-  def attrOption(thisElem: Elem, attributeNamespace: String, attributeLocalName: String): Option[String]
+  def attrOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[String]
 
   /**
    * Finds an attribute that has no namespace by local name, if any.
    */
-  def attrOption(thisElem: Elem, attributeLocalName: String): Option[String]
+  def attrOption(elem: ElemType, attributeLocalName: String): Option[String]
 
-  def attr(thisElem: Elem, attributeName: EName): String
+  def attr(elem: ElemType, attributeName: EName): String
 
-  def attr(thisElem: Elem, attributeNamespaceOption: Option[String], attributeLocalName: String): String
+  def attr(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): String
 
-  def attr(thisElem: Elem, attributeNamespace: String, attributeLocalName: String): String
+  def attr(elem: ElemType, attributeNamespace: String, attributeLocalName: String): String
 
   /**
    * Gets an attribute that has no namespace by local name, throwing if no such attribute is found.
    */
-  def attr(thisElem: Elem, attributeLocalName: String): String
+  def attr(elem: ElemType, attributeLocalName: String): String
 
-  def text(thisElem: Elem): String
+  def text(elem: ElemType): String
 
-  def normalizedText(thisElem: Elem): String
+  def normalizedText(elem: ElemType): String
 
-  def trimmedText(thisElem: Elem): String
+  def trimmedText(elem: ElemType): String
 
   /**
    * Returns all child nodes, of any kind of node (element node, text node etc.).
    */
-  def children(thisElem: Elem): Seq[Node]
+  def children(elem: ElemType): Seq[NodeType]
 
   /**
    * Applies the given element step to this element.
    */
-  def select(thisElem: Elem, step: ElemStep[Elem]): Seq[Elem]
+  def select(elem: ElemType, step: ElemStep[ElemType]): Seq[ElemType]
 }

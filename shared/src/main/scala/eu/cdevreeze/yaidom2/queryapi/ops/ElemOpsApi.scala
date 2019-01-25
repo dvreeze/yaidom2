@@ -23,21 +23,21 @@ package eu.cdevreeze.yaidom2.queryapi.ops
  */
 trait ElemOpsApi {
 
-  type Elem
+  type ElemType
 
-  def filterChildElems(thisElem: Elem, p: Elem => Boolean): Seq[Elem]
+  def filterChildElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 
-  def findChildElem(thisElem: Elem, p: Elem => Boolean): Option[Elem]
+  def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
-  def filterDescendantElems(thisElem: Elem, p: Elem => Boolean): Seq[Elem]
+  def filterDescendantElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 
-  def findDescendantElem(thisElem: Elem, p: Elem => Boolean): Option[Elem]
+  def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
-  def filterDescendantElemsOrSelf(thisElem: Elem, p: Elem => Boolean): Seq[Elem]
+  def filterDescendantElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 
-  def findDescendantElemOrSelf(thisElem: Elem, p: Elem => Boolean): Option[Elem]
+  def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
-  def findTopmostElems(thisElem: Elem, p: Elem => Boolean): Seq[Elem]
+  def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 
-  def findTopmostElemsOrSelf(thisElem: Elem, p: Elem => Boolean): Seq[Elem]
+  def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 }

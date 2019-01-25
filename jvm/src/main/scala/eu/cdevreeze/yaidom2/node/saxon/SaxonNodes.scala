@@ -27,9 +27,11 @@ import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
+import eu.cdevreeze.yaidom2.queryapi.ops.BackingElemOpsApi
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
 import net.sf.saxon.s9api.streams.Predicates._
+import net.sf.saxon.s9api.streams.Step
 import net.sf.saxon.s9api.streams.Steps._
 
 /**
@@ -63,301 +65,224 @@ object SaxonNodes {
     // ElemApi
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      val stream = xdmNode.select(child(isElement).where(n => p(Elem(n))))
-      stream.toScala(ArraySeq).map(n => Elem(n))
+      Elem.filterChildElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      val stream = xdmNode.select(child(isElement).where(n => p(Elem(n))))
-      stream.asOptionalNode.asScala.map(n => Elem(n))
+      Elem.findChildElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      val stream = xdmNode.select(descendant(isElement).where(n => p(Elem(n))))
-      stream.toScala(ArraySeq).map(n => Elem(n))
+      Elem.filterDescendantElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      val stream = xdmNode.select(descendant(isElement).where(n => p(Elem(n))))
-      stream.asOptionalNode.asScala.map(n => Elem(n))
+      Elem.findDescendantElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      val stream = xdmNode.select(descendantOrSelf(isElement).where(n => p(Elem(n))))
-      stream.toScala(ArraySeq).map(n => Elem(n))
+      Elem.filterDescendantElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
-      val stream = xdmNode.select(descendantOrSelf(isElement).where(n => p(Elem(n))))
-      stream.asOptionalNode.asScala.map(n => Elem(n))
+      Elem.findDescendantElemOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    // TODO Make the following 2 methods more efficient
-
     def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      filterChildElems(_ => true).to(Vector).flatMap(_.findTopmostElemsOrSelf(p)).to(ArraySeq)
+      Elem.findTopmostElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      def findTopmostElemsOrSelf(e: ThisElem): Seq[ThisElem] = {
-        if (p(e)) {
-          Vector(e)
-        } else {
-          // Recursive calls
-
-          filterChildElems(_ => true).to(Vector).flatMap(findTopmostElemsOrSelf)
-        }
-      }
-
-      findTopmostElemsOrSelf(this).to(ArraySeq)
+      Elem.findTopmostElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     // ClarkElemApi
 
     def name: EName = {
-      Node.extractEName(xdmNode)
+      Elem.name(xdmNode)
     }
 
     def attributes: Iterable[(EName, String)] = {
-      val stream = xdmNode.select(attribute())
-      stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue)
+      Elem.attributes(xdmNode)
     }
 
     def localName: String = {
-      // No validation for speed
-      xdmNode.getUnderlyingNode.getLocalPart
+      Elem.localName(xdmNode)
     }
 
     def namespaceOption: Option[String] = {
-      // No validation for speed
-      val nsAsString = namespaceAsString
-
-      if (nsAsString.isEmpty) None else Some(nsAsString)
+      Elem.namespaceOption(xdmNode)
     }
 
     def namespaceAsString: String = {
-      // No validation for speed
-      xdmNode.getUnderlyingNode.getURI
+      Elem.namespaceAsString(xdmNode)
     }
 
     def attrOption(attributeName: EName): Option[String] = {
-      val stream = xdmNode.select(attribute(attributeName.namespaceUriOption.getOrElse(""), attributeName.localPart))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      Elem.attrOption(xdmNode, attributeName)
     }
 
     def attrOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
-      val stream = xdmNode.select(attribute(attributeNamespaceOption.getOrElse(""), attributeLocalName))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      Elem.attrOption(xdmNode, attributeNamespaceOption, attributeLocalName)
     }
 
     def attrOption(attributeNamespace: String, attributeLocalName: String): Option[String] = {
-      require(attributeNamespace.nonEmpty, s"Empty namespace URI not allowed")
-
-      val stream = xdmNode.select(attribute(attributeNamespace, attributeLocalName))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      Elem.attrOption(xdmNode, attributeNamespace, attributeLocalName)
     }
 
     def attrOption(attributeLocalName: String): Option[String] = {
-      val stream = xdmNode.select(attribute("", attributeLocalName))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      Elem.attrOption(xdmNode, attributeLocalName)
     }
 
     def attr(attributeName: EName): String = {
-      attrOption(attributeName).get
+      Elem.attr(xdmNode, attributeName)
     }
 
     def attr(attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
-      attrOption(attributeNamespaceOption, attributeLocalName).get
+      Elem.attr(xdmNode, attributeNamespaceOption, attributeLocalName)
     }
 
     def attr(attributeNamespace: String, attributeLocalName: String): String = {
-      attrOption(attributeNamespace, attributeLocalName).get
+      Elem.attr(xdmNode, attributeNamespace, attributeLocalName)
     }
 
     def attr(attributeLocalName: String): String = {
-      attrOption(attributeLocalName).get
+      Elem.attr(xdmNode, attributeLocalName)
     }
 
     def text: String = {
-      val stream = xdmNode.select(child(isText))
-      stream.toScala(ArraySeq).map(_.getUnderlyingNode.getStringValue).mkString
+      Elem.text(xdmNode)
     }
 
     def normalizedText: String = {
-      normalizeString(text)
+      Elem.normalizedText(xdmNode)
     }
 
     def trimmedText: String = {
-      text.trim
+      Elem.trimmedText(xdmNode)
     }
 
     // ScopedElemApi
 
     def scope: Scope = {
-      val stream = xdmNode.select(namespace())
-
-      val result = stream.toScala(ArraySeq).map { n =>
-        // Not very transparent: prefix is "display name" and namespace URI is "string value"
-        val prefix = n.getUnderlyingNode.getDisplayName
-        val nsUri = n.getUnderlyingNode.getStringValue
-        (prefix -> nsUri)
-      }
-      Scope.from(result.to(Map))
+      Elem.scope(xdmNode)
     }
 
     def qname: QName = {
-      Node.extractQName(xdmNode)
+      Elem.qname(xdmNode)
     }
 
     def attributesByQName: Iterable[(QName, String)] = {
-      val stream = xdmNode.select(attribute())
-      stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue)
+      Elem.attributesByQName(xdmNode)
     }
 
     def textAsQName: QName = {
-      QName.parse(text.trim)
+      Elem.textAsQName(xdmNode)
     }
 
     def textAsResolvedQName: EName = {
-      scope.resolveQNameOption(textAsQName).getOrElse(
-        sys.error(s"Could not resolve QName-valued element text $textAsQName, given scope [${scope}]"))
+      Elem.textAsResolvedQName(xdmNode)
     }
 
     def attrAsQNameOption(attributeName: EName): Option[QName] = {
-      attrOption(attributeName).map(v => QName.parse(v.trim))
+      Elem.attrAsQNameOption(xdmNode, attributeName)
     }
 
     def attrAsQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
-      attrOption(attributeNamespaceOption, attributeLocalName).map(v => QName.parse(v.trim))
+      Elem.attrAsQNameOption(xdmNode, attributeNamespaceOption, attributeLocalName)
     }
 
     def attrAsQNameOption(attributeNamespace: String, attributeLocalName: String): Option[QName] = {
-      attrOption(attributeNamespace, attributeLocalName).map(v => QName.parse(v.trim))
+      Elem.attrAsQNameOption(xdmNode, attributeNamespace, attributeLocalName)
     }
 
     def attrAsQName(attributeName: EName): QName = {
-      attrAsQNameOption(attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
+      Elem.attrAsQName(xdmNode, attributeName)
     }
 
     def attrAsQName(attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
-      attrAsQNameOption(attributeNamespaceOption, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
+      Elem.attrAsQName(xdmNode, attributeNamespaceOption, attributeLocalName)
     }
 
     def attrAsQName(attributeNamespace: String, attributeLocalName: String): QName = {
-      attrAsQNameOption(attributeNamespace, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
+      Elem.attrAsQName(xdmNode, attributeNamespace, attributeLocalName)
     }
 
     def attrAsResolvedQNameOption(attributeName: EName): Option[EName] = {
-      attrAsQNameOption(attributeName).map { qn =>
-        scope.resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope}]"))
-      }
+      Elem.attrAsResolvedQNameOption(xdmNode, attributeName)
     }
 
     def attrAsResolvedQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
-      attrAsQNameOption(attributeNamespaceOption, attributeLocalName).map { qn =>
-        scope.resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope}]"))
-      }
+      Elem.attrAsResolvedQNameOption(xdmNode, attributeNamespaceOption, attributeLocalName)
     }
 
     def attrAsResolvedQNameOption(attributeNamespace: String, attributeLocalName: String): Option[EName] = {
-      attrAsQNameOption(attributeNamespace, attributeLocalName).map { qn =>
-        scope.resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope}]"))
-      }
+      Elem.attrAsResolvedQNameOption(xdmNode, attributeNamespace, attributeLocalName)
     }
 
     def attrAsResolvedQName(attributeName: EName): EName = {
-      attrAsResolvedQNameOption(attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
+      Elem.attrAsResolvedQName(xdmNode, attributeName)
     }
 
     def attrAsResolvedQName(attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
-      attrAsResolvedQNameOption(attributeNamespaceOption, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
+      Elem.attrAsResolvedQName(xdmNode, attributeNamespaceOption, attributeLocalName)
     }
 
     def attrAsResolvedQName(attributeNamespace: String, attributeLocalName: String): EName = {
-      attrAsResolvedQNameOption(attributeNamespace, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
+      Elem.attrAsResolvedQName(xdmNode, attributeNamespace, attributeLocalName)
     }
 
     // BackingElemApi
 
     def findParentElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      val stream = xdmNode.select(parent(isElement).where(n => p(Elem(n))))
-      stream.asOptionalNode.asScala.map(n => Elem(n))
+      Elem.findParentElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      val stream = xdmNode.select(ancestor(isElement).where(n => p(Elem(n))))
-      stream.toScala(ArraySeq).map(n => Elem(n))
+      Elem.filterAncestorElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      val stream = xdmNode.select(ancestor(isElement).where(n => p(Elem(n))))
-      stream.asOptionalNode.asScala.map(n => Elem(n))
+      Elem.findAncestorElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      val stream = xdmNode.select(ancestorOrSelf(isElement).where(n => p(Elem(n))))
-      stream.toScala(ArraySeq).map(n => Elem(n))
+      Elem.filterAncestorElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
-      val stream = xdmNode.select(ancestorOrSelf(isElement).where(n => p(Elem(n))))
-      stream.asOptionalNode.asScala.map(n => Elem(n))
+      Elem.findAncestorElemOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def baseUriOption: Option[URI] = {
-      Option(xdmNode.getUnderlyingNode.getBaseURI).map(u => URI.create(u))
+      Elem.baseUriOption(xdmNode)
     }
 
     def baseUri: URI = {
-      baseUriOption.getOrElse(Node.EmptyUri)
+      Elem.baseUri(xdmNode)
     }
 
     def docUriOption: Option[URI] = {
-      Option(xdmNode.getUnderlyingNode.getSystemId).map(u => URI.create(u))
+      Elem.docUriOption(xdmNode)
     }
 
     def docUri: URI = {
-      docUriOption.getOrElse(Node.EmptyUri)
+      Elem.docUri(xdmNode)
     }
 
     def rootElem: ThisElem = {
-      filterAncestorElemsOrSelf(_ => true).last
+      Elem(Elem.rootElem(xdmNode))
     }
 
     // ClarkNodes.Elem
 
     def children: Seq[ThisNode] = {
-      val stream = xdmNode.select(child())
-      stream.toScala(ArraySeq).flatMap(n => Node.opt(n))
+      Elem.children(xdmNode).flatMap(n => Node.opt(n))
     }
 
     def select(step: ElemStep[Elem]): Seq[Elem] = {
+      // Implemented directly, instead of in terms of Elem.select.
       step(this)
-    }
-
-    // Private methods
-
-    /**
-     * Normalizes the string, removing surrounding whitespace and normalizing internal whitespace to a single space.
-     * Whitespace includes #x20 (space), #x9 (tab), #xD (carriage return), #xA (line feed). If there is only whitespace,
-     * the empty string is returned. Inspired by the JDOM library.
-     */
-    private def normalizeString(s: String): String = {
-      require(s ne null) // scalastyle:off null
-
-      val separators = Array(' ', '\t', '\r', '\n')
-      val words: Seq[String] = s.split(separators).toSeq.filterNot(_.isEmpty)
-
-      words.mkString(" ") // Returns empty string if words.isEmpty
     }
   }
 
@@ -423,5 +348,298 @@ object SaxonNodes {
     }
 
     private[saxon] val EmptyUri: URI = URI.create("")
+  }
+
+  object Elem extends BackingElemOpsApi {
+
+    type ElemType = XdmNode
+
+    type NodeType = XdmNode
+
+    def filterChildElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      filterElems(elem, child(), p)
+    }
+
+    def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      findElem(elem, child(), p)
+    }
+
+    def filterDescendantElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      filterElems(elem, descendant(), p)
+    }
+
+    def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      findElem(elem, descendant(), p)
+    }
+
+    def filterDescendantElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      filterElems(elem, descendantOrSelf(), p)
+    }
+
+    def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      findElem(elem, descendantOrSelf(), p)
+    }
+
+    // TODO Make the following 2 methods more efficient
+
+    def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      filterChildElems(elem, _ => true).to(Vector).flatMap(e => findTopmostElemsOrSelf(e, p)).to(ArraySeq)
+    }
+
+    def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      def findTopmostElemsOrSelf(e: ElemType): Seq[ElemType] = {
+        if (p(e)) {
+          Vector(e)
+        } else {
+          // Recursive calls
+
+          filterChildElems(e, _ => true).to(Vector).flatMap(che => findTopmostElemsOrSelf(che))
+        }
+      }
+
+      findTopmostElemsOrSelf(elem).to(ArraySeq)
+    }
+
+    def name(elem: ElemType): EName = {
+      Node.extractEName(elem)
+    }
+
+    def attributes(elem: ElemType): Iterable[(EName, String)] = {
+      val stream = elem.select(attribute())
+      stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue)
+    }
+
+    def localName(elem: ElemType): String = {
+      elem.getUnderlyingNode.getLocalPart
+    }
+
+    def namespaceOption(elem: ElemType): Option[String] = {
+      val nsAsString = namespaceAsString(elem)
+
+      if (nsAsString.isEmpty) None else Some(nsAsString)
+    }
+
+    def namespaceAsString(elem: ElemType): String = {
+      elem.getUnderlyingNode.getURI
+    }
+
+    def attrOption(elem: ElemType, attributeName: EName): Option[String] = {
+      val stream = elem.select(attribute(attributeName.namespaceUriOption.getOrElse(""), attributeName.localPart))
+      stream.asOptionalNode.asScala.map(_.getStringValue)
+    }
+
+    def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
+      val stream = elem.select(attribute(attributeNamespaceOption.getOrElse(""), attributeLocalName))
+      stream.asOptionalNode.asScala.map(_.getStringValue)
+    }
+
+    def attrOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[String] = {
+      require(attributeNamespace.nonEmpty, s"Empty namespace URI not allowed")
+
+      val stream = elem.select(attribute(attributeNamespace, attributeLocalName))
+      stream.asOptionalNode.asScala.map(_.getStringValue)
+    }
+
+    def attrOption(elem: ElemType, attributeLocalName: String): Option[String] = {
+      val stream = elem.select(attribute("", attributeLocalName))
+      stream.asOptionalNode.asScala.map(_.getStringValue)
+    }
+
+    def attr(elem: ElemType, attributeName: EName): String = {
+      attrOption(elem, attributeName).get
+    }
+
+    def attr(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
+      attrOption(elem, attributeNamespaceOption, attributeLocalName).get
+    }
+
+    def attr(elem: ElemType, attributeNamespace: String, attributeLocalName: String): String = {
+      attrOption(elem, attributeNamespace, attributeLocalName).get
+    }
+
+    def attr(elem: ElemType, attributeLocalName: String): String = {
+      attrOption(elem, attributeLocalName).get
+    }
+
+    def text(elem: ElemType): String = {
+      val stream = elem.select(child(isText))
+      stream.toScala(ArraySeq).map(_.getUnderlyingNode.getStringValue).mkString
+    }
+
+    def normalizedText(elem: ElemType): String = {
+      normalizeString(text(elem))
+    }
+
+    def trimmedText(elem: ElemType): String = {
+      text(elem).trim
+    }
+
+    def children(elem: ElemType): Seq[NodeType] = {
+      val stream = elem.select(child())
+      stream.toScala(ArraySeq)
+    }
+
+    def select(elem: ElemType, step: ElemStep[ElemType]): Seq[ElemType] = {
+      step(elem)
+    }
+
+    def scope(elem: ElemType): Scope = {
+      val stream = elem.select(namespace())
+
+      val result = stream.toScala(ArraySeq).map { n =>
+        // Not very transparent: prefix is "display name" and namespace URI is "string value"
+        val prefix = n.getUnderlyingNode.getDisplayName
+        val nsUri = n.getUnderlyingNode.getStringValue
+        (prefix -> nsUri)
+      }
+      Scope.from(result.to(Map))
+    }
+
+    def qname(elem: ElemType): QName = {
+      Node.extractQName(elem)
+    }
+
+    def attributesByQName(elem: ElemType): Iterable[(QName, String)] = {
+      val stream = elem.select(attribute())
+      stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue)
+    }
+
+    def textAsQName(elem: ElemType): QName = {
+      QName.parse(text(elem).trim)
+    }
+
+    def textAsResolvedQName(elem: ElemType): EName = {
+      scope(elem).resolveQNameOption(textAsQName(elem)).getOrElse(
+        sys.error(s"Could not resolve QName-valued element text ${textAsQName(elem)}, given scope [${scope(elem)}]"))
+    }
+
+    def attrAsQNameOption(elem: ElemType, attributeName: EName): Option[QName] = {
+      attrOption(elem, attributeName).map(v => QName.parse(v.trim))
+    }
+
+    def attrAsQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
+      attrOption(elem, attributeNamespaceOption, attributeLocalName).map(v => QName.parse(v.trim))
+    }
+
+    def attrAsQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[QName] = {
+      attrOption(elem, attributeNamespace, attributeLocalName).map(v => QName.parse(v.trim))
+    }
+
+    def attrAsQName(elem: ElemType, attributeName: EName): QName = {
+      attrAsQNameOption(elem, attributeName).getOrElse(
+        sys.error(s"Missing QName-valued attribute $attributeName"))
+    }
+
+    def attrAsQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
+      attrAsQNameOption(elem, attributeNamespaceOption, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
+    }
+
+    def attrAsQName(elem: ElemType, attributeNamespace: String, attributeLocalName: String): QName = {
+      attrAsQNameOption(elem, attributeNamespace, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
+    }
+
+    def attrAsResolvedQNameOption(elem: ElemType, attributeName: EName): Option[EName] = {
+      attrAsQNameOption(elem, attributeName).map { qn =>
+        scope(elem).resolveQNameOption(qn).getOrElse(
+          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+      }
+    }
+
+    def attrAsResolvedQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
+      attrAsQNameOption(elem, attributeNamespaceOption, attributeLocalName).map { qn =>
+        scope(elem).resolveQNameOption(qn).getOrElse(
+          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+      }
+    }
+
+    def attrAsResolvedQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[EName] = {
+      attrAsQNameOption(elem, attributeNamespace, attributeLocalName).map { qn =>
+        scope(elem).resolveQNameOption(qn).getOrElse(
+          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+      }
+    }
+
+    def attrAsResolvedQName(elem: ElemType, attributeName: EName): EName = {
+      attrAsResolvedQNameOption(elem, attributeName).getOrElse(
+        sys.error(s"Missing QName-valued attribute $attributeName"))
+    }
+
+    def attrAsResolvedQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
+      attrAsResolvedQNameOption(elem, attributeNamespaceOption, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
+    }
+
+    def attrAsResolvedQName(elem: ElemType, attributeNamespace: String, attributeLocalName: String): EName = {
+      attrAsResolvedQNameOption(elem, attributeNamespace, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
+    }
+
+    def findParentElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      findElem(elem, parent(), p)
+    }
+
+    def filterAncestorElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      filterElems(elem, ancestor(), p)
+    }
+
+    def findAncestorElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      findElem(elem, ancestor(), p)
+    }
+
+    def filterAncestorElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      filterElems(elem, ancestorOrSelf(), p)
+    }
+
+    def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      findElem(elem, ancestorOrSelf(), p)
+    }
+
+    def baseUriOption(elem: ElemType): Option[URI] = {
+      Option(elem.getUnderlyingNode.getBaseURI).map(u => URI.create(u))
+    }
+
+    def baseUri(elem: ElemType): URI = {
+      baseUriOption(elem).getOrElse(Node.EmptyUri)
+    }
+
+    def docUriOption(elem: ElemType): Option[URI] = {
+      Option(elem.getUnderlyingNode.getSystemId).map(u => URI.create(u))
+    }
+
+    def docUri(elem: ElemType): URI = {
+      docUriOption(elem).getOrElse(Node.EmptyUri)
+    }
+
+    def rootElem(elem: ElemType): ElemType = {
+      filterAncestorElemsOrSelf(elem, _ => true).last
+    }
+
+    // Private methods
+
+    private def filterElems(elem: ElemType, step: Step[XdmNode], p: ElemType => Boolean): Seq[ElemType] = {
+      val stream = elem.select(step.where(isElement).where(n => p(n)))
+      stream.toScala(ArraySeq)
+    }
+
+    private def findElem(elem: ElemType, step: Step[XdmNode], p: ElemType => Boolean): Option[ElemType] = {
+      val stream = elem.select(step.where(isElement).where(n => p(n)))
+      stream.findFirst.asScala
+    }
+
+    /**
+     * Normalizes the string, removing surrounding whitespace and normalizing internal whitespace to a single space.
+     * Whitespace includes #x20 (space), #x9 (tab), #xD (carriage return), #xA (line feed). If there is only whitespace,
+     * the empty string is returned. Inspired by the JDOM library.
+     */
+    private def normalizeString(s: String): String = {
+      require(s ne null) // scalastyle:off null
+
+      val separators = Array(' ', '\t', '\r', '\n')
+      val words: Seq[String] = s.split(separators).toSeq.filterNot(_.isEmpty)
+
+      words.mkString(" ") // Returns empty string if words.isEmpty
+    }
   }
 }
