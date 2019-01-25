@@ -619,12 +619,12 @@ object SaxonNodes {
     // Private methods
 
     private def filterElems(elem: ElemType, step: Step[XdmNode], p: ElemType => Boolean): Seq[ElemType] = {
-      val stream = elem.select(step.where(isElement).where(n => p(n)))
+      val stream = elem.select(step.where(n => isElement.test(n) && p(n)))
       stream.toScala(ArraySeq)
     }
 
     private def findElem(elem: ElemType, step: Step[XdmNode], p: ElemType => Boolean): Option[ElemType] = {
-      val stream = elem.select(step.where(isElement).where(n => p(n)))
+      val stream = elem.select(step.where(n => isElement.test(n) && p(n)))
       stream.findFirst.asScala
     }
 
