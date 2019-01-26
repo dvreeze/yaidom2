@@ -17,7 +17,6 @@
 package eu.cdevreeze.yaidom2.queryapi.fun
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.ElemStep
 
 /**
  * Clark element function API. See `ClarkElemApi`, but this is its non-OO functional counterpart. More precisely,
@@ -86,10 +85,7 @@ trait ClarkElemFunctionsApi extends ElemFunctionsApi {
    */
   def children(elem: ElemType): Seq[NodeType]
 
-  /**
-   * Applies the given element step to this element.
-   */
-  def select(elem: ElemType, step: ElemStep[ElemType]): Seq[ElemType]
+  // No equivalent of the select method for Clark elements.
 }
 
 object ClarkElemFunctionsApi {
