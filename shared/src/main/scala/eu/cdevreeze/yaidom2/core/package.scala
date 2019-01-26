@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi
+package eu.cdevreeze.yaidom2
 
 /**
- * Functional instead of object-oriented query API. It can work directly with other XML implementations without
- * wrapping those elements as objects that offer the OO query API.
+ * The core concepts of yaidom2. For example, qualified names, expanded names, namespace declarations and in-scope namespaces.
+ * These concepts form a "namespace theory", in which they are related to each other in a mathematically precise way.
+ *
+ * The rest of yaidom2 depends on this package, and reversely, this package depends on nothing else in yaidom2.
  *
  * @author Chris de Vreeze
  */
-package object ops
+package object core

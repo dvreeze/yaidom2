@@ -25,9 +25,9 @@ import scala.compat.java8.StreamConverters._
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.ops.BackingElemOpsApi
+import eu.cdevreeze.yaidom2.queryapi.fun.BackingElemFunctionsApi
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
 import net.sf.saxon.s9api.streams.Predicates._
@@ -350,7 +350,7 @@ object SaxonNodes {
     private[saxon] val EmptyUri: URI = URI.create("")
   }
 
-  object Elem extends BackingElemOpsApi {
+  object Elem extends BackingElemFunctionsApi {
 
     type ElemType = XdmNode
 

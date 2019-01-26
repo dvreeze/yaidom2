@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi
+package eu.cdevreeze.yaidom2.queryapi.oo
 
 /**
  * Element API. It knows how to find elements by following one of the axes descendant-or-self, descendant

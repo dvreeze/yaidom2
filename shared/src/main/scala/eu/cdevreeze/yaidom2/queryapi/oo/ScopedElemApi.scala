@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi
+package eu.cdevreeze.yaidom2.queryapi.oo
 
-import eu.cdevreeze.yaidom2.core.{EName, QName, Scope}
+import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.core.QName
+import eu.cdevreeze.yaidom2.core.Scope
 
 /**
  * So-called scoped element API. It extends trait `ClarkElemApi`, but it is also aware of qualified names (of elements

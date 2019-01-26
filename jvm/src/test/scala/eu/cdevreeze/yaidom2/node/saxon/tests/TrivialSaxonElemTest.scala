@@ -23,8 +23,8 @@ import scala.compat.java8.StreamConverters._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.queryapi.predicates._
-import eu.cdevreeze.yaidom2.queryapi.steps.ElemSteps._
+import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
+import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.streams.Predicates._

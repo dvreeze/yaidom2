@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi
+package eu.cdevreeze.yaidom2.queryapi.oo
 
 /**
  * Abstract node (marker) trait hierarchy. It offers a common minimal API for different kinds of nodes. It also shows
@@ -33,7 +33,7 @@ object Nodes {
   /**
    * Arbitrary node
    */
-  trait Node extends Any {
+  trait Node {
 
     def nodeKind: NodeKind
   }
