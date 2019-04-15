@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.queryapi.fun
 
+import scala.collection.immutable
+
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
@@ -34,7 +36,7 @@ trait ScopedElemFunctionsApi extends ClarkElemFunctionsApi {
 
   def qname(elem: ElemType): QName
 
-  def attributesByQName(elem: ElemType): Iterable[(QName, String)]
+  def attributesByQName(elem: ElemType): immutable.Iterable[(QName, String)]
 
   def textAsQName(elem: ElemType): QName
 

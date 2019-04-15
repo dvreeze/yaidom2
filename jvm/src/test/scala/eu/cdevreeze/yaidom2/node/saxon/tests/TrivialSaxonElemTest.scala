@@ -19,7 +19,7 @@ package eu.cdevreeze.yaidom2.node.saxon.tests
 import java.io.File
 
 import scala.collection.immutable.ArraySeq
-import scala.compat.java8.StreamConverters._
+import scala.jdk.StreamConverters.Ops._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
@@ -29,9 +29,9 @@ import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.streams.Predicates._
 import net.sf.saxon.s9api.streams.Steps._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class TrivialSaxonElemTest extends FunSuite {
+class TrivialSaxonElemTest extends AnyFunSuite {
 
   test("testParseAndQueryXml") {
     val processor = new Processor(false)

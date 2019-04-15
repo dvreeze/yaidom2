@@ -18,9 +18,10 @@ package eu.cdevreeze.yaidom2.node.saxon
 
 import java.net.URI
 
+import scala.collection.immutable
 import scala.collection.immutable.ArraySeq
-import scala.compat.java8.OptionConverters._
-import scala.compat.java8.StreamConverters._
+import scala.jdk.OptionConverters.Ops._
+import scala.jdk.StreamConverters.Ops._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
@@ -102,7 +103,7 @@ object SaxonNodes {
       Elem.name(xdmNode)
     }
 
-    def attributes: Iterable[(EName, String)] = {
+    def attributes: immutable.Iterable[(EName, String)] = {
       Elem.attributes(xdmNode)
     }
 
@@ -172,7 +173,7 @@ object SaxonNodes {
       Elem.qname(xdmNode)
     }
 
-    def attributesByQName: Iterable[(QName, String)] = {
+    def attributesByQName: immutable.Iterable[(QName, String)] = {
       Elem.attributesByQName(xdmNode)
     }
 
@@ -404,7 +405,7 @@ object SaxonNodes {
       Node.extractEName(elem)
     }
 
-    def attributes(elem: ElemType): Iterable[(EName, String)] = {
+    def attributes(elem: ElemType): immutable.Iterable[(EName, String)] = {
       val stream = elem.select(attribute())
       stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue)
     }
@@ -425,24 +426,24 @@ object SaxonNodes {
 
     def attrOption(elem: ElemType, attributeName: EName): Option[String] = {
       val stream = elem.select(attribute(attributeName.namespaceUriOption.getOrElse(""), attributeName.localPart))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      stream.asOptionalNode.toScala.map(_.getStringValue)
     }
 
     def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
       val stream = elem.select(attribute(attributeNamespaceOption.getOrElse(""), attributeLocalName))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      stream.asOptionalNode.toScala.map(_.getStringValue)
     }
 
     def attrOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[String] = {
       require(attributeNamespace.nonEmpty, s"Empty namespace URI not allowed")
 
       val stream = elem.select(attribute(attributeNamespace, attributeLocalName))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      stream.asOptionalNode.toScala.map(_.getStringValue)
     }
 
     def attrOption(elem: ElemType, attributeLocalName: String): Option[String] = {
       val stream = elem.select(attribute("", attributeLocalName))
-      stream.asOptionalNode.asScala.map(_.getStringValue)
+      stream.asOptionalNode.toScala.map(_.getStringValue)
     }
 
     def attr(elem: ElemType, attributeName: EName): String = {
@@ -499,7 +500,7 @@ object SaxonNodes {
       Node.extractQName(elem)
     }
 
-    def attributesByQName(elem: ElemType): Iterable[(QName, String)] = {
+    def attributesByQName(elem: ElemType): immutable.Iterable[(QName, String)] = {
       val stream = elem.select(attribute())
       stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue)
     }
@@ -625,7 +626,7 @@ object SaxonNodes {
 
     private def findElem(elem: ElemType, step: Step[XdmNode], p: ElemType => Boolean): Option[ElemType] = {
       val stream = elem.select(step.where(n => isElement.test(n) && p(n)))
-      stream.findFirst.asScala
+      stream.findFirst.toScala
     }
 
     /**

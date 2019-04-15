@@ -16,8 +16,6 @@
 
 package eu.cdevreeze.yaidom2.core
 
-import Scope.DefaultNsPrefix
-
 /**
  * Scope mapping prefixes to namespace URIs, as well as holding an optional default namespace. In other words, <em>in-scope
  * namespaces</em>.
