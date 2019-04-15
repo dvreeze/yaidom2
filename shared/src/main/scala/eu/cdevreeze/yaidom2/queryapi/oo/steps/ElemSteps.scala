@@ -34,6 +34,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
  *
  * @author Chris de Vreeze
  */
+// scalastyle:off number.of.methods
 object ElemSteps {
 
   // Child axis, for element nodes only

@@ -56,6 +56,7 @@ object SaxonNodes {
    * Saxon element node, offering the `BackingNodes.Elem` element query API.
    * Note that this is a value class, so no object creation is done for these "wrapper elements".
    */
+  // scalastyle:off number.of.methods
   final case class Elem(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.Elem {
     require(xdmNode.getNodeKind == XdmNodeKind.ELEMENT, s"Not an element node: $xdmNode")
 
@@ -351,6 +352,7 @@ object SaxonNodes {
     private[saxon] val EmptyUri: URI = URI.create("")
   }
 
+  // scalastyle:off number.of.methods
   object Elem extends BackingElemFunctionsApi {
 
     type ElemType = XdmNode

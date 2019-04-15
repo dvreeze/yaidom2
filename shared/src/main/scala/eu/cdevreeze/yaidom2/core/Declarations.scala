@@ -90,9 +90,11 @@ final case class Declarations(prefixNamespaceMap: Map[String, String]) {
   def minus(prefixes: Set[String]): Declarations = Declarations(this.prefixNamespaceMap -- prefixes)
 
   /** Alias for `append` */
+  // scalastyle:off method.name
   def ++(declarations: Declarations): Declarations = append(declarations)
 
   /** Alias for `minus` */
+  // scalastyle:off method.name
   def --(prefixes: Set[String]): Declarations = minus(prefixes)
 
   /** Alias for `append(Declarations.from((prefix, namespace)))` */

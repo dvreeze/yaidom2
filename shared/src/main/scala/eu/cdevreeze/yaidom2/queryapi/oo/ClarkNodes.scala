@@ -39,7 +39,9 @@ object ClarkNodes {
   trait CanBeDocumentChild extends Node with Nodes.CanBeDocumentChild
 
   /**
-   * Arbitrary element node, offering the `ClarkElemApi` element query API (and more)
+   * Arbitrary element node, offering the `ClarkElemApi` element query API (and more).
+   *
+   * Method `select` makes it possible to use the `ElemStep` API on "Clark element nodes".
    */
   trait Elem extends CanBeDocumentChild with Nodes.Elem with ClarkElemApi {
 

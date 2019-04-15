@@ -241,9 +241,11 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
   def minus(prefixes: Set[String]): Scope = Scope(this.prefixNamespaceMap -- prefixes)
 
   /** Alias for `append` */
+  // scalastyle:off method.name
   def ++(scope: Scope): Scope = append(scope)
 
   /** Alias for `minus` */
+  // scalastyle:off method.name
   def --(prefixes: Set[String]): Scope = minus(prefixes)
 
   /** Alias for `append(Scope.from((prefix, namespace)))` */

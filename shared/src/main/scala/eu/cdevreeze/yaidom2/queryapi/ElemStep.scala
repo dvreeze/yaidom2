@@ -39,6 +39,7 @@ trait ElemStep[E] extends Function1[E, Seq[E]] {
   /**
    * Alias for method concat.
    */
+  // scalastyle:off method.name
   final def /(step: ElemStep[E]): ElemStep[E] = {
     concat(step)
   }

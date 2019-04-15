@@ -21,4 +21,5 @@ package eu.cdevreeze
  *
  * @author Chris de Vreeze
  */
+// scalastyle:off package.object.name
 package object yaidom2
