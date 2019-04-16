@@ -21,6 +21,7 @@ import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
+import eu.cdevreeze.yaidom2.queryapi.fun.ClarkElemFunctionsApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 
 /**
@@ -216,7 +217,11 @@ object ResolvedNodes {
     }
   }
 
-  object Elem {
+  object Elem extends ClarkElemFunctionsApi {
+
+    type ElemType = Elem
+
+    type NodeType = Node
 
     def copyTreeFrom(elm: ClarkNodes.Elem): Elem = {
       val children = elm.children.collect {
@@ -228,5 +233,110 @@ object ResolvedNodes {
 
       Elem(elm.name, elm.attributes.toMap, resolvedChildren)
     }
+
+    def filterChildElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      elem.filterChildElems(p)
+    }
+
+    def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      elem.findChildElem(p)
+    }
+
+    def filterDescendantElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      elem.filterDescendantElems(p)
+    }
+
+    def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      elem.findDescendantElem(p)
+    }
+
+    def filterDescendantElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      elem.filterDescendantElemsOrSelf(p)
+    }
+
+    def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      elem.findDescendantElemOrSelf(p)
+    }
+
+    def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      elem.findTopmostElems(p)
+    }
+
+    def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      elem.findTopmostElemsOrSelf(p)
+    }
+
+    def name(elem: ElemType): EName = {
+      elem.name
+    }
+
+    def attributes(elem: ElemType): Map[EName, String] = {
+      elem.attributes
+    }
+
+    def localName(elem: ElemType): String = {
+      elem.localName
+    }
+
+    def namespaceOption(elem: ElemType): Option[String] = {
+      elem.namespaceOption
+    }
+
+    def namespaceAsString(elem: ElemType): String = {
+      elem.namespaceAsString
+    }
+
+    def attrOption(elem: ElemType, attributeName: EName): Option[String] = {
+      elem.attrOption(attributeName)
+    }
+
+    def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
+      elem.attrOption(attributeNamespaceOption, attributeLocalName)
+    }
+
+    def attrOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[String] = {
+      elem.attrOption(attributeNamespace, attributeLocalName)
+    }
+
+    def attrOption(elem: ElemType, attributeLocalName: String): Option[String] = {
+      elem.attrOption(attributeLocalName)
+    }
+
+    def attr(elem: ElemType, attributeName: EName): String = {
+      elem.attr(attributeName)
+    }
+
+    def attr(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
+      elem.attr(attributeNamespaceOption, attributeLocalName)
+    }
+
+    def attr(elem: ElemType, attributeNamespace: String, attributeLocalName: String): String = {
+      elem.attr(attributeNamespace, attributeLocalName)
+    }
+
+    def attr(elem: ElemType, attributeLocalName: String): String = {
+      elem.attr(attributeLocalName)
+    }
+
+    def text(elem: ElemType): String = {
+      elem.text
+    }
+
+    def normalizedText(elem: ElemType): String = {
+      elem.normalizedText
+    }
+
+    def trimmedText(elem: ElemType): String = {
+      elem.trimmedText
+    }
+
+    def children(elem: ElemType): Seq[NodeType] = {
+      elem.children
+    }
+
+    def select(elem: ElemType, step: ElemStep[ElemType]): Seq[ElemType] = {
+      elem.select(step)
+    }
   }
+
 }
