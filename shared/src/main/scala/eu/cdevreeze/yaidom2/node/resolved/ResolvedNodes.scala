@@ -16,10 +16,12 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
+import scala.collection.immutable
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.fun.ClarkElemFunctionsApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
@@ -30,6 +32,8 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
  * @author Chris de Vreeze
  */
 object ResolvedNodes {
+
+  // First the OO query API
 
   /**
    * Arbitrary resolved node
@@ -208,12 +212,42 @@ object ResolvedNodes {
    */
   final case class Text(text: String) extends Node with ClarkNodes.Text
 
-  object Node {
+  // Next the functional query (and creation) API
 
-    def copyTreeFrom(node: ClarkNodes.Node): Node = node match {
-      case e: ClarkNodes.Elem => Elem.copyTreeFrom(e)
+  object Node extends ElemCreationApi {
+
+    type NodeType = Node
+
+    type ElemType = Elem
+
+    def from(node: ClarkNodes.Node): Node = node match {
+      case e: ClarkNodes.Elem => Elem.from(e)
       case t: ClarkNodes.Text => Text(t.text)
       case n => sys.error(s"Not an element or text node: $n")
+    }
+
+    def elem(name: EName, children: Seq[NodeType]): ElemType = {
+      Elem(name, Map.empty, children)
+    }
+
+    def elem(name: EName, attributes: immutable.Iterable[(EName, String)], children: Seq[NodeType]): ElemType = {
+      Elem(name, attributes.toMap, children)
+    }
+
+    def textElem(name: EName, txt: String): ElemType = {
+      Elem(name, Map.empty, ArraySeq(Text(txt)))
+    }
+
+    def textElem(name: EName, attributes: immutable.Iterable[(EName, String)], txt: String): ElemType = {
+      Elem(name, attributes.toMap, ArraySeq(Text(txt)))
+    }
+
+    def emptyElem(name: EName): ElemType = {
+      Elem(name, Map.empty, ArraySeq.empty)
+    }
+
+    def emptyElem(name: EName, attributes: immutable.Iterable[(EName, String)]): ElemType = {
+      Elem(name, attributes.toMap, ArraySeq.empty)
     }
   }
 
@@ -223,13 +257,13 @@ object ResolvedNodes {
 
     type NodeType = Node
 
-    def copyTreeFrom(elm: ClarkNodes.Elem): Elem = {
+    def from(elm: ClarkNodes.Elem): Elem = {
       val children = elm.children.collect {
         case childElm: ClarkNodes.Elem => childElm
         case childText: ClarkNodes.Text => childText
       }
-      // Recursion, with Node.copyTreeFrom and Elem.copyTreeFrom being mutually dependent
-      val resolvedChildren = children.map { node => Node.copyTreeFrom(node) }
+      // Recursion, with Node.from and Elem.from being mutually dependent
+      val resolvedChildren = children.map { node => Node.from(node) }
 
       Elem(elm.name, elm.attributes.toMap, resolvedChildren)
     }

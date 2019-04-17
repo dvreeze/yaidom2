@@ -42,7 +42,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val doc = docBuilder.build(file)
 
     val rootElem =
-      ResolvedNodes.Elem.copyTreeFrom(
+      ResolvedNodes.Elem.from(
         SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get))
 
     assertResult(true) {
@@ -73,7 +73,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val doc = docBuilder.build(file)
 
     val rootElem =
-      ResolvedNodes.Elem.copyTreeFrom(
+      ResolvedNodes.Elem.from(
         SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get))
 
     assertResult(true) {
@@ -104,7 +104,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val doc = docBuilder.build(file)
 
     val rootElem =
-      ResolvedNodes.Elem.copyTreeFrom(
+      ResolvedNodes.Elem.from(
         SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get))
 
     val dimensionalContexts =
@@ -139,7 +139,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val doc = docBuilder.build(file)
 
     val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
-    val rootElem = ResolvedNodes.Elem.copyTreeFrom(saxonRootElem)
+    val rootElem = ResolvedNodes.Elem.from(saxonRootElem)
 
     val dimensionalContexts =
       rootElem.select {
@@ -153,7 +153,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
         descendant(XbrliNs, "context").where {
           (e: XdmNode) => e.select(child(XbrliNs, "entity").`then`(descendant(XbrldiNs, "explicitMember"))).exists
         }
-      }.toScala(ArraySeq).map(n => SaxonNodes.Elem(n)).map(e => ResolvedNodes.Elem.copyTreeFrom(e))
+      }.toScala(ArraySeq).map(n => SaxonNodes.Elem(n)).map(e => ResolvedNodes.Elem.from(e))
 
     assertResult(true) {
       dimensionalContexts.size >= 10
