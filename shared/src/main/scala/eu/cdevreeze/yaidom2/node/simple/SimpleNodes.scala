@@ -24,8 +24,8 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.fun.ScopedElemFunctionsApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.oofun.ScopedElemFunctionWrapper
 
 /**
  * "Simple" nodes.
@@ -342,7 +342,7 @@ object SimpleNodes {
   }
 
   // scalastyle:off number.of.methods
-  object Elem extends ScopedElemFunctionsApi {
+  object Elem extends ScopedElemFunctionWrapper {
 
     type ElemType = Elem
 
@@ -364,178 +364,6 @@ object SimpleNodes {
       val simpleChildren = children.map { node => Node.from(node) }
 
       new Elem(elm.qname, elm.attributesByQName.to(SeqMap), elm.scope, simpleChildren)
-    }
-
-    def filterChildElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      elem.filterChildElems(p)
-    }
-
-    def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
-      elem.findChildElem(p)
-    }
-
-    def filterDescendantElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      elem.filterDescendantElems(p)
-    }
-
-    def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
-      elem.findDescendantElem(p)
-    }
-
-    def filterDescendantElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      elem.filterDescendantElemsOrSelf(p)
-    }
-
-    def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
-      elem.findDescendantElemOrSelf(p)
-    }
-
-    def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      elem.findTopmostElems(p)
-    }
-
-    def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      elem.findTopmostElemsOrSelf(p)
-    }
-
-    def name(elem: ElemType): EName = {
-      elem.name
-    }
-
-    def attributes(elem: ElemType): SeqMap[EName, String] = {
-      elem.attributes
-    }
-
-    def localName(elem: ElemType): String = {
-      elem.localName
-    }
-
-    def namespaceOption(elem: ElemType): Option[String] = {
-      elem.namespaceOption
-    }
-
-    def namespaceAsString(elem: ElemType): String = {
-      elem.namespaceAsString
-    }
-
-    def attrOption(elem: ElemType, attributeName: EName): Option[String] = {
-      elem.attrOption(attributeName)
-    }
-
-    def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
-      elem.attrOption(attributeNamespaceOption, attributeLocalName)
-    }
-
-    def attrOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[String] = {
-      elem.attrOption(attributeNamespace, attributeLocalName)
-    }
-
-    def attrOption(elem: ElemType, attributeLocalName: String): Option[String] = {
-      elem.attrOption(attributeLocalName)
-    }
-
-    def attr(elem: ElemType, attributeName: EName): String = {
-      elem.attr(attributeName)
-    }
-
-    def attr(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
-      elem.attr(attributeNamespaceOption, attributeLocalName)
-    }
-
-    def attr(elem: ElemType, attributeNamespace: String, attributeLocalName: String): String = {
-      elem.attr(attributeNamespace, attributeLocalName)
-    }
-
-    def attr(elem: ElemType, attributeLocalName: String): String = {
-      elem.attr(attributeLocalName)
-    }
-
-    def text(elem: ElemType): String = {
-      elem.text
-    }
-
-    def normalizedText(elem: ElemType): String = {
-      elem.normalizedText
-    }
-
-    def trimmedText(elem: ElemType): String = {
-      elem.trimmedText
-    }
-
-    def children(elem: ElemType): Seq[NodeType] = {
-      elem.children
-    }
-
-    def select(elem: ElemType, step: ElemStep[ElemType]): Seq[ElemType] = {
-      elem.select(step)
-    }
-
-    def scope(elem: ElemType): Scope = {
-      elem.scope
-    }
-
-    def qname(elem: ElemType): QName = {
-      elem.qname
-    }
-
-    def attributesByQName(elem: ElemType): SeqMap[QName, String] = {
-      elem.attributesByQName
-    }
-
-    def textAsQName(elem: ElemType): QName = {
-      elem.textAsQName
-    }
-
-    def textAsResolvedQName(elem: ElemType): EName = {
-      elem.textAsResolvedQName
-    }
-
-    def attrAsQNameOption(elem: ElemType, attributeName: EName): Option[QName] = {
-      elem.attrAsQNameOption(attributeName)
-    }
-
-    def attrAsQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
-      elem.attrAsQNameOption(attributeNamespaceOption, attributeLocalName)
-    }
-
-    def attrAsQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[QName] = {
-      elem.attrAsQNameOption(attributeNamespace, attributeLocalName)
-    }
-
-    def attrAsQName(elem: ElemType, attributeName: EName): QName = {
-      elem.attrAsQName(attributeName)
-    }
-
-    def attrAsQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
-      elem.attrAsQName(attributeNamespaceOption, attributeLocalName)
-    }
-
-    def attrAsQName(elem: ElemType, attributeNamespace: String, attributeLocalName: String): QName = {
-      elem.attrAsQName(attributeNamespace, attributeLocalName)
-    }
-
-    def attrAsResolvedQNameOption(elem: ElemType, attributeName: EName): Option[EName] = {
-      elem.attrAsResolvedQNameOption(attributeName)
-    }
-
-    def attrAsResolvedQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
-      elem.attrAsResolvedQNameOption(attributeNamespaceOption, attributeLocalName)
-    }
-
-    def attrAsResolvedQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[EName] = {
-      elem.attrAsResolvedQNameOption(attributeNamespace, attributeLocalName)
-    }
-
-    def attrAsResolvedQName(elem: ElemType, attributeName: EName): EName = {
-      elem.attrAsResolvedQName(attributeName)
-    }
-
-    def attrAsResolvedQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
-      elem.attrAsResolvedQName(attributeNamespaceOption, attributeLocalName)
-    }
-
-    def attrAsResolvedQName(elem: ElemType, attributeNamespace: String, attributeLocalName: String): EName = {
-      elem.attrAsResolvedQName(attributeNamespace, attributeLocalName)
     }
   }
 
