@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.queryapi.oo
 
+import scala.collection.immutable.SeqMap
+
 import eu.cdevreeze.yaidom2.core.EName
 
 /**
@@ -35,7 +37,7 @@ trait ClarkElemApi extends ElemApi {
 
   def name: EName
 
-  def attributes: Map[EName, String]
+  def attributes: SeqMap[EName, String]
 
   /**
    * Returns the local name. That is, returns the local part of the name of the element.

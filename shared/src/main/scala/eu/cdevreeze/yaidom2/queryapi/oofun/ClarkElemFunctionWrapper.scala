@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.queryapi.oofun
 
+import scala.collection.immutable.SeqMap
+
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.fun.ClarkElemFunctionsApi
@@ -68,7 +70,7 @@ trait ClarkElemFunctionWrapper extends ClarkElemFunctionsApi {
     elem.name
   }
 
-  final def attributes(elem: ElemType): Map[EName, String] = {
+  final def attributes(elem: ElemType): SeqMap[EName, String] = {
     elem.attributes
   }
 

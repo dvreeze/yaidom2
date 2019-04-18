@@ -363,7 +363,7 @@ object SimpleNodes {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val simpleChildren = children.map { node => Node.from(node) }
 
-      new Elem(elm.qname, elm.attributesByQName.to(SeqMap), elm.scope, simpleChildren)
+      new Elem(elm.qname, elm.attributesByQName, elm.scope, simpleChildren)
     }
   }
 

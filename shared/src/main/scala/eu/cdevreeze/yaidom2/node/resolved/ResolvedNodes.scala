@@ -18,6 +18,7 @@ package eu.cdevreeze.yaidom2.node.resolved
 
 import scala.collection.immutable
 import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.SeqMap
 import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -50,7 +51,7 @@ object ResolvedNodes {
    */
   final case class Elem(
     name: EName,
-    attributes: Map[EName, String],
+    attributes: SeqMap[EName, String],
     children: Seq[Node]
   ) extends CanBeDocumentChild with ClarkNodes.Elem {
 
@@ -227,27 +228,27 @@ object ResolvedNodes {
     }
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {
-      Elem(name, Map.empty, children)
+      Elem(name, SeqMap.empty, children)
     }
 
     def elem(name: EName, attributes: immutable.Iterable[(EName, String)], children: Seq[NodeType]): ElemType = {
-      Elem(name, attributes.toMap, children)
+      Elem(name, attributes.to(SeqMap), children)
     }
 
     def textElem(name: EName, txt: String): ElemType = {
-      Elem(name, Map.empty, ArraySeq(Text(txt)))
+      Elem(name, SeqMap.empty, ArraySeq(Text(txt)))
     }
 
     def textElem(name: EName, attributes: immutable.Iterable[(EName, String)], txt: String): ElemType = {
-      Elem(name, attributes.toMap, ArraySeq(Text(txt)))
+      Elem(name, attributes.to(SeqMap), ArraySeq(Text(txt)))
     }
 
     def emptyElem(name: EName): ElemType = {
-      Elem(name, Map.empty, ArraySeq.empty)
+      Elem(name, SeqMap.empty, ArraySeq.empty)
     }
 
     def emptyElem(name: EName, attributes: immutable.Iterable[(EName, String)]): ElemType = {
-      Elem(name, attributes.toMap, ArraySeq.empty)
+      Elem(name, attributes.to(SeqMap), ArraySeq.empty)
     }
   }
 

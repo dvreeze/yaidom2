@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.queryapi.oo
 
+import scala.collection.immutable.SeqMap
+
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
@@ -35,7 +37,7 @@ trait ScopedElemApi extends ClarkElemApi {
 
   def qname: QName
 
-  def attributesByQName: Map[QName, String]
+  def attributesByQName: SeqMap[QName, String]
 
   def textAsQName: QName
 
