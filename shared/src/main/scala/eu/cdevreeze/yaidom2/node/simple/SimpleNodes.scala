@@ -17,6 +17,7 @@
 package eu.cdevreeze.yaidom2.node.simple
 
 import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.SeqMap
 import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -51,7 +52,7 @@ object SimpleNodes {
   // scalastyle:off number.of.methods
   final class Elem(
     val qname: QName,
-    val attributesByQName: Seq[(QName, String)],
+    val attributesByQName: SeqMap[QName, String],
     val scope: Scope,
     val children: Seq[Node]
   ) extends CanBeDocumentChild with ScopedNodes.Elem {
@@ -137,7 +138,7 @@ object SimpleNodes {
         .getOrElse(sys.error(s"Element name '${qname}' should resolve to an EName in scope [${scope}]"))
     }
 
-    def attributes: Seq[(EName, String)] = {
+    def attributes: SeqMap[EName, String] = {
       val attrScope = attributeScope
 
       attributesByQName.map { kv =>
@@ -163,7 +164,7 @@ object SimpleNodes {
     }
 
     def attrOption(attributeName: EName): Option[String] = {
-      attributes.toMap.get(attributeName) // TODO Improve performance
+      attributes.get(attributeName)
     }
 
     def attrOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
@@ -347,7 +348,7 @@ object SimpleNodes {
 
     type NodeType = Node
 
-    def unapply(elem: Elem): Option[(QName, Seq[(QName, String)], Scope, Seq[Node])] = {
+    def unapply(elem: Elem): Option[(QName, SeqMap[QName, String], Scope, Seq[Node])] = {
       val v = (elem.qname, elem.attributesByQName, elem.scope, elem.children)
       Some(v)
     }
@@ -362,7 +363,7 @@ object SimpleNodes {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val simpleChildren = children.map { node => Node.from(node) }
 
-      new Elem(elm.qname, elm.attributesByQName.toSeq, elm.scope, simpleChildren)
+      new Elem(elm.qname, elm.attributesByQName.to(SeqMap), elm.scope, simpleChildren)
     }
 
     def filterChildElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
@@ -401,7 +402,7 @@ object SimpleNodes {
       elem.name
     }
 
-    def attributes(elem: ElemType): Seq[(EName, String)] = {
+    def attributes(elem: ElemType): SeqMap[EName, String] = {
       elem.attributes
     }
 
@@ -477,7 +478,7 @@ object SimpleNodes {
       elem.qname
     }
 
-    def attributesByQName(elem: ElemType): Seq[(QName, String)] = {
+    def attributesByQName(elem: ElemType): SeqMap[QName, String] = {
       elem.attributesByQName
     }
 

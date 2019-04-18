@@ -18,8 +18,8 @@ package eu.cdevreeze.yaidom2.node.saxon
 
 import java.net.URI
 
-import scala.collection.immutable
 import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.SeqMap
 import scala.jdk.OptionConverters.Ops._
 import scala.jdk.StreamConverters.Ops._
 
@@ -103,7 +103,7 @@ object SaxonNodes {
       Elem.name(xdmNode)
     }
 
-    def attributes: immutable.Iterable[(EName, String)] = {
+    def attributes: SeqMap[EName, String] = {
       Elem.attributes(xdmNode)
     }
 
@@ -173,7 +173,7 @@ object SaxonNodes {
       Elem.qname(xdmNode)
     }
 
-    def attributesByQName: immutable.Iterable[(QName, String)] = {
+    def attributesByQName: SeqMap[QName, String] = {
       Elem.attributesByQName(xdmNode)
     }
 
@@ -406,9 +406,9 @@ object SaxonNodes {
       Node.extractEName(elem)
     }
 
-    def attributes(elem: ElemType): immutable.Iterable[(EName, String)] = {
+    def attributes(elem: ElemType): SeqMap[EName, String] = {
       val stream = elem.select(attribute())
-      stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue)
+      stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue).to(SeqMap)
     }
 
     def localName(elem: ElemType): String = {
@@ -501,9 +501,9 @@ object SaxonNodes {
       Node.extractQName(elem)
     }
 
-    def attributesByQName(elem: ElemType): immutable.Iterable[(QName, String)] = {
+    def attributesByQName(elem: ElemType): SeqMap[QName, String] = {
       val stream = elem.select(attribute())
-      stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue)
+      stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue).to(SeqMap)
     }
 
     def textAsQName(elem: ElemType): QName = {

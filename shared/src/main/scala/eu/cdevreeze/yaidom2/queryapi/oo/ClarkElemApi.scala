@@ -16,8 +16,6 @@
 
 package eu.cdevreeze.yaidom2.queryapi.oo
 
-import scala.collection.immutable
-
 import eu.cdevreeze.yaidom2.core.EName
 
 /**
@@ -37,7 +35,7 @@ trait ClarkElemApi extends ElemApi {
 
   def name: EName
 
-  def attributes: immutable.Iterable[(EName, String)]
+  def attributes: Map[EName, String]
 
   /**
    * Returns the local name. That is, returns the local part of the name of the element.
