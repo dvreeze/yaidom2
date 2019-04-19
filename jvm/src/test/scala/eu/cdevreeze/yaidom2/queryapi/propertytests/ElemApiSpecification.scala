@@ -21,7 +21,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 
-abstract class ElemApiSpecification[E <: ElemApi.Aux[E]] extends Properties("ElemApi") {
+abstract class ElemApiSpecification[E <: ElemApi.Aux[E]](name: String) extends Properties(name) {
 
   implicit def arbitraryElem: Arbitrary[E]
 

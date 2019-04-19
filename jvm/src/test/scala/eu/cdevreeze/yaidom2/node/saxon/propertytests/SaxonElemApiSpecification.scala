@@ -26,7 +26,7 @@ import net.sf.saxon.s9api.streams.Steps._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
-class SaxonElemApiSpecification extends ElemApiSpecification[SaxonNodes.Elem] {
+class SaxonElemApiSpecification extends ElemApiSpecification[SaxonNodes.Elem]("Saxon-ElemApi") {
 
   implicit def arbitraryElem: Arbitrary[SaxonNodes.Elem] = SaxonElemApiSpecification.arbitraryElem
 

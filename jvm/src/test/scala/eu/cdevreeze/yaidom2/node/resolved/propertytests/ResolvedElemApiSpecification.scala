@@ -27,7 +27,7 @@ import net.sf.saxon.s9api.streams.Steps._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
-class ResolvedElemApiSpecification extends ElemApiSpecification[ResolvedNodes.Elem] {
+class ResolvedElemApiSpecification extends ElemApiSpecification[ResolvedNodes.Elem]("Resolved-ElemApi") {
 
   implicit def arbitraryElem: Arbitrary[ResolvedNodes.Elem] = ResolvedElemApiSpecification.arbitraryElem
 
