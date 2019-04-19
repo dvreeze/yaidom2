@@ -23,9 +23,13 @@ import org.scalacheck.Prop.forAll
 
 abstract class ElemApiSpecification[E <: ElemApi.Aux[E]](name: String) extends Properties(name) {
 
+  // Needed implicit Arbitrary objects for generating the parameters in the properties below
+
   implicit def arbitraryElem: Arbitrary[E]
 
   implicit def arbitraryPred: Arbitrary[E => Boolean]
+
+  // "Definitions" of ElemApi methods
 
   property("filterChildElems") = forAll { (elem: E, pred: E => Boolean) =>
     elem.filterChildElems(pred) == elem.filterChildElems(_ => true).filter(pred)
@@ -59,6 +63,44 @@ abstract class ElemApiSpecification[E <: ElemApi.Aux[E]](name: String) extends P
 
   property("findTopmostElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
     elem.findTopmostElemsOrSelf(pred) == findTopmostElemsOrSelf(elem, pred)
+  }
+
+  // Other properties
+
+  property("filterDescendantElems-in-terms-of-findTopmostElems") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterDescendantElems(pred) ==
+      elem.findTopmostElems(pred).flatMap(_.filterDescendantElemsOrSelf(pred))
+  }
+
+  property("filterDescendantElemsOrSelf-in-terms-of-findTopmostElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterDescendantElemsOrSelf(pred) ==
+      elem.findTopmostElemsOrSelf(pred).flatMap(_.filterDescendantElemsOrSelf(pred))
+  }
+
+  property("filterDescendantElemsOrSelf-in-terms-of-filterDescendantElems") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterDescendantElemsOrSelf(pred) ==
+      Seq(elem).filter(pred) ++ elem.filterDescendantElems(pred)
+  }
+
+  property("findTopmostElemsOrSelf-in-terms-of-findTopmostElems") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.findTopmostElemsOrSelf(pred) == {
+      if (pred(elem)) Seq(elem) else elem.findTopmostElems(pred)
+    }
+  }
+
+  // Leaning on value equality for elements
+
+  property("filterDescendantElems-in-terms-of-filterDescendantElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterDescendantElems(pred) ==
+      elem.filterDescendantElemsOrSelf(pred).filterNot(Set(elem))
+  }
+
+  property("findDescendantElem-in-terms-of-findTopmostElems") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.findDescendantElem(pred) == elem.findTopmostElems(pred).headOption
+  }
+
+  property("findDescendantElemOrSelf-in-terms-of-findTopmostElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.findDescendantElemOrSelf(pred) == elem.findTopmostElemsOrSelf(pred).headOption
   }
 
   private def findTopmostElemsOrSelf(elm: E, p: E => Boolean): Seq[E] = {
