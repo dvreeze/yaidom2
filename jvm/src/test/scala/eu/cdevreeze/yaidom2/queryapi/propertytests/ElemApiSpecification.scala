@@ -52,4 +52,21 @@ abstract class ElemApiSpecification[E <: ElemApi.Aux[E]] extends Properties("Ele
   property("findDescendantElemOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
     elem.findDescendantElemOrSelf(pred) == elem.filterDescendantElemsOrSelf(pred).headOption
   }
+
+  property("findTopmostElems") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.findTopmostElems(pred) == elem.filterChildElems(_ => true).flatMap(_.findTopmostElemsOrSelf(pred))
+  }
+
+  property("findTopmostElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.findTopmostElemsOrSelf(pred) == findTopmostElemsOrSelf(elem, pred)
+  }
+
+  private def findTopmostElemsOrSelf(elm: E, p: E => Boolean): Seq[E] = {
+    if (p(elm)) {
+      Seq(elm)
+    } else {
+      // Recursive calls
+      elm.filterChildElems(_ => true).flatMap(e => findTopmostElemsOrSelf(e, p))
+    }
+  }
 }

@@ -36,22 +36,37 @@ class SimpleElemApiSpecification extends ElemApiSpecification[SimpleNodes.Elem] 
 
 object SimpleElemApiSpecification {
 
-  private val rootElem: SimpleNodes.Elem = {
+  private def getRootElem(path: String): SimpleNodes.Elem = {
     val processor = new Processor(false)
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[SimpleElemApiSpecification].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
+    val file = new File(classOf[SimpleElemApiSpecification].getResource(path).toURI)
     val doc = docBuilder.build(file)
 
     SimpleNodes.Elem.from(SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get))
   }
 
+  private val rootElemPaths: Seq[String] = {
+    Seq(
+      "/test-xml/cars.xml",
+      "/test-xml/feed1.xml",
+      "/test-xml/feed2.xml",
+      "/test-xml/feed3.xml",
+      "/test-xml/sample-xbrl-instance.xml",
+      "/test-xml/XMLSchema.xsd"
+    )
+  }
+
   val arbitraryElem: Arbitrary[SimpleNodes.Elem] = {
-    Arbitrary(Gen.oneOf(rootElem.filterDescendantElemsOrSelf(_ => true)))
+    val rootElems: Seq[SimpleNodes.Elem] = rootElemPaths.map(path => getRootElem(path))
+    val allElems: Seq[SimpleNodes.Elem] = rootElems.flatMap(_.filterDescendantElemsOrSelf(_ => true))
+    require(allElems.size >= 1000, s"Expected at least 1000 elements")
+
+    Arbitrary(Gen.oneOf(allElems))
   }
 
   val arbitraryPred: Arbitrary[SimpleNodes.Elem => Boolean] = {
-    Arbitrary(Gen.oneOf(Seq(predLocalName, predLocalNameSize)))
+    Arbitrary(Gen.oneOf(Seq(predLocalName, predLocalNameSize, predLocalNameAllCapitals)))
   }
 
   private def predLocalName(e: SimpleNodes.Elem): Boolean = {
@@ -60,5 +75,9 @@ object SimpleElemApiSpecification {
 
   private def predLocalNameSize(e: SimpleNodes.Elem): Boolean = {
     e.name.localPart.size > 7
+  }
+
+  private def predLocalNameAllCapitals(e: SimpleNodes.Elem): Boolean = {
+    e.name.localPart.forall(c => Character.isUpperCase(c))
   }
 }
