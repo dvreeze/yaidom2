@@ -80,6 +80,7 @@ for the buck":
 * Yaidom2 is more consistent, with more consistent naming (for instance for document factory methods)
 * Yaidom2 has a query API that is heavily inspired by the streaming API in Saxon 9.9
 * Yaidom2 leverages the upcoming Scala 2.13 overhauled Collections API, for better performance
+* Usability is also very important, and yaidom2 should feel less "clunky" than its predecessor
 
 Usage
 =====
