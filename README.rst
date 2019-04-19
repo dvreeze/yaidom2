@@ -13,7 +13,8 @@ There are several reasons to work on a 2nd generation of yaidom. Hence this proj
 
 * Yaidom is starting to show its age. Having learned which parts carry their weight and which parts don't, yaidom should become smaller, cleaner but also more consistent.
 * Yaidom is being used for in-memory querying/processing of many thousands of XML documents simultaneously, so performance and memory footprint are quite important. It is therefore desirable to leverage the improved collections API in the (upcoming) Scala 2.13.0 version.
-* With the Saxon 9.9 library, the state of the art of XML processing in Java has improved dramatically, so (at the very least) good interop with Saxon 9.9 may be desirable.
+* With the Saxon 9.9 library, the state of the art of XML processing in Java has improved dramatically, so (at the very least) good interop with Saxon 9.9 may be desirable, but its API can also inspire yaidom2.
+
 
 .. _`yaidom`: https://github.com/dvreeze/yaidom
 .. _`EBPI`: https://ebpi.nl/
@@ -72,6 +73,10 @@ Yaidom2 has the same philosophy as its predecessor. While retaining this philoso
 for the buck":
 
 * Yaidom2 is smaller, leaving out query API traits (and other things) that do not offer enough value
+
+  * This makes it also easier to keep the API stable
+  * For example, the multiple query API mini-traits in the "old" yaidom make the API less stable than desirable
+
 * Yaidom2 is more consistent, with more consistent naming (for instance for document factory methods)
 * Yaidom2 has a query API that is heavily inspired by the streaming API in Saxon 9.9
 * Yaidom2 leverages the upcoming Scala 2.13 overhauled Collections API, for better performance
