@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.saxon.propertytests
+package eu.cdevreeze.yaidom2.node.resolved.propertytests
 
 import java.io.File
 
+import eu.cdevreeze.yaidom2.node.resolved.ResolvedNodes
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ElemApiSpecification
 import net.sf.saxon.s9api.Processor
@@ -26,23 +27,23 @@ import net.sf.saxon.s9api.streams.Steps._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
-class SaxonElemApiSpecification extends ElemApiSpecification[SaxonNodes.Elem] {
+class ResolvedElemApiSpecification extends ElemApiSpecification[ResolvedNodes.Elem] {
 
-  implicit def arbitraryElem: Arbitrary[SaxonNodes.Elem] = SaxonElemApiSpecification.arbitraryElem
+  implicit def arbitraryElem: Arbitrary[ResolvedNodes.Elem] = ResolvedElemApiSpecification.arbitraryElem
 
-  implicit def arbitraryPred: Arbitrary[SaxonNodes.Elem => Boolean] = SaxonElemApiSpecification.arbitraryPred
+  implicit def arbitraryPred: Arbitrary[ResolvedNodes.Elem => Boolean] = ResolvedElemApiSpecification.arbitraryPred
 }
 
-object SaxonElemApiSpecification {
+object ResolvedElemApiSpecification {
 
-  private def getRootElem(path: String): SaxonNodes.Elem = {
+  private def getRootElem(path: String): ResolvedNodes.Elem = {
     val processor = new Processor(false)
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[SaxonElemApiSpecification].getResource(path).toURI)
+    val file = new File(classOf[ResolvedElemApiSpecification].getResource(path).toURI)
     val doc = docBuilder.build(file)
 
-    SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+    ResolvedNodes.Elem.from(SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get))
   }
 
   private val rootElemPaths: Seq[String] = {
@@ -56,27 +57,27 @@ object SaxonElemApiSpecification {
     )
   }
 
-  val arbitraryElem: Arbitrary[SaxonNodes.Elem] = {
-    val rootElems: Seq[SaxonNodes.Elem] = rootElemPaths.map(path => getRootElem(path))
-    val allElems: Seq[SaxonNodes.Elem] = rootElems.flatMap(_.filterDescendantElemsOrSelf(_ => true))
+  val arbitraryElem: Arbitrary[ResolvedNodes.Elem] = {
+    val rootElems: Seq[ResolvedNodes.Elem] = rootElemPaths.map(path => getRootElem(path))
+    val allElems: Seq[ResolvedNodes.Elem] = rootElems.flatMap(_.filterDescendantElemsOrSelf(_ => true))
     require(allElems.size >= 1000, s"Expected at least 1000 elements")
 
     Arbitrary(Gen.oneOf(allElems))
   }
 
-  val arbitraryPred: Arbitrary[SaxonNodes.Elem => Boolean] = {
+  val arbitraryPred: Arbitrary[ResolvedNodes.Elem => Boolean] = {
     Arbitrary(Gen.oneOf(Seq(predLocalName, predLocalNameSize, predLocalNameAllCapitals)))
   }
 
-  private def predLocalName(e: SaxonNodes.Elem): Boolean = {
+  private def predLocalName(e: ResolvedNodes.Elem): Boolean = {
     e.name.localPart == e.localName
   }
 
-  private def predLocalNameSize(e: SaxonNodes.Elem): Boolean = {
+  private def predLocalNameSize(e: ResolvedNodes.Elem): Boolean = {
     e.name.localPart.size > 7
   }
 
-  private def predLocalNameAllCapitals(e: SaxonNodes.Elem): Boolean = {
+  private def predLocalNameAllCapitals(e: ResolvedNodes.Elem): Boolean = {
     e.name.localPart.forall(c => Character.isUpperCase(c))
   }
 }
