@@ -62,7 +62,7 @@ object SimpleElemApiSpecification {
     val allElems: Seq[SimpleNodes.Elem] = rootElems.flatMap(_.filterDescendantElemsOrSelf(_ => true))
     require(allElems.size >= 1000, s"Expected at least 1000 elements")
 
-    Arbitrary(Gen.oneOf(allElems))
+    Arbitrary(Gen.oneOf(Gen.oneOf(allElems), Gen.oneOf(rootElems)))
   }
 
   val arbitraryPred: Arbitrary[SimpleNodes.Elem => Boolean] = {
