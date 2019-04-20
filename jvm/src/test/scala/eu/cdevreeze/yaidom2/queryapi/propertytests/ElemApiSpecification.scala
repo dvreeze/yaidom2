@@ -20,7 +20,8 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ElemApi
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 
-trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationDataProvider[E] { self: Properties =>
+trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationDataProvider[E] {
+  self: Properties =>
 
   // "Definitions" of ElemApi methods
 
