@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.saxon.propertytests
+package eu.cdevreeze.yaidom2.queryapi.propertytests
 
-import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.queryapi.propertytests.BackingElemApiSpecification
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Properties
 
-class SaxonElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[SaxonNodes.Elem]("Saxon-ClarkElemApi")
-    with BackingElemApiSpecification[SaxonNodes.Node, SaxonNodes.Elem] {
+trait ScopedElemApiSpecification[N, E <: ScopedNodes.Elem.Aux[N, E]] extends ClarkElemApiSpecification[N, E] {
+  self: Properties =>
 
-  protected def convertSaxonElemToElem(e: SaxonNodes.Elem): SaxonNodes.Elem = e
+  property("resolved-qname") = forAll { elem: E =>
+    elem.scope.resolveQName(elem.qname) == elem.name
+  }
+
+  property("resolved-attributes") = forAll { elem: E =>
+    elem.attributesByQName.map { case (a, v) => elem.scope.withoutDefaultNamespace.resolveQName(a) -> v } ==
+      elem.attributes
+  }
 }

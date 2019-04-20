@@ -109,6 +109,8 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
     elem.trimmedText == elem.text.trim
   }
 
+  // Other properties
+
   property("element-children") = forAll { elem: E =>
     elem.filterChildElems(_ => true) == elem.children.collect { case e: ClarkNodes.Elem => e }
   }
@@ -137,8 +139,6 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
     elem.select(childElems() / childElems(pred)) ==
       elem.filterChildElems(_ => true).flatMap(_.filterChildElems(pred))
   }
-
-  // Other properties
 
   // Private methods
 
