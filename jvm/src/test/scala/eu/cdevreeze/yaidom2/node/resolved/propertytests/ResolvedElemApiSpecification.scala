@@ -19,10 +19,11 @@ package eu.cdevreeze.yaidom2.node.resolved.propertytests
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.resolved.ResolvedNodes
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.queryapi.propertytests.ElemApiSpecification
+import eu.cdevreeze.yaidom2.queryapi.propertytests.ClarkElemApiSpecification
 
 class ResolvedElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[ResolvedNodes.Elem](("Resolved-ElemApi")) with ElemApiSpecification[ResolvedNodes.Elem] {
+  extends DefaultElemApiSpecificationDataProvider[ResolvedNodes.Elem]("Resolved-ClarkElemApi")
+    with ClarkElemApiSpecification[ResolvedNodes.Node, ResolvedNodes.Elem] {
 
   protected def convertSaxonElemToElem(e: SaxonNodes.Elem): ResolvedNodes.Elem = {
     ResolvedNodes.Elem.from(e)

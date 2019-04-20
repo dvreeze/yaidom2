@@ -84,7 +84,7 @@ object DefaultElemApiSpecificationDataProvider {
       "/test-xml/feed2.xml",
       "/test-xml/feed3.xml",
       "/test-xml/sample-xbrl-instance.xml",
-      "/test-xml/XMLSchema.xsd"
+      "/test-xml/airportsGermany.xml"
     )
   }
 }
