@@ -17,17 +17,10 @@
 package eu.cdevreeze.yaidom2.queryapi.propertytests
 
 import eu.cdevreeze.yaidom2.queryapi.oo.ElemApi
-import org.scalacheck.Arbitrary
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 
-abstract class ElemApiSpecification[E <: ElemApi.Aux[E]](name: String) extends Properties(name) {
-
-  // Needed implicit Arbitrary objects for generating the parameters in the properties below
-
-  implicit def arbitraryElem: Arbitrary[E]
-
-  implicit def arbitraryPred: Arbitrary[E => Boolean]
+trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationDataProvider[E] { self: Properties =>
 
   // "Definitions" of ElemApi methods
 

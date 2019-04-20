@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.simple.propertytests
+package eu.cdevreeze.yaidom2.queryapi.propertytests
 
-import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
-import eu.cdevreeze.yaidom2.queryapi.propertytests.ElemApiSpecification
+import eu.cdevreeze.yaidom2.queryapi.oo.ElemApi
+import org.scalacheck.Arbitrary
+import org.scalacheck.Properties
 
-class SimpleElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[SimpleNodes.Elem](("Simple-ElemApi")) with ElemApiSpecification[SimpleNodes.Elem] {
+trait ElemApiSpecificationDataProvider[E <: ElemApi.Aux[E]] { self: Properties =>
 
-  protected def convertSaxonElemToElem(e: SaxonNodes.Elem): SimpleNodes.Elem = {
-    SimpleNodes.Elem.from(e)
-  }
+  // Needed implicit Arbitrary objects for generating the parameters in the properties of ElemApiSpecification
+
+  implicit def arbitraryElem: Arbitrary[E]
+
+  implicit def arbitraryPred: Arbitrary[E => Boolean]
 }
