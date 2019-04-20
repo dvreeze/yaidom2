@@ -18,6 +18,7 @@ package eu.cdevreeze.yaidom2.queryapi.propertytests
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 
@@ -106,6 +107,35 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
 
   property("trimmedText") = forAll { elem: E =>
     elem.trimmedText == elem.text.trim
+  }
+
+  property("element-children") = forAll { elem: E =>
+    elem.filterChildElems(_ => true) == elem.children.collect { case e: ClarkNodes.Elem => e }
+  }
+
+  property("select-children") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(childElems(pred)) == elem.filterChildElems(pred)
+  }
+
+  property("select-descendant") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(descendantElems(pred)) == elem.filterDescendantElems(pred)
+  }
+
+  property("select-descendant-or-self") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(descendantElemsOrSelf(pred)) == elem.filterDescendantElemsOrSelf(pred)
+  }
+
+  property("select-topmost") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(topmostElems(pred)) == elem.findTopmostElems(pred)
+  }
+
+  property("select-topmost-or-self") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(topmostElemsOrSelf(pred)) == elem.findTopmostElemsOrSelf(pred)
+  }
+
+  property("select-grandchildren") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(childElems() / childElems(pred)) ==
+      elem.filterChildElems(_ => true).flatMap(_.filterChildElems(pred))
   }
 
   // Other properties
