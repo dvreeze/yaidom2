@@ -16,7 +16,11 @@
 
 package eu.cdevreeze.yaidom2.queryapi.propertytests
 
+import java.net.URI
+
+import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Prop.BooleanOperators
 import org.scalacheck.Properties
@@ -49,6 +53,24 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     elem.findAncestorElemOrSelf(pred) == elem.filterAncestorElemsOrSelf(pred).headOption
   }
 
+  property("docUri") = forAll { elem: E =>
+    elem.docUri == elem.docUriOption.getOrElse(emptyUri)
+  }
+
+  property("baseUri") = forAll { elem: E =>
+    elem.baseUri == elem.baseUriOption.getOrElse(emptyUri)
+  }
+
+  property("baseUriOption") = forAll { elem: E =>
+    elem.baseUriOption == {
+      // Recursive call
+      val parentBaseUriOption: Option[URI] =
+        elem.findParentElem(_ => true).flatMap(_.baseUriOption).orElse(elem.docUriOption)
+
+      elem.attrOption(XmlBaseEName).flatMap(u => parentBaseUriOption.map(_.resolve(u))).orElse(parentBaseUriOption)
+    }
+  }
+
   property("rootElem") = forAll { elem: E =>
     elem.rootElem == elem.findAncestorElemOrSelf(_.findParentElem(_ => true).isEmpty).get
   }
@@ -58,7 +80,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
   property("findTopmostElems-in-terms-of-findAncestorElem") = forAll { (elem: E, pred: E => Boolean) =>
     (elem.findParentElem(_ => true).isEmpty) ==>
       (elem.findTopmostElems(pred) ==
-        elem.filterDescendantElems(pred).filter(_.findAncestorElem(pred).filterNot(Set(elem)).isEmpty))
+        elem.filterDescendantElems(pred).filter(_.findAncestorElem(e => pred(e) && e != elem).isEmpty))
   }
 
   property("findTopmostElemsOrSelf-in-terms-of-findAncestorElem") = forAll { (elem: E, pred: E => Boolean) =>
@@ -90,4 +112,24 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
   property("an-ancestor-or-self-of-descendant-or-self-is-this") = forAll { elem: E =>
     elem.filterDescendantElemsOrSelf(_ => true).flatMap(_.findAncestorElemOrSelf(_ == elem)).distinct == Seq(elem)
   }
+
+  property("select-parent") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(parentElem(pred)) == elem.findParentElem(pred).toSeq
+  }
+
+  property("select-ancestor") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(ancestorElems(pred)) == elem.filterAncestorElems(pred)
+  }
+
+  property("select-ancestor-or-self") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.select(ancestorElemsOrSelf(pred)) == elem.filterAncestorElemsOrSelf(pred)
+  }
+
+  property("select-siblings-or-self") = forAll { elem: E =>
+    elem.select(parentElem() / childElems()) == elem.findParentElem(_ => true).toSeq.flatMap(_.filterChildElems(_ => true))
+  }
+
+  private val emptyUri = URI.create("")
+
+  private val XmlBaseEName = EName("http://www.w3.org/XML/1998/namespace", "base")
 }
