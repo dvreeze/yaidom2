@@ -67,7 +67,8 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
       val parentBaseUriOption: Option[URI] =
         elem.findParentElem(_ => true).flatMap(_.baseUriOption).orElse(elem.docUriOption)
 
-      elem.attrOption(XmlBaseEName).flatMap(u => parentBaseUriOption.map(_.resolve(u))).orElse(parentBaseUriOption)
+      elem.attrOption(XmlBaseEName).map(u => parentBaseUriOption.map(_.resolve(u)).getOrElse(u))
+        .orElse(parentBaseUriOption)
     }
   }
 
