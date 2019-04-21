@@ -77,6 +77,14 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
 
   // Other properties
 
+  property("filterAncestorElems-in-terms-of-filter") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterAncestorElems(pred) == elem.filterAncestorElems(_ => true).filter(pred)
+  }
+
+  property("filterAncestorElemsOrSelf-in-terms-of-filter") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterAncestorElemsOrSelf(pred) == elem.filterAncestorElemsOrSelf(_ => true).filter(pred)
+  }
+
   property("findTopmostElems-in-terms-of-findAncestorElem") = forAll { (elem: E, pred: E => Boolean) =>
     (elem.findParentElem(_ => true).isEmpty) ==>
       (elem.findTopmostElems(pred) ==

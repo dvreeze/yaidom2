@@ -61,6 +61,14 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
 
   // Other properties
 
+  property("filterDescendantElems-in-terms-of-filter") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterDescendantElems(pred) == elem.filterDescendantElems(_ => true).filter(pred)
+  }
+
+  property("filterDescendantElemsOrSelf-in-terms-of-filter") = forAll { (elem: E, pred: E => Boolean) =>
+    elem.filterDescendantElemsOrSelf(pred) == elem.filterDescendantElemsOrSelf(_ => true).filter(pred)
+  }
+
   property("filterDescendantElems-in-terms-of-findTopmostElems") = forAll { (elem: E, pred: E => Boolean) =>
     elem.filterDescendantElems(pred) ==
       elem.findTopmostElems(pred).flatMap(_.filterDescendantElemsOrSelf(pred))
