@@ -21,7 +21,7 @@ import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.queryapi.propertytests.BackingElemApiSpecification
 
 class SaxonElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[SaxonNodes.Elem]("Saxon-ClarkElemApi")
+  extends DefaultElemApiSpecificationDataProvider[SaxonNodes.Elem]("Saxon-BackingElemApi")
     with BackingElemApiSpecification[SaxonNodes.Node, SaxonNodes.Elem] {
 
   protected def convertSaxonElemToElem(e: SaxonNodes.Elem): SaxonNodes.Elem = e

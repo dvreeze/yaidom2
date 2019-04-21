@@ -22,7 +22,7 @@ import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ScopedElemApiSpecification
 
 class SimpleElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[SimpleNodes.Elem]("Simple-ClarkElemApi")
+  extends DefaultElemApiSpecificationDataProvider[SimpleNodes.Elem]("Simple-ScopedElemApi")
     with ScopedElemApiSpecification[SimpleNodes.Node, SimpleNodes.Elem] {
 
   protected def convertSaxonElemToElem(e: SaxonNodes.Elem): SimpleNodes.Elem = {
