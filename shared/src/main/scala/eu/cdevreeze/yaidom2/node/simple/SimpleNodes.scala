@@ -291,6 +291,17 @@ object SimpleNodes {
 
     def attributeScope: Scope = scope.withoutDefaultNamespace
 
+    def atNavigationPath(navigationPath: Seq[Int]): Elem = {
+      if (navigationPath.isEmpty) {
+        this
+      } else {
+        val childElem: Elem = filterChildElems(_ => true).apply(navigationPath.head)
+
+        // Recursive call
+        childElem.atNavigationPath(navigationPath.tail)
+      }
+    }
+
     // Private methods
 
     /**
@@ -328,10 +339,6 @@ object SimpleNodes {
 
   object Node {
 
-    type NodeType = Node
-
-    type ElemType = Elem
-
     def from(node: ScopedNodes.Node): Node = node match {
       case e: ScopedNodes.Elem => Elem.from(e)
       case t: ScopedNodes.Text => Text(t.text, false)
@@ -341,7 +348,6 @@ object SimpleNodes {
     }
   }
 
-  // scalastyle:off number.of.methods
   object Elem extends ScopedElemFunctionWrapper {
 
     type ElemType = Elem
