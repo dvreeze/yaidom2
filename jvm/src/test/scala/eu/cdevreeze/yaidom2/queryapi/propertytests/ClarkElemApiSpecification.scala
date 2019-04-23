@@ -112,7 +112,7 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
   // Other properties
 
   property("element-children") = forAll { elem: E =>
-    elem.filterChildElems(_ => true) == elem.children.collect { case e: ClarkNodes.Elem => e }
+    elem.findAllChildElems() == elem.children.collect { case e: ClarkNodes.Elem => e }
   }
 
   property("select-children") = forAll { (elem: E, pred: E => Boolean) =>
@@ -137,7 +137,7 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
 
   property("select-grandchildren") = forAll { (elem: E, pred: E => Boolean) =>
     elem.select(childElems() / childElems(pred)) ==
-      elem.filterChildElems(_ => true).flatMap(_.filterChildElems(pred))
+      elem.findAllChildElems().flatMap(_.filterChildElems(pred))
   }
 
   // Private methods

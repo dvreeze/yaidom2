@@ -38,6 +38,10 @@ trait ClarkElemFunctionWrapper extends ClarkElemFunctionsApi {
     elem.filterChildElems(p)
   }
 
+  final def findAllChildElems(elem: ElemType): Seq[ElemType] = {
+    elem.findAllChildElems()
+  }
+
   final def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
     elem.findChildElem(p)
   }
@@ -46,12 +50,20 @@ trait ClarkElemFunctionWrapper extends ClarkElemFunctionsApi {
     elem.filterDescendantElems(p)
   }
 
+  final def findAllDescendantElems(elem: ElemType): Seq[ElemType] = {
+    elem.findAllDescendantElems()
+  }
+
   final def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
     elem.findDescendantElem(p)
   }
 
   final def filterDescendantElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
     elem.filterDescendantElemsOrSelf(p)
+  }
+
+  final def findAllDescendantElemsOrSelf(elem: ElemType): Seq[ElemType] = {
+    elem.findAllDescendantElemsOrSelf()
   }
 
   final def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {

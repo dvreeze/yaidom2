@@ -69,6 +69,10 @@ object SaxonNodes {
       Elem.filterChildElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
+    def findAllChildElems(): Seq[ThisElem] = {
+      Elem.findAllChildElems(xdmNode).map(n => Elem(n))
+    }
+
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
       Elem.findChildElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
@@ -77,12 +81,20 @@ object SaxonNodes {
       Elem.filterDescendantElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
+    def findAllDescendantElems(): Seq[ThisElem] = {
+      Elem.findAllDescendantElems(xdmNode).map(n => Elem(n))
+    }
+
     def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
       Elem.findDescendantElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
     def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
       Elem.filterDescendantElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
+    }
+
+    def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
+      Elem.findAllDescendantElemsOrSelf(xdmNode).map(n => Elem(n))
     }
 
     def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -239,8 +251,16 @@ object SaxonNodes {
       Elem.findParentElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
+    def findParentElem(): Option[ThisElem] = {
+      Elem.findParentElem(xdmNode).map(n => Elem(n))
+    }
+
     def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
       Elem.filterAncestorElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
+    }
+
+    def findAllAncestorElems(): Seq[ThisElem] = {
+      Elem.findAllAncestorElems(xdmNode).map(n => Elem(n))
     }
 
     def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -249,6 +269,10 @@ object SaxonNodes {
 
     def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
       Elem.filterAncestorElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
+    }
+
+    def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
+      Elem.findAllAncestorElemsOrSelf(xdmNode).map(n => Elem(n))
     }
 
     def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -362,12 +386,20 @@ object SaxonNodes {
       filterElems(elem, child(), p)
     }
 
+    def findAllChildElems(elem: ElemType): Seq[ElemType] = {
+      filterElems(elem, child(), _ => true)
+    }
+
     def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
       findElem(elem, child(), p)
     }
 
     def filterDescendantElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
       filterElems(elem, descendant(), p)
+    }
+
+    def findAllDescendantElems(elem: ElemType): Seq[ElemType] = {
+      filterElems(elem, descendant(), _ => true)
     }
 
     def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
@@ -378,6 +410,10 @@ object SaxonNodes {
       filterElems(elem, descendantOrSelf(), p)
     }
 
+    def findAllDescendantElemsOrSelf(elem: ElemType): Seq[ElemType] = {
+      filterElems(elem, descendantOrSelf(), _ => true)
+    }
+
     def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
       findElem(elem, descendantOrSelf(), p)
     }
@@ -385,7 +421,7 @@ object SaxonNodes {
     // TODO Make the following 2 methods more efficient
 
     def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      filterChildElems(elem, _ => true).to(Vector).flatMap(e => findTopmostElemsOrSelf(e, p)).to(ArraySeq)
+      findAllChildElems(elem).to(ArraySeq).flatMap(e => findTopmostElemsOrSelf(e, p)).to(ArraySeq)
     }
 
     def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
@@ -395,7 +431,7 @@ object SaxonNodes {
         } else {
           // Recursive calls
 
-          filterChildElems(e, _ => true).to(Vector).flatMap(che => findTopmostElemsOrSelf(che))
+          findAllChildElems(e).to(ArraySeq).flatMap(che => findTopmostElemsOrSelf(che))
         }
       }
 
@@ -582,8 +618,16 @@ object SaxonNodes {
       findElem(elem, parent(), p)
     }
 
+    def findParentElem(elem: ElemType): Option[ElemType] = {
+      findElem(elem, parent(), _ => true)
+    }
+
     def filterAncestorElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
       filterElems(elem, ancestor(), p)
+    }
+
+    def findAllAncestorElems(elem: ElemType): Seq[ElemType] = {
+      filterElems(elem, ancestor(), _ => true)
     }
 
     def findAncestorElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
@@ -592,6 +636,10 @@ object SaxonNodes {
 
     def filterAncestorElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
       filterElems(elem, ancestorOrSelf(), p)
+    }
+
+    def findAllAncestorElemsOrSelf(elem: ElemType): Seq[ElemType] = {
+      filterElems(elem, ancestorOrSelf(), _ => true)
     }
 
     def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
@@ -615,7 +663,7 @@ object SaxonNodes {
     }
 
     def rootElem(elem: ElemType): ElemType = {
-      filterAncestorElemsOrSelf(elem, _ => true).last
+      findAllAncestorElemsOrSelf(elem).last
     }
 
     // Private methods

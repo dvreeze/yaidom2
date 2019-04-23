@@ -83,10 +83,14 @@ object IndexedNodes {
     // ElemApi
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      underlyingElem.filterChildElems(_ => true).zipWithIndex
+      underlyingElem.findAllChildElems().zipWithIndex
         .map { case (e, idx) =>
           new Elem(docUriOption, underlyingRootElem, elemNavigationPathFromRoot.appended(idx), e)
         }.filter(p)
+    }
+
+    def findAllChildElems(): Seq[ThisElem] = {
+      filterChildElems(_ => true)
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -94,11 +98,15 @@ object IndexedNodes {
     }
 
     def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      filterChildElems(_ => true).flatMap(_.filterDescendantElemsOrSelf(p))
+      findAllChildElems().flatMap(_.filterDescendantElemsOrSelf(p))
+    }
+
+    def findAllDescendantElems(): Seq[ThisElem] = {
+      filterDescendantElems(_ => true)
     }
 
     def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      filterChildElems(_ => true).view.flatMap(_.findDescendantElemOrSelf(p)).headOption
+      findAllChildElems().view.flatMap(_.findDescendantElemOrSelf(p)).headOption
     }
 
     def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -107,11 +115,15 @@ object IndexedNodes {
       def accumulate(elm: ThisElem): Unit = {
         if (p(elm)) result += elm
         // Recursive calls (not tail-recursive, but the depth is typically limited)
-        elm.filterChildElems(_ => true).foreach(accumulate)
+        elm.findAllChildElems().foreach(accumulate)
       }
 
       accumulate(this)
       result.to(ArraySeq)
+    }
+
+    def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
+      filterDescendantElemsOrSelf(_ => true)
     }
 
     def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -123,7 +135,7 @@ object IndexedNodes {
         }
         if (result.isEmpty) {
           // Recursive calls (not tail-recursive, but the depth is typically limited)
-          elm.filterChildElems(_ => true).foreach(findElem)
+          elm.findAllChildElems().foreach(findElem)
         }
       }
 
@@ -132,7 +144,7 @@ object IndexedNodes {
     }
 
     def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      filterChildElems(_ => true).flatMap(_.findTopmostElemsOrSelf(p))
+      findAllChildElems().flatMap(_.findTopmostElemsOrSelf(p))
     }
 
     def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -143,7 +155,7 @@ object IndexedNodes {
           result += elm
         } else {
           // Recursive calls (not tail-recursive, but the depth is typically limited)
-          elm.filterChildElems(_ => true).foreach(accumulate)
+          elm.findAllChildElems().foreach(accumulate)
         }
       }
 
@@ -300,8 +312,16 @@ object IndexedNodes {
       }
     }
 
+    def findParentElem(): Option[ThisElem] = {
+      findParentElem(_ => true)
+    }
+
     def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      findParentElem(_ => true).toSeq.flatMap(_.filterAncestorElemsOrSelf(p))
+      findParentElem().toSeq.flatMap(_.filterAncestorElemsOrSelf(p))
+    }
+
+    def findAllAncestorElems(): Seq[ThisElem] = {
+      filterAncestorElems(_ => true)
     }
 
     def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -310,7 +330,11 @@ object IndexedNodes {
 
     def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
       // Recursive calls
-      ArraySeq(this).filter(p) ++ findParentElem(_ => true).to(ArraySeq).flatMap(_.filterAncestorElemsOrSelf(p))
+      ArraySeq(this).filter(p) ++ findParentElem().to(ArraySeq).flatMap(_.filterAncestorElemsOrSelf(p))
+    }
+
+    def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
+      filterAncestorElemsOrSelf(_ => true)
     }
 
     def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -320,7 +344,7 @@ object IndexedNodes {
     def baseUriOption: Option[URI] = {
       // Recursive call
       val parentBaseUriOption: Option[URI] =
-        findParentElem(_ => true).flatMap(_.baseUriOption).orElse(docUriOption)
+        findParentElem().flatMap(_.baseUriOption).orElse(docUriOption)
 
       attrOption(XmlBaseEName).map(u => URI.create(u))
         .map(u => parentBaseUriOption.map(_.resolve(u)).getOrElse(u)).orElse(parentBaseUriOption)

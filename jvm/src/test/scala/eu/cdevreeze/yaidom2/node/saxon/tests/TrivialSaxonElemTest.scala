@@ -43,7 +43,7 @@ class TrivialSaxonElemTest extends AnyFunSuite {
     val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
 
     assertResult(true) {
-      saxonRootElem.filterDescendantElemsOrSelf(_ => true).size >= 100
+      saxonRootElem.findAllDescendantElemsOrSelf().size >= 100
     }
 
     val knownXbrliLocalNames =

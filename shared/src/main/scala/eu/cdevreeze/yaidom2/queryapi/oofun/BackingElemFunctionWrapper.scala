@@ -36,8 +36,16 @@ trait BackingElemFunctionWrapper extends ScopedElemFunctionWrapper with BackingE
     elem.findParentElem(p)
   }
 
+  final def findParentElem(elem: ElemType): Option[ElemType] = {
+    elem.findParentElem()
+  }
+
   final def filterAncestorElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
     elem.filterAncestorElems(p)
+  }
+
+  final def findAllAncestorElems(elem: ElemType): Seq[ElemType] = {
+    elem.findAllAncestorElems()
   }
 
   final def findAncestorElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
@@ -46,6 +54,10 @@ trait BackingElemFunctionWrapper extends ScopedElemFunctionWrapper with BackingE
 
   final def filterAncestorElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
     elem.filterAncestorElemsOrSelf(p)
+  }
+
+  final def findAllAncestorElemsOrSelf(elem: ElemType): Seq[ElemType] = {
+    elem.findAllAncestorElemsOrSelf()
   }
 
   final def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {

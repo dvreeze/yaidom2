@@ -65,16 +65,24 @@ object ResolvedNodes {
       children.collect { case e@Elem(_, _, _) if p(e) => e }
     }
 
+    def findAllChildElems(): Seq[ThisElem] = {
+      filterChildElems(_ => true)
+    }
+
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
       children.collectFirst { case e@Elem(_, _, _) if p(e) => e }
     }
 
     def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      filterChildElems(_ => true).flatMap(_.filterDescendantElemsOrSelf(p))
+      findAllChildElems().flatMap(_.filterDescendantElemsOrSelf(p))
+    }
+
+    def findAllDescendantElems(): Seq[ThisElem] = {
+      filterDescendantElems(_ => true)
     }
 
     def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      filterChildElems(_ => true).view.flatMap(_.findDescendantElemOrSelf(p)).headOption
+      findAllChildElems().view.flatMap(_.findDescendantElemOrSelf(p)).headOption
     }
 
     def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -83,11 +91,15 @@ object ResolvedNodes {
       def accumulate(elm: ThisElem): Unit = {
         if (p(elm)) result += elm
         // Recursive calls (not tail-recursive, but the depth is typically limited)
-        elm.filterChildElems(_ => true).foreach(accumulate)
+        elm.findAllChildElems().foreach(accumulate)
       }
 
       accumulate(this)
       result.to(ArraySeq)
+    }
+
+    def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
+      filterDescendantElemsOrSelf(_ => true)
     }
 
     def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -99,7 +111,7 @@ object ResolvedNodes {
         }
         if (result.isEmpty) {
           // Recursive calls (not tail-recursive, but the depth is typically limited)
-          elm.filterChildElems(_ => true).foreach(findElem)
+          elm.findAllChildElems().foreach(findElem)
         }
       }
 
@@ -108,7 +120,7 @@ object ResolvedNodes {
     }
 
     def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      filterChildElems(_ => true).flatMap(_.findTopmostElemsOrSelf(p))
+      findAllChildElems().flatMap(_.findTopmostElemsOrSelf(p))
     }
 
     def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -119,7 +131,7 @@ object ResolvedNodes {
           result += elm
         } else {
           // Recursive calls (not tail-recursive, but the depth is typically limited)
-          elm.filterChildElems(_ => true).foreach(accumulate)
+          elm.findAllChildElems().foreach(accumulate)
         }
       }
 

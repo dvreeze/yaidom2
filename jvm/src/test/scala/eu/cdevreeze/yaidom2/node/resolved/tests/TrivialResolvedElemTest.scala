@@ -46,7 +46,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
         SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get))
 
     assertResult(true) {
-      rootElem.filterDescendantElemsOrSelf(_ => true).size >= 100
+      rootElem.findAllDescendantElemsOrSelf().size >= 100
     }
 
     val knownXbrliLocalNames =

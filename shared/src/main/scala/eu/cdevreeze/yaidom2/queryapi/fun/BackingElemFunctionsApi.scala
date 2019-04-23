@@ -30,11 +30,17 @@ trait BackingElemFunctionsApi extends ScopedElemFunctionsApi {
 
   def findParentElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
+  def findParentElem(elem: ElemType): Option[ElemType]
+
   def filterAncestorElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
+
+  def findAllAncestorElems(elem: ElemType): Seq[ElemType]
 
   def findAncestorElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
   def filterAncestorElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
+
+  def findAllAncestorElemsOrSelf(elem: ElemType): Seq[ElemType]
 
   def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 

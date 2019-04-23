@@ -26,17 +26,29 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
   // "Definitions" of ElemApi methods
 
   property("filterChildElems") = forAll { (elem: E, pred: E => Boolean) =>
-    elem.filterChildElems(pred) == elem.filterChildElems(_ => true).filter(pred)
+    elem.filterChildElems(pred) == elem.findAllChildElems().filter(pred)
+  }
+
+  property("findAllChildElems") = forAll { elem: E =>
+    elem.findAllChildElems() == elem.filterChildElems(_ => true)
   }
 
   property("filterDescendantElems") = forAll { (elem: E, pred: E => Boolean) =>
-    elem.filterDescendantElems(pred) == elem.filterChildElems(_ => true).flatMap(_.filterDescendantElemsOrSelf(pred))
+    elem.filterDescendantElems(pred) == elem.findAllChildElems().flatMap(_.filterDescendantElemsOrSelf(pred))
+  }
+
+  property("findAllDescendantElems") = forAll { elem: E =>
+    elem.findAllDescendantElems() == elem.filterDescendantElems(_ => true)
   }
 
   property("filterDescendantElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
     // Recursive calls
     elem.filterDescendantElemsOrSelf(pred) ==
-      Seq(elem).filter(pred) ++ elem.filterChildElems(_ => true).flatMap(_.filterDescendantElemsOrSelf(pred))
+      Seq(elem).filter(pred) ++ elem.findAllChildElems().flatMap(_.filterDescendantElemsOrSelf(pred))
+  }
+
+  property("findAllDescendantElemsOrSelf") = forAll { elem: E =>
+    elem.findAllDescendantElemsOrSelf() == elem.filterDescendantElemsOrSelf(_ => true)
   }
 
   property("findChildElem") = forAll { (elem: E, pred: E => Boolean) =>
@@ -52,7 +64,7 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
   }
 
   property("findTopmostElems") = forAll { (elem: E, pred: E => Boolean) =>
-    elem.findTopmostElems(pred) == elem.filterChildElems(_ => true).flatMap(_.findTopmostElemsOrSelf(pred))
+    elem.findTopmostElems(pred) == elem.findAllChildElems().flatMap(_.findTopmostElemsOrSelf(pred))
   }
 
   property("findTopmostElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
@@ -62,11 +74,11 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
   // Other properties
 
   property("filterDescendantElems-in-terms-of-filter") = forAll { (elem: E, pred: E => Boolean) =>
-    elem.filterDescendantElems(pred) == elem.filterDescendantElems(_ => true).filter(pred)
+    elem.filterDescendantElems(pred) == elem.findAllDescendantElems().filter(pred)
   }
 
   property("filterDescendantElemsOrSelf-in-terms-of-filter") = forAll { (elem: E, pred: E => Boolean) =>
-    elem.filterDescendantElemsOrSelf(pred) == elem.filterDescendantElemsOrSelf(_ => true).filter(pred)
+    elem.filterDescendantElemsOrSelf(pred) == elem.findAllDescendantElemsOrSelf().filter(pred)
   }
 
   property("filterDescendantElems-in-terms-of-findTopmostElems") = forAll { (elem: E, pred: E => Boolean) =>
@@ -110,7 +122,7 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
       Seq(elm)
     } else {
       // Recursive calls
-      elm.filterChildElems(_ => true).flatMap(e => findTopmostElemsOrSelf(e, p))
+      elm.findAllChildElems().flatMap(e => findTopmostElemsOrSelf(e, p))
     }
   }
 }

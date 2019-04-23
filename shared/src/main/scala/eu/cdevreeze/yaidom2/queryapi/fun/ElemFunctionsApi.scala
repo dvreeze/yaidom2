@@ -27,13 +27,19 @@ trait ElemFunctionsApi {
 
   def filterChildElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 
+  def findAllChildElems(elem: ElemType): Seq[ElemType]
+
   def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
   def filterDescendantElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 
+  def findAllDescendantElems(elem: ElemType): Seq[ElemType]
+
   def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
   def filterDescendantElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
+
+  def findAllDescendantElemsOrSelf(elem: ElemType): Seq[ElemType]
 
   def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
