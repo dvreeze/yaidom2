@@ -49,12 +49,10 @@ object IndexedNodes {
    * Indexed element node, offering the `BackingNodes.Elem` element query API.
    *
    * The element navigation path is the element's navigation path relative to the underlying root element.
-   * Each entry in the element navigation path is a child element index, not a child node index!
-   *
-   * TODO No longer case class, but overriding equals and hashCode ourselves
+   * Each entry in the element navigation path is a (zero-based) child element index, not a child node index!
    */
   // scalastyle:off number.of.methods
-  final case class Elem private(
+  final class Elem private(
     val docUriOption: Option[URI],
     val underlyingRootElem: SimpleNodes.Elem,
     val elemNavigationPathFromRoot: Seq[Int],
@@ -64,13 +62,23 @@ object IndexedNodes {
     import Elem.emptyUri
     import Elem.XmlBaseEName
 
-    // TODO Ensure the underlying Elem corresponds to the underlying root element and the element navigation path
-
     // TODO Improve performance dramatically
 
     type ThisElem = Elem
 
     type ThisNode = Node
+
+    override def equals(other: Any): Boolean = other match {
+      case otherElem: Elem =>
+        otherElem.docUriOption == docUriOption && otherElem.underlyingRootElem == underlyingRootElem &&
+          otherElem.elemNavigationPathFromRoot == elemNavigationPathFromRoot && otherElem.underlyingElem == underlyingElem
+      case _ =>
+        false
+    }
+
+    override def hashCode: Int = {
+      (docUriOption, underlyingRootElem, elemNavigationPathFromRoot, underlyingElem).hashCode()
+    }
 
     // ElemApi
 
