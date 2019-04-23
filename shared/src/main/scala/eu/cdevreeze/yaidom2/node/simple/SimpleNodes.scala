@@ -54,7 +54,7 @@ object SimpleNodes {
     val qname: QName,
     val attributesByQName: SeqMap[QName, String],
     val scope: Scope,
-    val children: Seq[Node]
+    val children: ArraySeq[Node]
   ) extends CanBeDocumentChild with ScopedNodes.Elem {
 
     // TODO Requirements on constructor parameters
@@ -291,6 +291,12 @@ object SimpleNodes {
 
     def attributeScope: Scope = scope.withoutDefaultNamespace
 
+    /**
+     * Returns the element found by navigating the given element navigation path starting with this element.
+     * If no element exists at the given navigation path, an exception is thrown.
+     *
+     * Note that each step in the navigation path is a zero-based child element index, not any child node index!
+     */
     def atNavigationPath(navigationPath: Seq[Int]): Elem = {
       if (navigationPath.isEmpty) {
         this
@@ -369,7 +375,7 @@ object SimpleNodes {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val simpleChildren = children.map { node => Node.from(node) }
 
-      new Elem(elm.qname, elm.attributesByQName, elm.scope, simpleChildren)
+      new Elem(elm.qname, elm.attributesByQName, elm.scope, simpleChildren.to(ArraySeq))
     }
   }
 

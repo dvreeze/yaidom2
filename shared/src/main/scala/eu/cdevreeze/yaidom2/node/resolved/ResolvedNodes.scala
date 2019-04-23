@@ -52,7 +52,7 @@ object ResolvedNodes {
   final case class Elem(
     name: EName,
     attributes: SeqMap[EName, String],
-    children: Seq[Node]
+    children: ArraySeq[Node]
   ) extends CanBeDocumentChild with ClarkNodes.Elem {
 
     type ThisElem = Elem
@@ -228,11 +228,11 @@ object ResolvedNodes {
     }
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {
-      Elem(name, SeqMap.empty, children)
+      Elem(name, SeqMap.empty, children.to(ArraySeq))
     }
 
     def elem(name: EName, attributes: immutable.Iterable[(EName, String)], children: Seq[NodeType]): ElemType = {
-      Elem(name, attributes.to(SeqMap), children)
+      Elem(name, attributes.to(SeqMap), children.to(ArraySeq))
     }
 
     def textElem(name: EName, txt: String): ElemType = {
@@ -266,7 +266,7 @@ object ResolvedNodes {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val resolvedChildren = children.map { node => Node.from(node) }
 
-      Elem(elm.name, elm.attributes, resolvedChildren)
+      Elem(elm.name, elm.attributes, resolvedChildren.to(ArraySeq))
     }
   }
 

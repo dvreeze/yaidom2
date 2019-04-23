@@ -18,7 +18,9 @@ package eu.cdevreeze.yaidom2.node.indexed
 
 import java.net.URI
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
+import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
@@ -55,14 +57,12 @@ object IndexedNodes {
   final class Elem private(
     val docUriOption: Option[URI],
     val underlyingRootElem: SimpleNodes.Elem,
-    val elemNavigationPathFromRoot: Seq[Int],
+    val elemNavigationPathFromRoot: ArraySeq[Int],
     val underlyingElem: SimpleNodes.Elem
   ) extends CanBeDocumentChild with BackingNodes.Elem {
 
     import Elem.emptyUri
     import Elem.XmlBaseEName
-
-    // TODO Improve performance dramatically
 
     type ThisElem = Elem
 
@@ -90,7 +90,7 @@ object IndexedNodes {
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      filterChildElems(p).headOption // TODO Improve performance!
+      filterChildElems(p).headOption
     }
 
     def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -98,16 +98,37 @@ object IndexedNodes {
     }
 
     def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      filterDescendantElems(p).headOption // TODO Improve performance!
+      filterChildElems(_ => true).view.flatMap(_.findDescendantElemOrSelf(p)).headOption
     }
 
     def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      // Recursive calls
-      Seq(this).filter(p) ++ filterChildElems(_ => true).flatMap(_.filterDescendantElemsOrSelf(p))
+      val result = mutable.ArrayBuffer[ThisElem]()
+
+      def accumulate(elm: ThisElem): Unit = {
+        if (p(elm)) result += elm
+        // Recursive calls (not tail-recursive, but the depth is typically limited)
+        elm.filterChildElems(_ => true).foreach(accumulate)
+      }
+
+      accumulate(this)
+      result.to(ArraySeq)
     }
 
     def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
-      filterDescendantElemsOrSelf(p).headOption // TODO Improve performance!
+      var result: Option[ThisElem] = None
+
+      def findElem(elm: ThisElem): Unit = {
+        if (result.isEmpty) {
+          if (p(elm)) result = Some(elm)
+        }
+        if (result.isEmpty) {
+          // Recursive calls (not tail-recursive, but the depth is typically limited)
+          elm.filterChildElems(_ => true).foreach(findElem)
+        }
+      }
+
+      findElem(this)
+      result
     }
 
     def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -115,12 +136,19 @@ object IndexedNodes {
     }
 
     def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      if (p(this)) {
-        Seq(this)
-      } else {
-        // Recursive calls
-        filterChildElems(_ => true).flatMap(_.findTopmostElemsOrSelf(p))
+      val result = mutable.ArrayBuffer[ThisElem]()
+
+      def accumulate(elm: ThisElem): Unit = {
+        if (p(elm)) {
+          result += elm
+        } else {
+          // Recursive calls (not tail-recursive, but the depth is typically limited)
+          elm.filterChildElems(_ => true).foreach(accumulate)
+        }
       }
+
+      accumulate(this)
+      result.to(ArraySeq)
     }
 
     // ClarkElemApi
@@ -282,7 +310,7 @@ object IndexedNodes {
 
     def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
       // Recursive calls
-      Seq(this).filter(p) ++ findParentElem(_ => true).toSeq.flatMap(_.filterAncestorElemsOrSelf(p))
+      ArraySeq(this).filter(p) ++ findParentElem(_ => true).to(ArraySeq).flatMap(_.filterAncestorElemsOrSelf(p))
     }
 
     def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -307,7 +335,7 @@ object IndexedNodes {
     }
 
     def rootElem: ThisElem = {
-      new Elem(docUriOption, underlyingRootElem, Seq.empty, underlyingRootElem)
+      new Elem(docUriOption, underlyingRootElem, ArraySeq.empty, underlyingRootElem)
     }
 
     // ClarkNodes.Elem
@@ -362,7 +390,11 @@ object IndexedNodes {
      * Creation method for indexed elements.
      */
     def of(docUriOption: Option[URI], underlyingRootElem: SimpleNodes.Elem, elemNavigationPathFromRoot: Seq[Int]): Elem = {
-      new Elem(docUriOption, underlyingRootElem, elemNavigationPathFromRoot, underlyingRootElem.atNavigationPath(elemNavigationPathFromRoot))
+      new Elem(
+        docUriOption,
+        underlyingRootElem,
+        elemNavigationPathFromRoot.to(ArraySeq),
+        underlyingRootElem.atNavigationPath(elemNavigationPathFromRoot))
     }
 
     def ofRoot(docUriOption: Option[URI], underlyingRootElem: SimpleNodes.Elem): Elem = {

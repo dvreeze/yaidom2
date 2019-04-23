@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.queryapi
 
+import scala.collection.immutable.ArraySeq
+
 /**
  * Element step, which is a function from elements to collections of elements. This is a monoid. See
  * https://typelevel.org/cats/typeclasses/monoid.html for an explanation of monoids.
@@ -53,7 +55,7 @@ trait ElemStep[E] extends Function1[E, Seq[E]] {
   }
 
   final def first: ElemStep[E] = {
-    { elem => IndexedSeq(this(elem).head) }
+    { elem => ArraySeq(this(elem).head) }
   }
 
   final def firstOption: ElemStep[E] = {
@@ -67,6 +69,6 @@ object ElemStep {
    * The empty value of the ElemStep monoid.
    */
   def empty[E]: ElemStep[E] = {
-    { elem => IndexedSeq(elem) }
+    { elem => ArraySeq(elem) }
   }
 }
