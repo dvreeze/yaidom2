@@ -62,19 +62,8 @@ object XmlElementInfoPrinter {
     val showCount = 30
     println(s"Element name counts (first $showCount at most): ${elemNameCounts.toSeq.sortBy(_._2).reverse.take(showCount)}")
 
-    val elemAncestries: Seq[Seq[EName]] =
-      docElem.select(descendantElemsOrSelf()).map(_.select(ancestorElemsOrSelf()).map(_.name))
-        .distinct.sortBy(_.head.toString)
-
     println()
     println("Element ancestries:")
-    println()
-    elemAncestries.foreach { elemAncestry =>
-      println(elemAncestry.mkString(", "))
-    }
-
-    println()
-    println("Element ancestries (again):")
     println()
 
     val elemNames: Seq[EName] = elemNameCounts.keySet.toSeq.sortBy(_.toString)
