@@ -72,5 +72,25 @@ object XmlElementInfoPrinter {
     elemAncestries.foreach { elemAncestry =>
       println(elemAncestry.mkString(", "))
     }
+
+    println()
+    println("Element ancestries (again):")
+    println()
+
+    val elemNames: Seq[EName] = elemNameCounts.keySet.toSeq.sortBy(_.toString)
+
+    elemNames.foreach { elemName =>
+      val ancestries: Seq[Seq[SaxonNodes.Elem]] =
+        docElem.select(descendantElemsOrSelf(elemName)).map(_.select(ancestorElemsOrSelf()))
+
+      val ancestryCounts: Map[Seq[EName], Int] =
+        ancestries.groupBy(_.map(_.name)).view.mapValues(_.size).toMap
+
+      ancestryCounts.toSeq.foreach { case (ancestry, cnt) =>
+        val filler: String = " " * (10 - cnt.toString.length)
+
+        println(s"Count: $cnt." + filler + ancestry.mkString(", "))
+      }
+    }
   }
 }
