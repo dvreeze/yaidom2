@@ -384,7 +384,6 @@ object IndexedNodes {
     }
 
     def select(step: ElemStep[Elem]): Seq[Elem] = {
-      // Implemented directly, instead of in terms of Elem.select.
       step(this)
     }
   }

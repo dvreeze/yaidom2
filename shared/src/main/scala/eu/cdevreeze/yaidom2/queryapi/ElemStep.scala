@@ -17,6 +17,7 @@
 package eu.cdevreeze.yaidom2.queryapi
 
 import scala.collection.immutable.ArraySeq
+import scala.reflect.ClassTag
 
 /**
  * Element step, which is a function from elements to collections of elements. This is a monoid. See
@@ -31,11 +32,16 @@ import scala.collection.immutable.ArraySeq
  */
 trait ElemStep[E] extends Function1[E, Seq[E]] {
 
+  // Note that this trait must be a Java SAM interface, having only 1 abstract method, but at the same time
+  // we need to provide implicit ClassTags wherever we create ArraySeq collections. Hence we provider these
+  // ClassTags in every method that needs them, instead of via an extra abstract method (which would violate the
+  // SAM interface constraint).
+
   /**
    * Associative operation to combine 2 steps.
    */
   final def concat(step: ElemStep[E]): ElemStep[E] = {
-    { elem => this(elem).flatMap(step) }
+    { elem => this (elem).flatMap(step) }
   }
 
   /**
@@ -47,19 +53,19 @@ trait ElemStep[E] extends Function1[E, Seq[E]] {
   }
 
   final def where(p: E => Boolean): ElemStep[E] = {
-    { elem => this(elem).filter(p) }
+    { elem => this (elem).filter(p) }
   }
 
   final def cat(step: ElemStep[E]): ElemStep[E] = {
-    { elem => this(elem) ++ step(elem) }
+    { elem => this (elem) ++ step(elem) }
   }
 
-  final def first: ElemStep[E] = {
-    { elem => ArraySeq(this(elem).head) }
+  final def first(implicit clsTag: ClassTag[E]): ElemStep[E] = {
+    { elem => ArraySeq(this (elem).head) }
   }
 
-  final def firstOption: ElemStep[E] = {
-    { elem => this(elem).headOption.toIndexedSeq }
+  final def firstOption(implicit clsTag: ClassTag[E]): ElemStep[E] = {
+    { elem => this (elem).headOption.to(ArraySeq) }
   }
 }
 
@@ -68,7 +74,7 @@ object ElemStep {
   /**
    * The empty value of the ElemStep monoid.
    */
-  def empty[E]: ElemStep[E] = {
+  def empty[E: ClassTag]: ElemStep[E] = {
     { elem => ArraySeq(elem) }
   }
 }
