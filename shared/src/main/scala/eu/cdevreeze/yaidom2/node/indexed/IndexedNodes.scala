@@ -317,7 +317,7 @@ object IndexedNodes {
     }
 
     def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      findParentElem().toSeq.flatMap(_.filterAncestorElemsOrSelf(p))
+      findParentElem().to(ArraySeq).flatMap(_.filterAncestorElemsOrSelf(p))
     }
 
     def findAllAncestorElems(): Seq[ThisElem] = {

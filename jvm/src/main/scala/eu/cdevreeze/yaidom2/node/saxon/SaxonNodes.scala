@@ -418,24 +418,14 @@ object SaxonNodes {
       findElem(elem, descendantOrSelf(), p)
     }
 
-    // TODO Make the following 2 methods more efficient
-
     def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      findAllChildElems(elem).to(ArraySeq).flatMap(e => findTopmostElemsOrSelf(e, p)).to(ArraySeq)
+      val childElemStream = elem.select(child().where(n => isElement.test(n)))
+
+      childElemStream.flatMap(e => findTopmostElemsOrSelfAsStream(e, p)).toScala(ArraySeq)
     }
 
     def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      def findTopmostElemsOrSelf(e: ElemType): Seq[ElemType] = {
-        if (p(e)) {
-          Vector(e)
-        } else {
-          // Recursive calls
-
-          findAllChildElems(e).to(ArraySeq).flatMap(che => findTopmostElemsOrSelf(che))
-        }
-      }
-
-      findTopmostElemsOrSelf(elem).to(ArraySeq)
+      findTopmostElemsOrSelfAsStream(elem, p).toScala(ArraySeq)
     }
 
     def name(elem: ElemType): EName = {
@@ -678,6 +668,17 @@ object SaxonNodes {
       stream.findFirst.toScala
     }
 
+    private def findTopmostElemsOrSelfAsStream(elem: ElemType, p: ElemType => Boolean): java.util.stream.Stream[ElemType] = {
+      if (p(elem)) {
+        java.util.stream.Stream.of(elem)
+      } else {
+        val childElemStream = elem.select(child().where(n => isElement.test(n)))
+
+        // Recursive calls
+        childElemStream.flatMap(che => findTopmostElemsOrSelfAsStream(che, p))
+      }
+    }
+
     /**
      * Normalizes the string, removing surrounding whitespace and normalizing internal whitespace to a single space.
      * Whitespace includes #x20 (space), #x9 (tab), #xD (carriage return), #xA (line feed). If there is only whitespace,
@@ -692,4 +693,5 @@ object SaxonNodes {
       words.mkString(" ") // Returns empty string if words.isEmpty
     }
   }
+
 }
