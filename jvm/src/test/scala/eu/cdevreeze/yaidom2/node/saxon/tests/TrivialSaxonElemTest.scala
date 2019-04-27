@@ -22,12 +22,12 @@ import scala.collection.immutable.ArraySeq
 import scala.jdk.StreamConverters.Ops._
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
 import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.XdmNode
-import net.sf.saxon.s9api.streams.Predicates._
 import net.sf.saxon.s9api.streams.Steps._
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -40,7 +40,7 @@ class TrivialSaxonElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialSaxonElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+    val saxonRootElem = SaxonDocument(doc).documentElement
 
     assertResult(true) {
       saxonRootElem.findAllDescendantElemsOrSelf().size >= 100
@@ -84,7 +84,7 @@ class TrivialSaxonElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialSaxonElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+    val saxonRootElem = SaxonDocument(doc).documentElement
 
     assertResult(true) {
       saxonRootElem.select(descendantElemsOrSelf()).size >= 100
@@ -128,7 +128,7 @@ class TrivialSaxonElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialSaxonElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+    val saxonRootElem = SaxonDocument(doc).documentElement
 
     val dimensionalContexts =
       saxonRootElem.select {
@@ -161,7 +161,7 @@ class TrivialSaxonElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialSaxonElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+    val saxonRootElem = SaxonDocument(doc).documentElement
 
     val dimensionalContexts =
       saxonRootElem.select {
@@ -214,7 +214,7 @@ class TrivialSaxonElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialSaxonElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val saxonRootElem = SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+    val saxonRootElem = SaxonDocument(doc).documentElement
 
     val dimensionalContexts =
       saxonRootElem.select {

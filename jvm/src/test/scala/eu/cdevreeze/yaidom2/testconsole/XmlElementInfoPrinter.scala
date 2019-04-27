@@ -19,11 +19,10 @@ package eu.cdevreeze.yaidom2.testconsole
 import java.io.File
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import net.sf.saxon.s9api.Processor
-import net.sf.saxon.s9api.streams.Predicates._
-import net.sf.saxon.s9api.streams.Steps._
 
 /**
  * Printer of some element info about a parsed XML file. One use case is to parse a large XML file and print
@@ -50,7 +49,7 @@ object XmlElementInfoPrinter {
 
     println(s"Ready parsing file")
 
-    val docElem = SaxonNodes.Elem(underlyingDoc.select(child(isElement)).findFirst().get)
+    val docElem = SaxonDocument(underlyingDoc).documentElement
 
     val elemCount = docElem.select(descendantElemsOrSelf()).size
 

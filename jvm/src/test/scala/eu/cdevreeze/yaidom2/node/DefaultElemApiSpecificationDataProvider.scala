@@ -18,12 +18,11 @@ package eu.cdevreeze.yaidom2.node
 
 import java.io.File
 
+import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemApi
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ElemApiSpecificationDataProvider
 import net.sf.saxon.s9api.Processor
-import net.sf.saxon.s9api.streams.Predicates._
-import net.sf.saxon.s9api.streams.Steps._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Properties
@@ -74,7 +73,7 @@ object DefaultElemApiSpecificationDataProvider {
     val file = new File(classOf[DefaultElemApiSpecificationDataProvider[_]].getResource(path).toURI)
     val doc = docBuilder.build(file)
 
-    SaxonNodes.Elem(doc.select(child(isElement)).findFirst().get)
+    SaxonDocument(doc).documentElement
   }
 
   private val rootElemPaths: Seq[String] = {

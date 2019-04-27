@@ -375,6 +375,18 @@ object SaxonNodes {
     private[saxon] val EmptyUri: URI = URI.create("")
   }
 
+  object CanBeDocumentChild {
+
+    def opt(xdmNode: XdmNode): Option[CanBeDocumentChild] = {
+      xdmNode.getNodeKind match {
+        case XdmNodeKind.ELEMENT => Some(Elem(xdmNode))
+        case XdmNodeKind.COMMENT => Some(Comment(xdmNode))
+        case XdmNodeKind.PROCESSING_INSTRUCTION => Some(ProcessingInstruction(xdmNode))
+        case _ => None
+      }
+    }
+  }
+
   // scalastyle:off number.of.methods
   object Elem extends BackingElemFunctionsApi {
 
