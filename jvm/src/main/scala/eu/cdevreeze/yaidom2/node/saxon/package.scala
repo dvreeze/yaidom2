@@ -21,4 +21,33 @@ package eu.cdevreeze.yaidom2.node
  *
  * @author Chris de Vreeze
  */
-package object saxon
+package object saxon {
+
+  type Document = SaxonDocument
+
+  type Node = SaxonNodes.Node
+
+  type CanBeDocumentChild = SaxonNodes.CanBeDocumentChild
+
+  type Elem = SaxonNodes.Elem
+
+  type Text = SaxonNodes.Text
+
+  type Comment = SaxonNodes.Comment
+
+  type ProcessingInstruction = SaxonNodes.ProcessingInstruction
+
+  val Document = SaxonDocument
+
+  val Node = SaxonNodes.Node
+
+  val CanBeDocumentChild = SaxonNodes.CanBeDocumentChild
+
+  val Elem = SaxonNodes.Elem
+
+  val Text = SaxonNodes.Text
+
+  val Comment = SaxonNodes.Comment
+
+  val ProcessingInstruction = SaxonNodes.ProcessingInstruction
+}

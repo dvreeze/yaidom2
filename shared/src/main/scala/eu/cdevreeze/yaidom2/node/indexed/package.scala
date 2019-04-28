@@ -22,4 +22,29 @@ package eu.cdevreeze.yaidom2.node
  *
  * @author Chris de Vreeze
  */
-package object indexed
+package object indexed {
+
+  type Document = IndexedDocument
+
+  type Node = IndexedNodes.Node
+
+  type CanBeDocumentChild = IndexedNodes.CanBeDocumentChild
+
+  type Elem = IndexedNodes.Elem
+
+  type Text = IndexedNodes.Text
+
+  type Comment = IndexedNodes.Comment
+
+  type ProcessingInstruction = IndexedNodes.ProcessingInstruction
+
+  val Document = IndexedDocument
+
+  val Elem = IndexedNodes.Elem
+
+  val Text = IndexedNodes.Text
+
+  val Comment = IndexedNodes.Comment
+
+  val ProcessingInstruction = IndexedNodes.ProcessingInstruction
+}

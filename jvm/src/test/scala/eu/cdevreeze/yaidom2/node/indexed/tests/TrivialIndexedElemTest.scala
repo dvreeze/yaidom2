@@ -22,10 +22,9 @@ import scala.collection.immutable.ArraySeq
 import scala.jdk.StreamConverters.Ops._
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.node.indexed.IndexedDocument
-import eu.cdevreeze.yaidom2.node.resolved.ResolvedNodes
-import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
+import eu.cdevreeze.yaidom2.node.indexed
+import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
 import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import net.sf.saxon.s9api.Processor
@@ -42,7 +41,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
+    val rootElem = indexed.Document.from(saxon.Document(doc)).documentElement
 
     assertResult(true) {
       rootElem.findAllDescendantElemsOrSelf().size >= 100
@@ -86,7 +85,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
+    val rootElem = indexed.Document.from(saxon.Document(doc)).documentElement
 
     assertResult(true) {
       rootElem.select(descendantElemsOrSelf()).size >= 100
@@ -130,7 +129,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
+    val rootElem = indexed.Document.from(saxon.Document(doc)).documentElement
 
     val dimensionalContexts =
       rootElem.select {
@@ -163,7 +162,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
+    val rootElem = indexed.Document.from(saxon.Document(doc)).documentElement
 
     val dimensionalContexts =
       rootElem.select {
@@ -216,9 +215,9 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val saxonDoc = SaxonDocument(doc)
+    val saxonDoc = saxon.Document(doc)
     val saxonRootElem = saxonDoc.documentElement
-    val rootElem = IndexedDocument.from(saxonDoc).documentElement
+    val rootElem = indexed.Document.from(saxonDoc).documentElement
 
     val dimensionalContexts =
       rootElem.select {
@@ -232,13 +231,13 @@ class TrivialIndexedElemTest extends AnyFunSuite {
         descendant(XbrliNs, "context").where {
           (e: XdmNode) => e.select(child(XbrliNs, "entity").`then`(descendant(XbrldiNs, "explicitMember"))).exists
         }
-      }.toScala(ArraySeq).map(n => SaxonNodes.Elem(n))
+      }.toScala(ArraySeq).map(n => saxon.Elem(n))
 
     assertResult(true) {
       dimensionalContexts.size >= 10
     }
-    assertResult(expectedDimensionalContexts.map(e => ResolvedNodes.Elem.from(e))) {
-      dimensionalContexts.map(e => ResolvedNodes.Elem.from(e))
+    assertResult(expectedDimensionalContexts.map(e => resolved.Elem.from(e))) {
+      dimensionalContexts.map(e => resolved.Elem.from(e))
     }
   }
 

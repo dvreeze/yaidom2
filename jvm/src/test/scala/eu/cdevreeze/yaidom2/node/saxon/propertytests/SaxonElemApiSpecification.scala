@@ -17,12 +17,12 @@
 package eu.cdevreeze.yaidom2.node.saxon.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
+import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.propertytests.BackingElemApiSpecification
 
 class SaxonElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[SaxonNodes.Elem]("Saxon-BackingElemApi")
-    with BackingElemApiSpecification[SaxonNodes.Node, SaxonNodes.Elem] {
+  extends DefaultElemApiSpecificationDataProvider[saxon.Elem]("Saxon-BackingElemApi")
+    with BackingElemApiSpecification[saxon.Node, saxon.Elem] {
 
-  protected def convertSaxonElemToElem(e: SaxonNodes.Elem): SaxonNodes.Elem = e
+  protected def convertSaxonElemToElem(e: saxon.Elem): saxon.Elem = e
 }

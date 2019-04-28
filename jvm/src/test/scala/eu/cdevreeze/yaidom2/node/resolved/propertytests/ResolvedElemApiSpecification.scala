@@ -17,15 +17,15 @@
 package eu.cdevreeze.yaidom2.node.resolved.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.resolved.ResolvedNodes
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
+import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ClarkElemApiSpecification
 
 class ResolvedElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[ResolvedNodes.Elem]("Resolved-ClarkElemApi")
-    with ClarkElemApiSpecification[ResolvedNodes.Node, ResolvedNodes.Elem] {
+  extends DefaultElemApiSpecificationDataProvider[resolved.Elem]("Resolved-ClarkElemApi")
+    with ClarkElemApiSpecification[resolved.Node, resolved.Elem] {
 
-  protected def convertSaxonElemToElem(e: SaxonNodes.Elem): ResolvedNodes.Elem = {
-    ResolvedNodes.Elem.from(e)
+  protected def convertSaxonElemToElem(e: saxon.Elem): resolved.Elem = {
+    resolved.Elem.from(e)
   }
 }

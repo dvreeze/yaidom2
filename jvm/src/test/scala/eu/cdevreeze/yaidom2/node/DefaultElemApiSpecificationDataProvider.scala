@@ -18,8 +18,6 @@ package eu.cdevreeze.yaidom2.node
 
 import java.io.File
 
-import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemApi
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ElemApiSpecificationDataProvider
 import net.sf.saxon.s9api.Processor
@@ -45,7 +43,7 @@ abstract class DefaultElemApiSpecificationDataProvider[E <: ClarkElemApi.Aux[E]]
       Gen.oneOf(Seq(predLocalNameIsNameLocalPart, predLocalNameSizeGt7, predLocalNameContainsCapital, predLocalNameContainsNoCapital)))
   }
 
-  protected def convertSaxonElemToElem(e: SaxonNodes.Elem): E
+  protected def convertSaxonElemToElem(e: saxon.Elem): E
 
   private def predLocalNameIsNameLocalPart(e: E): Boolean = {
     e.name.localPart == e.localName
@@ -66,14 +64,14 @@ abstract class DefaultElemApiSpecificationDataProvider[E <: ClarkElemApi.Aux[E]]
 
 object DefaultElemApiSpecificationDataProvider {
 
-  private def getRootElemAsSaxonElem(path: String): SaxonNodes.Elem = {
+  private def getRootElemAsSaxonElem(path: String): saxon.Elem = {
     val processor = new Processor(false)
     val docBuilder = processor.newDocumentBuilder()
 
     val file = new File(classOf[DefaultElemApiSpecificationDataProvider[_]].getResource(path).toURI)
     val doc = docBuilder.build(file)
 
-    SaxonDocument(doc).documentElement
+    saxon.Document(doc).documentElement
   }
 
   private val rootElemPaths: Seq[String] = {

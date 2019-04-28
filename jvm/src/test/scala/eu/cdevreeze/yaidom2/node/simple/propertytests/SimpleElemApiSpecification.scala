@@ -17,15 +17,15 @@
 package eu.cdevreeze.yaidom2.node.simple.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
+import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ScopedElemApiSpecification
 
 class SimpleElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[SimpleNodes.Elem]("Simple-ScopedElemApi")
-    with ScopedElemApiSpecification[SimpleNodes.Node, SimpleNodes.Elem] {
+  extends DefaultElemApiSpecificationDataProvider[simple.Elem]("Simple-ScopedElemApi")
+    with ScopedElemApiSpecification[simple.Node, simple.Elem] {
 
-  protected def convertSaxonElemToElem(e: SaxonNodes.Elem): SimpleNodes.Elem = {
-    SimpleNodes.Elem.from(e)
+  protected def convertSaxonElemToElem(e: saxon.Elem): simple.Elem = {
+    simple.Elem.from(e)
   }
 }

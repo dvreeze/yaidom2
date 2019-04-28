@@ -21,4 +21,33 @@ package eu.cdevreeze.yaidom2.node
  *
  * @author Chris de Vreeze
  */
-package object simple
+package object simple {
+
+  type Document = SimpleDocument
+
+  type Node = SimpleNodes.Node
+
+  type CanBeDocumentChild = SimpleNodes.CanBeDocumentChild
+
+  type Elem = SimpleNodes.Elem
+
+  type Text = SimpleNodes.Text
+
+  type Comment = SimpleNodes.Comment
+
+  type ProcessingInstruction = SimpleNodes.ProcessingInstruction
+
+  val Document = SimpleDocument
+
+  val Node = SimpleNodes.Node
+
+  val CanBeDocumentChild = SimpleNodes.CanBeDocumentChild
+
+  val Elem = SimpleNodes.Elem
+
+  val Text = SimpleNodes.Text
+
+  val Comment = SimpleNodes.Comment
+
+  val ProcessingInstruction = SimpleNodes.ProcessingInstruction
+}

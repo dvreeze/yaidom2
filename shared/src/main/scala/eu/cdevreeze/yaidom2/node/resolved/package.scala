@@ -23,4 +23,23 @@ package eu.cdevreeze.yaidom2.node
  *
  * @author Chris de Vreeze
  */
-package object resolved
+package object resolved {
+
+  type Document = ResolvedDocument
+
+  type Node = ResolvedNodes.Node
+
+  type CanBeDocumentChild = ResolvedNodes.CanBeDocumentChild
+
+  type Elem = ResolvedNodes.Elem
+
+  type Text = ResolvedNodes.Text
+
+  val Document = ResolvedDocument
+
+  val Node = ResolvedNodes.Node
+
+  val Elem = ResolvedNodes.Elem
+
+  val Text = ResolvedNodes.Text
+}

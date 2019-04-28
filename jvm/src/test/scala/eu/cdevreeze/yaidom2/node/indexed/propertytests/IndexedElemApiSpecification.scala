@@ -17,17 +17,17 @@
 package eu.cdevreeze.yaidom2.node.indexed.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.indexed.IndexedNodes
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
+import eu.cdevreeze.yaidom2.node.indexed
+import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.queryapi.propertytests.BackingElemApiSpecification
 
 class IndexedElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[IndexedNodes.Elem]("Indexed-BackingElemApi")
-    with BackingElemApiSpecification[IndexedNodes.Node, IndexedNodes.Elem] {
+  extends DefaultElemApiSpecificationDataProvider[indexed.Elem]("Indexed-BackingElemApi")
+    with BackingElemApiSpecification[indexed.Node, indexed.Elem] {
 
-  protected def convertSaxonElemToElem(e: SaxonNodes.Elem): IndexedNodes.Elem = {
-    val underlyingElem = SimpleNodes.Elem.from(e)
-    IndexedNodes.Elem.ofRoot(e.docUriOption, underlyingElem)
+  protected def convertSaxonElemToElem(e: saxon.Elem): indexed.Elem = {
+    val underlyingElem = simple.Elem.from(e)
+    indexed.Elem.ofRoot(e.docUriOption, underlyingElem)
   }
 }
