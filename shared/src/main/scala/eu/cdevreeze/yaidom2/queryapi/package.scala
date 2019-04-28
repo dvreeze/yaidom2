@@ -23,7 +23,7 @@ package eu.cdevreeze.yaidom2
  * Still, concrete element implementations mix in these query API traits, and new element implementations can be
  * invented that do the same.
  *
- * There is an OO API offererd by concrete element implementations, but also a functional API. The OO API is designed
+ * There is an OO API offered by concrete element implementations, but also a functional API. The OO API is designed
  * in such a way that user code can mostly work with "raw" element types without having to specify the concrete type
  * parameters. This makes it easy to wrap element abstractions in "XML dialect" abstractions without needing any generics
  * in the latter, which greatly improves ease of use.
