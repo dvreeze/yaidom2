@@ -26,7 +26,6 @@ import eu.cdevreeze.yaidom2.node.indexed.IndexedDocument
 import eu.cdevreeze.yaidom2.node.resolved.ResolvedNodes
 import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.node.simple.SimpleDocument
 import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
 import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import net.sf.saxon.s9api.Processor
@@ -43,7 +42,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.of(SimpleDocument.from(SaxonDocument(doc))).documentElement
+    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
 
     assertResult(true) {
       rootElem.findAllDescendantElemsOrSelf().size >= 100
@@ -87,7 +86,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.of(SimpleDocument.from(SaxonDocument(doc))).documentElement
+    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
 
     assertResult(true) {
       rootElem.select(descendantElemsOrSelf()).size >= 100
@@ -131,7 +130,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.of(SimpleDocument.from(SaxonDocument(doc))).documentElement
+    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
 
     val dimensionalContexts =
       rootElem.select {
@@ -164,7 +163,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialIndexedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = IndexedDocument.of(SimpleDocument.from(SaxonDocument(doc))).documentElement
+    val rootElem = IndexedDocument.from(SaxonDocument(doc)).documentElement
 
     val dimensionalContexts =
       rootElem.select {
@@ -219,7 +218,7 @@ class TrivialIndexedElemTest extends AnyFunSuite {
 
     val saxonDoc = SaxonDocument(doc)
     val saxonRootElem = saxonDoc.documentElement
-    val rootElem = IndexedDocument.of(SimpleDocument.from(saxonDoc)).documentElement
+    val rootElem = IndexedDocument.from(saxonDoc).documentElement
 
     val dimensionalContexts =
       rootElem.select {

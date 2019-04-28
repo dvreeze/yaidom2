@@ -61,4 +61,8 @@ object IndexedDocument {
 
     IndexedDocument(targetChildren)
   }
+
+  def from(document: BackingDocumentApi): IndexedDocument = {
+    of(SimpleDocument.from(document))
+  }
 }
