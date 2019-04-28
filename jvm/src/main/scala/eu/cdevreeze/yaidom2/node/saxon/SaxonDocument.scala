@@ -16,11 +16,13 @@
 
 package eu.cdevreeze.yaidom2.node.saxon
 
+import java.net.URI
+
 import scala.collection.immutable.ArraySeq
 import scala.jdk.OptionConverters.Ops._
 import scala.jdk.StreamConverters.Ops._
 
-import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
 import net.sf.saxon.s9api.streams.Predicates.isElement
@@ -31,14 +33,20 @@ import net.sf.saxon.s9api.streams.Steps.child
  *
  * @author Chris de Vreeze
  */
-final case class SaxonDocument(xdmNode: XdmNode) extends DocumentApi {
+final case class SaxonDocument(xdmNode: XdmNode) extends BackingDocumentApi {
   require(
     xdmNode.getNodeKind == XdmNodeKind.DOCUMENT,
     s"Expected document but got node of kind ${xdmNode.getNodeKind}")
 
+  type NodeType = SaxonNodes.Node
+
   type CanBeDocumentChildType = SaxonNodes.CanBeDocumentChild
 
   type ElemType = SaxonNodes.Elem
+
+  def docUriOption: Option[URI] = {
+    Option(xdmNode.getDocumentURI)
+  }
 
   def children: Seq[SaxonNodes.CanBeDocumentChild] = {
     val stream = xdmNode.select(child())

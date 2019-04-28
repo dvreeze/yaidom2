@@ -16,21 +16,29 @@
 
 package eu.cdevreeze.yaidom2.node.indexed
 
-import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
+import java.net.URI
+
+import eu.cdevreeze.yaidom2.node.simple.SimpleDocument
+import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
 
 /**
  * Document holding a IndexedNodes.Elem.
  *
  * @author Chris de Vreeze
  */
-final case class IndexedDocument(children: Seq[IndexedNodes.CanBeDocumentChild]) extends DocumentApi {
+final case class IndexedDocument(children: Seq[IndexedNodes.CanBeDocumentChild]) extends BackingDocumentApi {
   require(
     children.collect { case e: IndexedNodes.Elem => e }.size == 1,
     s"A document must have precisely 1 document element but found ${children.collect { case e: IndexedNodes.Elem => e }.size} ones")
 
+  type NodeType = IndexedNodes.Node
+
   type CanBeDocumentChildType = IndexedNodes.CanBeDocumentChild
 
   type ElemType = IndexedNodes.Elem
+
+  def docUriOption: Option[URI] = documentElement.docUriOption
 
   def documentElement: ElemType = children.collectFirst { case e: IndexedNodes.Elem => e }.get
 }
@@ -39,5 +47,18 @@ object IndexedDocument {
 
   def apply(documentElement: IndexedNodes.Elem): IndexedDocument = {
     apply(Seq(documentElement))
+  }
+
+  def of(simpleDocument: SimpleDocument): IndexedDocument = {
+    val docUriOption: Option[URI] = simpleDocument.docUriOption
+
+    val targetChildren: Seq[IndexedNodes.CanBeDocumentChild] = simpleDocument.children
+      .map {
+        case e: SimpleNodes.Elem => IndexedNodes.Elem.ofRoot(docUriOption, e)
+        case c: SimpleNodes.Comment => IndexedNodes.Comment(c.text)
+        case pi: SimpleNodes.ProcessingInstruction => IndexedNodes.ProcessingInstruction(pi.target, pi.data)
+      }
+
+    IndexedDocument(targetChildren)
   }
 }

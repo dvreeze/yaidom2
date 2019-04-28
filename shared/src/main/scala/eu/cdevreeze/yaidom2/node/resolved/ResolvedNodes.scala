@@ -264,6 +264,14 @@ object ResolvedNodes {
     }
   }
 
+  object CanBeDocumentChild {
+
+    def from(node: ClarkNodes.CanBeDocumentChild): CanBeDocumentChild = node match {
+      case e: ClarkNodes.Elem => Elem.from(e)
+      case n => sys.error(s"Not an element node: $n")
+    }
+  }
+
   object Elem extends ClarkElemFunctionWrapper {
 
     type ElemType = Elem

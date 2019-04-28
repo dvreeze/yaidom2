@@ -16,31 +16,23 @@
 
 package eu.cdevreeze.yaidom2.queryapi.oo
 
-import java.net.URI
-
 /**
- * Common contract for documents.
+ * Common contract for documents containing ScopedNodes elements.
  *
  * @author Chris de Vreeze
  */
-trait DocumentApi {
+trait ScopedDocumentApi extends ClarkDocumentApi {
 
-  type NodeType <: Nodes.Node
+  type NodeType <: ScopedNodes.Node
 
-  type CanBeDocumentChildType <: NodeType with Nodes.CanBeDocumentChild
+  type CanBeDocumentChildType <: NodeType with ScopedNodes.CanBeDocumentChild
 
-  type ElemType <: CanBeDocumentChildType with Nodes.Elem
-
-  def docUriOption: Option[URI]
-
-  def children: Seq[CanBeDocumentChildType]
-
-  def documentElement: ElemType
+  type ElemType <: CanBeDocumentChildType with ScopedNodes.Elem
 }
 
-object DocumentApi {
+object ScopedDocumentApi {
 
-  type Aux[N, C, E] = DocumentApi {
+  type Aux[N, C, E] = ScopedDocumentApi {
     type NodeType = N
     type CanBeDocumentChildType = C
     type ElemType = E

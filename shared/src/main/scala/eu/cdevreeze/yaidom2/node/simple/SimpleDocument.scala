@@ -16,17 +16,24 @@
 
 package eu.cdevreeze.yaidom2.node.simple
 
-import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
+import java.net.URI
+
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.oo.Nodes
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 
 /**
  * Document holding a SimpleNodes.Elem.
  *
  * @author Chris de Vreeze
  */
-final case class SimpleDocument(children: Seq[SimpleNodes.CanBeDocumentChild]) extends DocumentApi {
+final case class SimpleDocument(docUriOption: Option[URI], children: Seq[SimpleNodes.CanBeDocumentChild]) extends ScopedDocumentApi {
   require(
     children.collect { case e: SimpleNodes.Elem => e }.size == 1,
     s"A document must have precisely 1 document element but found ${children.collect { case e: SimpleNodes.Elem => e }.size} ones")
+
+  type NodeType = SimpleNodes.Node
 
   type CanBeDocumentChildType = SimpleNodes.CanBeDocumentChild
 
@@ -37,7 +44,21 @@ final case class SimpleDocument(children: Seq[SimpleNodes.CanBeDocumentChild]) e
 
 object SimpleDocument {
 
-  def apply(documentElement: SimpleNodes.Elem): SimpleDocument = {
-    apply(Seq(documentElement))
+  def apply(docUriOption: Option[URI], documentElement: SimpleNodes.Elem): SimpleDocument = {
+    apply(docUriOption, Seq(documentElement))
+  }
+
+  def from(uriOption: Option[URI], document: ScopedDocumentApi): SimpleDocument = {
+    val docChildren = document.children.collect { case ch: ScopedNodes.CanBeDocumentChild => ch }
+
+    val targetDocChildren =
+      docChildren.filter(n => Set[Nodes.NodeKind](Nodes.ElementKind, Nodes.CommentKind, Nodes.ProcessingInstructionKind).contains(n.nodeKind))
+        .map(n => SimpleNodes.CanBeDocumentChild.from(n))
+
+    SimpleDocument(uriOption, targetDocChildren)
+  }
+
+  def from(document: BackingDocumentApi): SimpleDocument = {
+    from(document.docUriOption, document)
   }
 }

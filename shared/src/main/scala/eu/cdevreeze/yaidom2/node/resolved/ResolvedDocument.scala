@@ -16,17 +16,24 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
-import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
+import java.net.URI
+
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.Nodes
 
 /**
  * Document holding a ResolvedNodes.Elem.
  *
  * @author Chris de Vreeze
  */
-final case class ResolvedDocument(children: Seq[ResolvedNodes.CanBeDocumentChild]) extends DocumentApi {
+final case class ResolvedDocument(docUriOption: Option[URI], children: Seq[ResolvedNodes.CanBeDocumentChild]) extends ClarkDocumentApi {
   require(
     children.collect { case e: ResolvedNodes.Elem => e }.size == 1,
     s"A document must have precisely 1 document element but found ${children.collect { case e: ResolvedNodes.Elem => e }.size} ones")
+
+  type NodeType = ResolvedNodes.Node
 
   type CanBeDocumentChildType = ResolvedNodes.CanBeDocumentChild
 
@@ -37,7 +44,19 @@ final case class ResolvedDocument(children: Seq[ResolvedNodes.CanBeDocumentChild
 
 object ResolvedDocument {
 
-  def apply(documentElement: ResolvedNodes.Elem): ResolvedDocument = {
-    apply(Seq(documentElement))
+  def apply(uriOption: Option[URI], documentElement: ResolvedNodes.Elem): ResolvedDocument = {
+    apply(uriOption, Seq(documentElement))
+  }
+
+  def from(uriOption: Option[URI], document: ClarkDocumentApi): ResolvedDocument = {
+    val docChildren = document.children.collect { case ch: ClarkNodes.CanBeDocumentChild => ch }
+    val targetDocChildren =
+      docChildren.filter(_.nodeKind == Nodes.ElementKind).map(n => ResolvedNodes.CanBeDocumentChild.from(n))
+
+    ResolvedDocument(uriOption, targetDocChildren)
+  }
+
+  def from(document: BackingDocumentApi): ResolvedDocument = {
+    from(document.docUriOption, document)
   }
 }

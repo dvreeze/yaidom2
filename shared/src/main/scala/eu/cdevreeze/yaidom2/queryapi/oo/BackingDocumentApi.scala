@@ -16,31 +16,23 @@
 
 package eu.cdevreeze.yaidom2.queryapi.oo
 
-import java.net.URI
-
 /**
- * Common contract for documents.
+ * Common contract for documents containing BackingNodes elements.
  *
  * @author Chris de Vreeze
  */
-trait DocumentApi {
+trait BackingDocumentApi extends ScopedDocumentApi {
 
-  type NodeType <: Nodes.Node
+  type NodeType <: BackingNodes.Node
 
-  type CanBeDocumentChildType <: NodeType with Nodes.CanBeDocumentChild
+  type CanBeDocumentChildType <: NodeType with BackingNodes.CanBeDocumentChild
 
-  type ElemType <: CanBeDocumentChildType with Nodes.Elem
-
-  def docUriOption: Option[URI]
-
-  def children: Seq[CanBeDocumentChildType]
-
-  def documentElement: ElemType
+  type ElemType <: CanBeDocumentChildType with BackingNodes.Elem
 }
 
-object DocumentApi {
+object BackingDocumentApi {
 
-  type Aux[N, C, E] = DocumentApi {
+  type Aux[N, C, E] = BackingDocumentApi {
     type NodeType = N
     type CanBeDocumentChildType = C
     type ElemType = E

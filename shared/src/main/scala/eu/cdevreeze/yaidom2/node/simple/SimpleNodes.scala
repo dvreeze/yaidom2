@@ -366,6 +366,16 @@ object SimpleNodes {
     }
   }
 
+  object CanBeDocumentChild {
+
+    def from(node: ScopedNodes.CanBeDocumentChild): CanBeDocumentChild = node match {
+      case e: ScopedNodes.Elem => Elem.from(e)
+      case c: ScopedNodes.Comment => Comment(c.text)
+      case pi: ScopedNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
+      case n => sys.error(s"Not an element, comment or processing instruction node: $n")
+    }
+  }
+
   object Elem extends ScopedElemFunctionWrapper {
 
     type ElemType = Elem

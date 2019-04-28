@@ -22,6 +22,7 @@ import scala.collection.immutable.ArraySeq
 import scala.jdk.StreamConverters.Ops._
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.node.resolved.ResolvedDocument
 import eu.cdevreeze.yaidom2.node.resolved.ResolvedNodes
 import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
@@ -41,7 +42,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialResolvedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = ResolvedNodes.Elem.from(SaxonDocument(doc).documentElement)
+    val rootElem = ResolvedDocument.from(SaxonDocument(doc)).documentElement
 
     assertResult(true) {
       rootElem.findAllDescendantElemsOrSelf().size >= 100
@@ -70,7 +71,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialResolvedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = ResolvedNodes.Elem.from(SaxonDocument(doc).documentElement)
+    val rootElem = ResolvedDocument.from(SaxonDocument(doc)).documentElement
 
     assertResult(true) {
       rootElem.select(descendantElemsOrSelf()).size >= 100
@@ -99,7 +100,7 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialResolvedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = ResolvedNodes.Elem.from(SaxonDocument(doc).documentElement)
+    val rootElem = ResolvedDocument.from(SaxonDocument(doc)).documentElement
 
     val dimensionalContexts =
       rootElem.select {
@@ -132,8 +133,9 @@ class TrivialResolvedElemTest extends AnyFunSuite {
     val file = new File(classOf[TrivialResolvedElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val saxonRootElem = SaxonDocument(doc).documentElement
-    val rootElem = ResolvedNodes.Elem.from(saxonRootElem)
+    val saxonDoc = SaxonDocument(doc)
+    val saxonRootElem = saxonDoc.documentElement
+    val rootElem = ResolvedDocument.from(saxonDoc).documentElement
 
     val dimensionalContexts =
       rootElem.select {
