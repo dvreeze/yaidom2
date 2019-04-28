@@ -28,9 +28,7 @@ import org.scalacheck.Properties
 trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends ScopedElemApiSpecification[N, E] {
   self: Properties =>
 
-  protected val elemStepFactory: BackingElemStepFactoryApi.Aux[E]
-
-  import elemStepFactory._
+  protected def elemStepFactory: BackingElemStepFactoryApi.Aux[E]
 
   // "Definitions" of BackingElemApi methods
 
@@ -139,18 +137,30 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
   }
 
   property("select-parent") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(parentElem(pred)) == elem.findParentElem(pred).toSeq
   }
 
   property("select-ancestor") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(ancestorElems(pred)) == elem.filterAncestorElems(pred)
   }
 
   property("select-ancestor-or-self") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(ancestorElemsOrSelf(pred)) == elem.filterAncestorElemsOrSelf(pred)
   }
 
   property("select-siblings-or-self") = forAll { elem: E =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(parentElem() / childElems()) == elem.findParentElem().toSeq.flatMap(_.findAllChildElems())
   }
 

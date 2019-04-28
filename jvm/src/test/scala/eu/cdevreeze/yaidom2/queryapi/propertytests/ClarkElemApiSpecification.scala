@@ -25,9 +25,7 @@ import org.scalacheck.Properties
 trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemApiSpecification[E] {
   self: Properties =>
 
-  protected val elemStepFactory: ClarkElemStepFactoryApi.Aux[E]
-
-  import elemStepFactory._
+  protected def elemStepFactory: ClarkElemStepFactoryApi.Aux[E]
 
   // "Definitions" of ClarkElemApi methods
 
@@ -120,26 +118,44 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
   }
 
   property("select-children") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(childElems(pred)) == elem.filterChildElems(pred)
   }
 
   property("select-descendant") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(descendantElems(pred)) == elem.filterDescendantElems(pred)
   }
 
   property("select-descendant-or-self") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(descendantElemsOrSelf(pred)) == elem.filterDescendantElemsOrSelf(pred)
   }
 
   property("select-topmost") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(topmostElems(pred)) == elem.findTopmostElems(pred)
   }
 
   property("select-topmost-or-self") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(topmostElemsOrSelf(pred)) == elem.findTopmostElemsOrSelf(pred)
   }
 
   property("select-grandchildren") = forAll { (elem: E, pred: E => Boolean) =>
+    val elemSteps = elemStepFactory
+    import elemSteps._
+
     elem.select(childElems() / childElems(pred)) ==
       elem.findAllChildElems().flatMap(_.filterChildElems(pred))
   }

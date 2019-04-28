@@ -24,7 +24,7 @@ import org.scalacheck.Properties
 trait ScopedElemApiSpecification[N, E <: ScopedNodes.Elem.Aux[N, E]] extends ClarkElemApiSpecification[N, E] {
   self: Properties =>
 
-  protected val elemStepFactory: ScopedElemStepFactoryApi.Aux[E]
+  protected def elemStepFactory: ScopedElemStepFactoryApi.Aux[E]
 
   property("resolved-qname") = forAll { elem: E =>
     elem.scope.resolveQName(elem.qname) == elem.name
