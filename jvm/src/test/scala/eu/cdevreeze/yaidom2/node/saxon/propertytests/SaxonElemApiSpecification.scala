@@ -18,6 +18,7 @@ package eu.cdevreeze.yaidom2.node.saxon.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.saxon.SaxonElemSteps
 import eu.cdevreeze.yaidom2.queryapi.propertytests.BackingElemApiSpecification
 
 class SaxonElemApiSpecification
@@ -25,4 +26,6 @@ class SaxonElemApiSpecification
     with BackingElemApiSpecification[saxon.Node, saxon.Elem] {
 
   protected def convertSaxonElemToElem(e: saxon.Elem): saxon.Elem = e
+
+  protected val elemStepFactory: SaxonElemSteps.type = SaxonElemSteps
 }

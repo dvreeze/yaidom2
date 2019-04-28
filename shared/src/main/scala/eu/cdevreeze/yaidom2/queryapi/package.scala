@@ -23,6 +23,15 @@ package eu.cdevreeze.yaidom2
  * Still, concrete element implementations mix in these query API traits, and new element implementations can be
  * invented that do the same.
  *
+ * There is an OO API offererd by concrete element implementations, but also a functional API. The OO API is designed
+ * in such a way that user code can mostly work with "raw" element types without having to specify the concrete type
+ * parameters. This makes it easy to wrap element abstractions in "XML dialect" abstractions without needing any generics
+ * in the latter, which greatly improves ease of use.
+ *
+ * The above-mentioned design has a simple abstract API in that the member type constraints are trivial F-bounded
+ * polymorphism, without using self types etc. The implementations of that abstract API are mostly only in the concrete
+ * element implementations (and not in generic implementation traits), even if that means that there is some code duplication.
+ *
  * @author Chris de Vreeze
  */
 package object queryapi

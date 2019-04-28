@@ -19,14 +19,18 @@ package eu.cdevreeze.yaidom2.queryapi.propertytests
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Prop.BooleanOperators
 import org.scalacheck.Properties
 
 trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends ScopedElemApiSpecification[N, E] {
   self: Properties =>
+
+  protected val elemStepFactory: BackingElemStepFactoryApi.Aux[E]
+
+  import elemStepFactory._
 
   // "Definitions" of BackingElemApi methods
 

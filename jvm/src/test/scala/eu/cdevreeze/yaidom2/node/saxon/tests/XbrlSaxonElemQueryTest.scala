@@ -17,11 +17,14 @@
 package eu.cdevreeze.yaidom2.node.saxon.tests
 
 import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.saxon.SaxonElemSteps
 import eu.cdevreeze.yaidom2.queryapi.tests.XbrlBackingElemQueryTest
 
-class XbrlSaxonElemQueryTest extends XbrlBackingElemQueryTest[saxon.Node, saxon.Elem] {
+class XbrlSaxonElemQueryTest extends XbrlBackingElemQueryTest[saxon.Elem] {
 
   protected def rootElem: saxon.Elem = {
     saxonRootElem
   }
+
+  protected val elemStepFactory: SaxonElemSteps.type = SaxonElemSteps
 }

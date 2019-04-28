@@ -18,6 +18,7 @@ package eu.cdevreeze.yaidom2.node.indexed.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.indexed
+import eu.cdevreeze.yaidom2.node.indexed.IndexedElemSteps
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.queryapi.propertytests.BackingElemApiSpecification
@@ -30,4 +31,6 @@ class IndexedElemApiSpecification
     val underlyingElem = simple.Elem.from(e)
     indexed.Elem.ofRoot(e.docUriOption, underlyingElem)
   }
+
+  protected val elemStepFactory: IndexedElemSteps.type = IndexedElemSteps
 }

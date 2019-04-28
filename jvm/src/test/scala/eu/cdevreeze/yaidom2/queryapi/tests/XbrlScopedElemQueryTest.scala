@@ -17,11 +17,15 @@
 package eu.cdevreeze.yaidom2.queryapi.tests
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.queryapi.oo.havingName
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
-import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 
-abstract class XbrlScopedElemQueryTest[N, E <: ScopedNodes.Elem.Aux[N, E]] extends XbrlClarkElemQueryTest[N, E] {
+abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends XbrlClarkElemQueryTest[E] {
+
+  protected val elemStepFactory: ScopedElemStepFactoryApi.Aux[E]
+
+  import elemStepFactory._
 
   test("testParseAndQueryScopedXml") {
     assertResult(true) {

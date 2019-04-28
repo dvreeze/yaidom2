@@ -20,7 +20,7 @@ import java.io.File
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
+import eu.cdevreeze.yaidom2.node.saxon.SaxonElemSteps._
 import net.sf.saxon.s9api.Processor
 
 /**

@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.simple.tests
+package eu.cdevreeze.yaidom2.queryapi.oo
 
-import eu.cdevreeze.yaidom2.node.simple
-import eu.cdevreeze.yaidom2.node.simple.SimpleElemSteps
-import eu.cdevreeze.yaidom2.queryapi.tests.XbrlScopedElemQueryTest
+/**
+ * ElemStep factory API for Scoped elements.
+ *
+ * @author Chris de Vreeze
+ */
+trait ScopedElemStepFactoryApi extends ClarkElemStepFactoryApi {
 
-class XbrlSimpleElemQueryTest extends XbrlScopedElemQueryTest[simple.Elem] {
+  type ElemType <: ScopedElemApi
+}
 
-  protected def rootElem: simple.Elem = {
-    simple.Document.from(saxonDocument).documentElement
+object ScopedElemStepFactoryApi {
+
+  type Aux[E] = ScopedElemStepFactoryApi {
+    type ElemType = E
   }
-
-  protected val elemStepFactory: SimpleElemSteps.type = SimpleElemSteps
 }

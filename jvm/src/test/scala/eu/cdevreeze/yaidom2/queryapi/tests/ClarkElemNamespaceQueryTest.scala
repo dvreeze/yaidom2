@@ -22,7 +22,7 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
+import eu.cdevreeze.yaidom2.queryapi.oo._
 import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
 

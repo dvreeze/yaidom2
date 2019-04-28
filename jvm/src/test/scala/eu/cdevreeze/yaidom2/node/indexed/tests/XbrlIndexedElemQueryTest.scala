@@ -17,11 +17,14 @@
 package eu.cdevreeze.yaidom2.node.indexed.tests
 
 import eu.cdevreeze.yaidom2.node.indexed
+import eu.cdevreeze.yaidom2.node.indexed.IndexedElemSteps
 import eu.cdevreeze.yaidom2.queryapi.tests.XbrlBackingElemQueryTest
 
-class XbrlIndexedElemQueryTest extends XbrlBackingElemQueryTest[indexed.Node, indexed.Elem] {
+class XbrlIndexedElemQueryTest extends XbrlBackingElemQueryTest[indexed.Elem] {
 
   protected def rootElem: indexed.Elem = {
     indexed.Document.from(saxonDocument).documentElement
   }
+
+  protected val elemStepFactory: IndexedElemSteps.type = IndexedElemSteps
 }

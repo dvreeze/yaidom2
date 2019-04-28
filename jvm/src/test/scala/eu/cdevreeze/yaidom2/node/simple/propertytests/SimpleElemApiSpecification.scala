@@ -19,6 +19,7 @@ package eu.cdevreeze.yaidom2.node.simple.propertytests
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.node.simple
+import eu.cdevreeze.yaidom2.node.simple.SimpleElemSteps
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ScopedElemApiSpecification
 
 class SimpleElemApiSpecification
@@ -28,4 +29,6 @@ class SimpleElemApiSpecification
   protected def convertSaxonElemToElem(e: saxon.Elem): simple.Elem = {
     simple.Elem.from(e)
   }
+
+  protected val elemStepFactory: SimpleElemSteps.type = SimpleElemSteps
 }

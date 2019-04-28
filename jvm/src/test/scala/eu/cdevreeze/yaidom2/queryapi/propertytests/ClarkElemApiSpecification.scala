@@ -17,13 +17,17 @@
 package eu.cdevreeze.yaidom2.queryapi.propertytests
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 
 trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemApiSpecification[E] {
   self: Properties =>
+
+  protected val elemStepFactory: ClarkElemStepFactoryApi.Aux[E]
+
+  import elemStepFactory._
 
   // "Definitions" of ClarkElemApi methods
 

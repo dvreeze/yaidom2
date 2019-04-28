@@ -25,23 +25,27 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
-import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
+import eu.cdevreeze.yaidom2.queryapi.oo._
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemStepFactoryApi
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.streams.Steps._
 import org.scalatest.funsuite.AnyFunSuite
 
-abstract class XbrlClarkElemQueryTest[N, E <: ClarkNodes.Elem.Aux[N, E]] extends AnyFunSuite {
+abstract class XbrlClarkElemQueryTest[E <: ClarkNodes.Elem.Aux[_, E]] extends AnyFunSuite {
 
   private val processor = new Processor(false)
 
   protected def rootElem: E
 
+  protected val elemStepFactory: ClarkElemStepFactoryApi.Aux[E]
+
+  import elemStepFactory._
+
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[XbrlClarkElemQueryTest[_, _]].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
+    val file = new File(classOf[XbrlClarkElemQueryTest[_]].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
     saxon.Document(doc)

@@ -16,12 +16,15 @@
 
 package eu.cdevreeze.yaidom2.queryapi.propertytests
 
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 
 trait ScopedElemApiSpecification[N, E <: ScopedNodes.Elem.Aux[N, E]] extends ClarkElemApiSpecification[N, E] {
   self: Properties =>
+
+  protected val elemStepFactory: ScopedElemStepFactoryApi.Aux[E]
 
   property("resolved-qname") = forAll { elem: E =>
     elem.scope.resolveQName(elem.qname) == elem.name

@@ -16,10 +16,49 @@
 
 package eu.cdevreeze.yaidom2.queryapi
 
+import eu.cdevreeze.yaidom2.core.EName
+
 /**
  * Object-oriented instead of functional element query API. It cannot work directly with other XML implementations, but
  * wraps those elements as objects that offer the OO query API.
  *
  * @author Chris de Vreeze
  */
-package object oo
+package object oo {
+
+  val anyElem: ElemApi => Boolean = {
+    _ => true
+  }
+
+  def havingName(name: EName): ClarkElemApi => Boolean = {
+    havingName(name.namespaceUriOption, name.localPart)
+  }
+
+  def havingName(namespaceOption: Option[String], localName: String): ClarkElemApi => Boolean = {
+    elem =>
+      val nsAsString = namespaceOption.getOrElse("")
+
+      elem.namespaceAsString == nsAsString && elem.localName == localName
+  }
+
+  /**
+   * Predicate returning true for elements having the given non-empty namespace and local name
+   */
+  def havingName(namespace: String, localName: String): ClarkElemApi => Boolean = {
+    elem => elem.namespaceAsString == namespace && elem.localName == localName
+  }
+
+  /**
+   * Predicate returning true for elements having no namespace but the given local name
+   */
+  def havingName(localName: String): ClarkElemApi => Boolean = {
+    elem => elem.namespaceAsString.isEmpty && elem.localName == localName
+  }
+
+  /**
+   * Predicate returning true for elements having the given local name, ignoring the namespace, if any
+   */
+  def havingLocalName(localName: String): ClarkElemApi => Boolean = {
+    _.localName == localName
+  }
+}

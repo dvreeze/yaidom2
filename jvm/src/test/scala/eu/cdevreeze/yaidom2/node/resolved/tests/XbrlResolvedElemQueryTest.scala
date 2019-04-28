@@ -17,11 +17,14 @@
 package eu.cdevreeze.yaidom2.node.resolved.tests
 
 import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.node.resolved.ResolvedElemSteps
 import eu.cdevreeze.yaidom2.queryapi.tests.XbrlClarkElemQueryTest
 
-class XbrlResolvedElemQueryTest extends XbrlClarkElemQueryTest[resolved.Node, resolved.Elem] {
+class XbrlResolvedElemQueryTest extends XbrlClarkElemQueryTest[resolved.Elem] {
 
   protected def rootElem: resolved.Elem = {
     resolved.Document.from(saxonDocument).documentElement
   }
+
+  protected val elemStepFactory: ResolvedElemSteps.type = ResolvedElemSteps
 }

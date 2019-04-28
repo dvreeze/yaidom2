@@ -19,10 +19,14 @@ package eu.cdevreeze.yaidom2.queryapi.tests
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
-import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
+import eu.cdevreeze.yaidom2.queryapi.oo._
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingElemStepFactoryApi
 
-abstract class XbrlBackingElemQueryTest[N, E <: BackingNodes.Elem.Aux[N, E]] extends XbrlScopedElemQueryTest[N, E] {
+abstract class XbrlBackingElemQueryTest[E <: BackingNodes.Elem.Aux[_, E]] extends XbrlScopedElemQueryTest[E] {
+
+  protected val elemStepFactory: BackingElemStepFactoryApi.Aux[E]
+
+  import elemStepFactory._
 
   test("testParseAndQueryXml") {
     assertResult(true) {

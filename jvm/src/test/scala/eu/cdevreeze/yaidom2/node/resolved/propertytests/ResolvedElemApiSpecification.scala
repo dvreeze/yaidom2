@@ -18,6 +18,7 @@ package eu.cdevreeze.yaidom2.node.resolved.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.node.resolved.ResolvedElemSteps
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ClarkElemApiSpecification
 
@@ -28,4 +29,6 @@ class ResolvedElemApiSpecification
   protected def convertSaxonElemToElem(e: saxon.Elem): resolved.Elem = {
     resolved.Elem.from(e)
   }
+
+  protected val elemStepFactory: ResolvedElemSteps.type = ResolvedElemSteps
 }
