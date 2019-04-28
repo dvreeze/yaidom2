@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.simple.tests
+package eu.cdevreeze.yaidom2.queryapi.tests
 
 import java.io.File
 
@@ -23,8 +23,8 @@ import scala.jdk.StreamConverters.Ops._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
-import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.predicates._
 import eu.cdevreeze.yaidom2.queryapi.oo.steps.ElemSteps._
 import net.sf.saxon.s9api.Processor
@@ -32,17 +32,26 @@ import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.streams.Steps._
 import org.scalatest.funsuite.AnyFunSuite
 
-class TrivialSimpleElemTest extends AnyFunSuite {
+abstract class XbrlClarkElemQueryTest[N, E <: ClarkNodes.Elem.Aux[N, E]] extends AnyFunSuite {
 
-  test("testParseAndQueryXml") {
-    val processor = new Processor(false)
+  private val processor = new Processor(false)
+
+  protected def rootElem: E
+
+  protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[TrivialSimpleElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
+    val file = new File(classOf[XbrlClarkElemQueryTest[_, _]].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
     val doc = docBuilder.build(file)
 
-    val rootElem = simple.Document.from(saxon.Document(doc)).documentElement
+    saxon.Document(doc)
+  }
 
+  protected def saxonRootElem: saxon.Elem = {
+    saxonDocument.documentElement
+  }
+
+  test("testParseAndQueryClarkXml") {
     assertResult(true) {
       rootElem.findAllDescendantElemsOrSelf().size >= 100
     }
@@ -63,15 +72,7 @@ class TrivialSimpleElemTest extends AnyFunSuite {
     }
   }
 
-  test("testParseAndQueryXmlUsingSteps") {
-    val processor = new Processor(false)
-    val docBuilder = processor.newDocumentBuilder()
-
-    val file = new File(classOf[TrivialSimpleElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
-    val doc = docBuilder.build(file)
-
-    val rootElem = simple.Document.from(saxon.Document(doc)).documentElement
-
+  test("testParseAndQueryClarkXmlUsingSteps") {
     assertResult(true) {
       rootElem.select(descendantElemsOrSelf()).size >= 100
     }
@@ -93,14 +94,6 @@ class TrivialSimpleElemTest extends AnyFunSuite {
   }
 
   test("testSemanticsOfSteps") {
-    val processor = new Processor(false)
-    val docBuilder = processor.newDocumentBuilder()
-
-    val file = new File(classOf[TrivialSimpleElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
-    val doc = docBuilder.build(file)
-
-    val rootElem = simple.Document.from(saxon.Document(doc)).documentElement
-
     val dimensionalContexts =
       rootElem.select {
         descendantElems(XbrliNs, "context").where {
@@ -120,22 +113,12 @@ class TrivialSimpleElemTest extends AnyFunSuite {
     assertResult(true) {
       dimensionalContexts.size >= 10
     }
-    assertResult(expectedDimensionalContexts) {
-      dimensionalContexts
+    assertResult(expectedDimensionalContexts.map(e => resolved.Elem.from(e))) {
+      dimensionalContexts.map(e => resolved.Elem.from(e))
     }
   }
 
   test("testSemanticsOfStepsAgainstSaxon") {
-    val processor = new Processor(false)
-    val docBuilder = processor.newDocumentBuilder()
-
-    val file = new File(classOf[TrivialSimpleElemTest].getResource("/test-xml/sample-xbrl-instance.xml").toURI)
-    val doc = docBuilder.build(file)
-
-    val saxonDoc = saxon.Document(doc)
-    val saxonRootElem = saxonDoc.documentElement
-    val rootElem = simple.Elem.from(saxonRootElem)
-
     val dimensionalContexts =
       rootElem.select {
         descendantElems(XbrliNs, "context").where {
@@ -148,7 +131,7 @@ class TrivialSimpleElemTest extends AnyFunSuite {
         descendant(XbrliNs, "context").where {
           (e: XdmNode) => e.select(child(XbrliNs, "entity").`then`(descendant(XbrldiNs, "explicitMember"))).exists
         }
-      }.toScala(ArraySeq).map(n => saxon.Elem(n)).map(e => simple.Elem.from(e))
+      }.toScala(ArraySeq).map(n => saxon.Elem(n))
 
     assertResult(true) {
       dimensionalContexts.size >= 10
@@ -158,6 +141,7 @@ class TrivialSimpleElemTest extends AnyFunSuite {
     }
   }
 
-  private val XbrliNs = "http://www.xbrl.org/2003/instance"
-  private val XbrldiNs = "http://xbrl.org/2006/xbrldi"
+  protected val XbrliNs = "http://www.xbrl.org/2003/instance"
+  protected val XbrldiNs = "http://xbrl.org/2006/xbrldi"
+  protected val GaapNs = "http://xasb.org/gaap"
 }
