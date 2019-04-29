@@ -85,19 +85,19 @@ for the buck":
 Usage
 =====
 
-Yaidom2 versions can be found in the Maven central repository. Assuming version 0.1.0, yaidom2 can be added as dependency
+Yaidom2 versions can be found in the Maven central repository. Assuming version 0.3.0, yaidom2 can be added as dependency
 as follows (in an SBT or Maven build):
 
 **SBT**::
 
-    libraryDependencies += "eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.1.0"
+    libraryDependencies += "eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.3.0"
 
 **Maven2**::
 
     <dependency>
       <groupId>eu.cdevreeze.yaidom2</groupId>
-      <artifactId>yaidom2_2.13.0-M5</artifactId>
-      <version>0.1.0</version>
+      <artifactId>yaidom2_2.13.0-RC1</artifactId>
+      <version>0.3.0</version>
     </dependency>
 
 Note that yaidom2 itself has a few dependencies, which will be transitive dependencies in projects that use yaidom2.
