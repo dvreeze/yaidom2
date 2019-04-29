@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.saxon
+package eu.cdevreeze.yaidom2.queryapi.oo.elemstep
 
-import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.BackingElemStepFactory
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemApi
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
 
 /**
- * ElemStep factory API for Saxon elements.
+ * ElemStep factory implementation for Scoped elements.
  *
  * @author Chris de Vreeze
  */
-object SaxonElemSteps extends BackingElemStepFactory {
+// scalastyle:off number.of.methods
+abstract class ScopedElemStepFactory extends ClarkElemStepFactory with ScopedElemStepFactoryApi {
 
-  type ElemType = SaxonNodes.Elem
+  type ElemType <: ScopedElemApi.Aux[ElemType]
+}
+
+object ScopedElemStepFactory {
+
+  type Aux[E] = ScopedElemStepFactory { type ElemType = E }
 }
