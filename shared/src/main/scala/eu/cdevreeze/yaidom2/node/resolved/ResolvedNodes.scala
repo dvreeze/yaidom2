@@ -42,7 +42,7 @@ object ResolvedNodes {
   sealed trait Node extends ClarkNodes.Node
 
   /**
-   * Potential document child (although there are no "resolved documents")
+   * Potential document child
    */
   sealed trait CanBeDocumentChild extends Node with ClarkNodes.CanBeDocumentChild
 
