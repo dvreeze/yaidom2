@@ -25,6 +25,7 @@ import scala.collection.immutable.SeqMap
 import scala.reflect.ClassTag
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.havingName
@@ -69,6 +70,16 @@ abstract class TpDialectQueryTest extends AnyFunSuite {
       .flatMap(_.filterChildElems(havingName(TpNameEName))).map(_.text).toSet) {
 
       taxoPackage.findAllEntryPoints().flatMap(_.findAllNames).map(_.value).toSet
+    }
+  }
+
+  test("testEquivalenceOfEntrypointQueries") {
+    val taxoPackage = TaxonomyPackage(rootElem)
+
+    assertResult(rootElem.filterDescendantElems(havingName(TpEntryPointEName))
+      .map(e => resolved.Elem.from(e))) {
+
+      taxoPackage.findAllEntryPoints().map(e => resolved.Elem.from(e))
     }
   }
 
@@ -529,9 +540,7 @@ object TpDialectQueryTest {
     def value: URI = URI.create(text)
   }
 
-  final case class OtherTpElem(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
-
-  }
+  final case class OtherTpElem(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem)
 
   /**
    * TP text node
@@ -559,24 +568,24 @@ object TpDialectQueryTest {
 
     private val constructors: Map[EName, ClarkNodes.Elem => TpElem] = Map(
       TpTaxonomyPackageEName -> { e => new TaxonomyPackage(e) },
-      TpIdentifierEName -> { e => new  Identifier(e) },
-      TpVersionEName -> { e => new  Version(e) },
-      TpLicenseEName -> { e => new  License(e) },
-      TpPublisherEName -> { e => new  Publisher(e) },
-      TpPublisherURLEName -> { e => new  PublisherUrl(e) },
-      TpPublisherCountryEName -> { e => new  PublisherCountry(e) },
-      TpPublicationDateEName -> { e => new  PublicationDate(e) },
-      TpEntryPointsEName -> { e => new  EntryPointsElem(e) },
-      TpEntryPointEName -> { e => new  EntryPoint(e) },
-      TpSupersededTaxonomyPackagesEName -> { e => new  SupersededTaxonomyPackagesElem(e) },
-      TpVersioningReportsEName -> { e => new  VersioningReportsElem(e) },
-      TpEntryPointDocumentEName -> { e => new  EntryPointDocument(e) },
-      TpLanguagesEName -> { e => new  LanguagesElem(e) },
-      TpTaxonomyPackageRefEName -> { e => new  TaxonomyPackageRef(e) },
-      TpVersioningReportEName -> { e => new  VersioningReport(e) },
-      TpNameEName -> { e => new  Name(e) },
-      TpDescriptionEName -> { e => new  Description(e) },
-      TpLanguageEName -> { e => new  Language(e) },
+      TpIdentifierEName -> { e => new Identifier(e) },
+      TpVersionEName -> { e => new Version(e) },
+      TpLicenseEName -> { e => new License(e) },
+      TpPublisherEName -> { e => new Publisher(e) },
+      TpPublisherURLEName -> { e => new PublisherUrl(e) },
+      TpPublisherCountryEName -> { e => new PublisherCountry(e) },
+      TpPublicationDateEName -> { e => new PublicationDate(e) },
+      TpEntryPointsEName -> { e => new EntryPointsElem(e) },
+      TpEntryPointEName -> { e => new EntryPoint(e) },
+      TpSupersededTaxonomyPackagesEName -> { e => new SupersededTaxonomyPackagesElem(e) },
+      TpVersioningReportsEName -> { e => new VersioningReportsElem(e) },
+      TpEntryPointDocumentEName -> { e => new EntryPointDocument(e) },
+      TpLanguagesEName -> { e => new LanguagesElem(e) },
+      TpTaxonomyPackageRefEName -> { e => new TaxonomyPackageRef(e) },
+      TpVersioningReportEName -> { e => new VersioningReport(e) },
+      TpNameEName -> { e => new Name(e) },
+      TpDescriptionEName -> { e => new Description(e) },
+      TpLanguageEName -> { e => new Language(e) },
     )
   }
 
