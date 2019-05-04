@@ -32,13 +32,25 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
  * In order to avoid type gymnastics, and to offer a simple API to extend in yaidom dialects, this class does not
  * extend type AbstractDialectClarkElem. To the user of this API this does not matter.
  *
+ * In order for this type to be useful in dialect element implementations, wrapping an underlying element must be a very
+ * fast and non-recursive operation.
+ *
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
 abstract class AbstractDialectScopedElem(
   val underlyingElem: ScopedNodes.Elem) extends ScopedNodes.Elem {
 
+  /**
+   * Wraps un underlying element. This method must be very fast.
+   */
   def wrapElem(underlyingElem: ScopedNodes.Elem): ThisElem
+
+  // ClarkNodes.Elem
+
+  def children: ArraySeq[ThisNode]
+
+  def select(step: ElemStep[ThisElem]): Seq[ThisElem]
 
   // ElemApi
 
@@ -151,12 +163,6 @@ abstract class AbstractDialectScopedElem(
   final def trimmedText: String = {
     underlyingElem.trimmedText
   }
-
-  // ClarkNodes.Elem
-
-  def children: ArraySeq[ThisNode]
-
-  def select(step: ElemStep[ThisElem]): Seq[ThisElem]
 
   // ScopedElemApi
 

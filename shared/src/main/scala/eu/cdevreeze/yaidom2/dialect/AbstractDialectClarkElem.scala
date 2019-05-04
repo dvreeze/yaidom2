@@ -27,13 +27,25 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
  * General partly implementation of "dialect Clark elements". This makes implementing each dialect (as Clark
  * elements) a breeze.
  *
+ * In order for this type to be useful in dialect element implementations, wrapping an underlying element must be a very
+ * fast and non-recursive operation.
+ *
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
 abstract class AbstractDialectClarkElem(
   val underlyingElem: ClarkNodes.Elem) extends ClarkNodes.Elem {
 
+  /**
+   * Wraps un underlying element. This method must be very fast.
+   */
   def wrapElem(underlyingElem: ClarkNodes.Elem): ThisElem
+
+  // ClarkNodes.Elem
+
+  def children: ArraySeq[ThisNode]
+
+  def select(step: ElemStep[ThisElem]): Seq[ThisElem]
 
   // ElemApi
 
@@ -146,10 +158,4 @@ abstract class AbstractDialectClarkElem(
   final def trimmedText: String = {
     underlyingElem.trimmedText
   }
-
-  // ClarkNodes.Elem
-
-  def children: ArraySeq[ThisNode]
-
-  def select(step: ElemStep[ThisElem]): Seq[ThisElem]
 }

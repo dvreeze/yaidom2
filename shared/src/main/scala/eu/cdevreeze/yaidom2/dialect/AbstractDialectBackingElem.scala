@@ -34,13 +34,25 @@ import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
  * In order to avoid type gymnastics, and to offer a simple API to extend in yaidom dialects, this class does not
  * extend type AbstractDialectScopedElem. To the user of this API this does not matter.
  *
+ * In order for this type to be useful in dialect element implementations, wrapping an underlying element must be a very
+ * fast and non-recursive operation.
+ *
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
 abstract class AbstractDialectBackingElem(
   val underlyingElem: BackingNodes.Elem) extends BackingNodes.Elem {
 
+  /**
+   * Wraps un underlying element. This method must be very fast.
+   */
   def wrapElem(underlyingElem: BackingNodes.Elem): ThisElem
+
+  // ClarkNodes.Elem
+
+  def children: ArraySeq[ThisNode]
+
+  def select(step: ElemStep[ThisElem]): Seq[ThisElem]
 
   // ElemApi
 
@@ -154,12 +166,6 @@ abstract class AbstractDialectBackingElem(
     underlyingElem.trimmedText
   }
 
-  // ClarkNodes.Elem
-
-  def children: ArraySeq[ThisNode]
-
-  def select(step: ElemStep[ThisElem]): Seq[ThisElem]
-
   // ScopedElemApi
 
   final def scope: Scope = {
@@ -264,38 +270,22 @@ abstract class AbstractDialectBackingElem(
     underlyingElem.findAncestorElemOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  /**
-   * Returns the optional base URI, computed from the document URI, if any, and the XML base attributes of the
-   * ancestors, if any.
-   */
   final def baseUriOption: Option[URI] = {
     underlyingElem.baseUriOption
   }
 
-  /**
-   * The base URI, defaulting to the empty URI if absent
-   */
   final def baseUri: URI = {
     underlyingElem.baseUri
   }
 
-  /**
-   * The optional document URI of the containing document, if any
-   */
   final def docUriOption: Option[URI] = {
     underlyingElem.docUriOption
   }
 
-  /**
-   * The document URI, defaulting to the empty URI if absent
-   */
   final def docUri: URI = {
     underlyingElem.docUri
   }
 
-  /**
-   * The root element
-   */
   final def rootElem: ThisElem = {
     wrapElem(underlyingElem.rootElem)
   }
