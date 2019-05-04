@@ -30,6 +30,7 @@ import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.BackingElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.oo.havingName
 import net.sf.saxon.s9api.Processor
@@ -156,6 +157,14 @@ abstract class TpDialectOverBackingElemQueryTest extends AnyFunSuite {
       taxoPackage.findAllDescendantElemsOrSelf().map(_.taxonomyPackage).distinct
     }
   }
+
+  test("testResolvedElemPropertyViaDocument") {
+    val taxonomyPackageDoc = TpDocument(Seq(TaxonomyPackage(rootElem)))
+
+    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf()) {
+      taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    }
+  }
 }
 
 object TpDialectOverBackingElemQueryTest {
@@ -202,6 +211,21 @@ object TpDialectOverBackingElemQueryTest {
 
   val HrefEName = EName.fromLocalName("href")
   val NameEName = EName.fromLocalName("name")
+
+  final case class TpDocument(children: Seq[TpCanBeDocumentChild]) extends DocumentApi {
+    require(children.collect { case e: TpElem => e }.size == 1, s"Expected precisely 1 document element")
+    require(children.collect { case e: TaxonomyPackage => e }.size == 1, s"Expected precisely 1 TaxonomyPackage document element")
+
+    type NodeType = TpNode
+
+    type CanBeDocumentChildType = TpCanBeDocumentChild
+
+    type ElemType = TpElem
+
+    def docUriOption: Option[URI] = documentElement.docUriOption
+
+    def documentElement: TaxonomyPackage = children.collect { case e: TaxonomyPackage => e }.head
+  }
 
   /**
    * Arbitrary TP node

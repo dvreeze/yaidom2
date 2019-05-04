@@ -30,6 +30,7 @@ import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.havingName
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ClarkElemStepFactory
 import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
@@ -130,6 +131,14 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
       taxonomyPackage.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
     }
   }
+
+  test("testResolvedElemPropertyViaDocument") {
+    val taxonomyPackageDoc = TpDocument(None, TaxonomyPackage(rootElem))
+
+    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf()) {
+      taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    }
+  }
 }
 
 object TpDialectOverClarkElemQueryTest {
@@ -176,6 +185,17 @@ object TpDialectOverClarkElemQueryTest {
 
   val HrefEName = EName.fromLocalName("href")
   val NameEName = EName.fromLocalName("name")
+
+  final case class TpDocument(docUriOption: Option[URI], documentElement: TaxonomyPackage) extends DocumentApi {
+
+    type NodeType = TpNode
+
+    type CanBeDocumentChildType = TpCanBeDocumentChild
+
+    type ElemType = TpElem
+
+    def children: Seq[TpCanBeDocumentChild] = ArraySeq(documentElement)
+  }
 
   /**
    * Arbitrary TP node
