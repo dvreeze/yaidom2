@@ -36,6 +36,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
  *
  * @author Chris de Vreeze
  */
+// scalastyle:off number.of.methods
 abstract class AbstractDialectBackingElem(
   val underlyingElem: BackingNodes.Elem) extends BackingNodes.Elem {
 

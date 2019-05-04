@@ -17,9 +17,9 @@
 package eu.cdevreeze.yaidom2.node.saxon.tests
 
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverClarkElemQueryTest
+import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverBackingElemQueryTest
 
-class TpDialectOverSaxonElemQueryTest extends TpDialectOverClarkElemQueryTest {
+class TpDialectOverSaxonElemQueryTest extends TpDialectOverBackingElemQueryTest {
 
   protected def rootElem: saxon.Elem = {
     saxonRootElem

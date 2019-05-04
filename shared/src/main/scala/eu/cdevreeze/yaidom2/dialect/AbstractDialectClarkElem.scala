@@ -29,6 +29,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
  *
  * @author Chris de Vreeze
  */
+// scalastyle:off number.of.methods
 abstract class AbstractDialectClarkElem(
   val underlyingElem: ClarkNodes.Elem) extends ClarkNodes.Elem {
 

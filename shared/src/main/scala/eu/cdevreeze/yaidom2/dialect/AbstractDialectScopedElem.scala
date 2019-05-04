@@ -34,6 +34,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
  *
  * @author Chris de Vreeze
  */
+// scalastyle:off number.of.methods
 abstract class AbstractDialectScopedElem(
   val underlyingElem: ScopedNodes.Elem) extends ScopedNodes.Elem {
 

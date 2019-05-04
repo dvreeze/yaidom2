@@ -17,9 +17,9 @@
 package eu.cdevreeze.yaidom2.node.indexed.tests
 
 import eu.cdevreeze.yaidom2.node.indexed
-import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverClarkElemQueryTest
+import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverBackingElemQueryTest
 
-class TpDialectOverIndexedElemQueryTest extends TpDialectOverClarkElemQueryTest {
+class TpDialectOverIndexedElemQueryTest extends TpDialectOverBackingElemQueryTest {
 
   protected def rootElem: indexed.Elem = {
     indexed.Document.from(saxonDocument).documentElement
