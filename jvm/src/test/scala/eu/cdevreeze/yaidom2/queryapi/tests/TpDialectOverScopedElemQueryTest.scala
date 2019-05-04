@@ -24,13 +24,14 @@ import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.dialect.AbstractDialectClarkElem
+import eu.cdevreeze.yaidom2.dialect.AbstractDialectScopedElem
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.oo.havingName
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ClarkElemStepFactory
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ScopedElemStepFactory
+import eu.cdevreeze.yaidom2.queryapi.oo.havingName
 import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -42,18 +43,18 @@ import org.scalatest.funsuite.AnyFunSuite
  *
  * @author Chris de Vreeze
  */
-abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
+abstract class TpDialectOverScopedElemQueryTest extends AnyFunSuite {
 
-  import TpDialectOverClarkElemQueryTest._
+  import TpDialectOverScopedElemQueryTest._
 
   private val processor = new Processor(false)
 
-  protected def rootElem: ClarkNodes.Elem
+  protected def rootElem: ScopedNodes.Elem
 
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[TpDialectOverClarkElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
+    val file = new File(classOf[TpDialectOverScopedElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
     val doc = docBuilder.build(file)
 
     saxon.Document(doc)
@@ -124,7 +125,7 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
   }
 }
 
-object TpDialectOverClarkElemQueryTest {
+object TpDialectOverScopedElemQueryTest {
 
   // First the general yaidom dialect support
 
@@ -172,28 +173,28 @@ object TpDialectOverClarkElemQueryTest {
   /**
    * Arbitrary TP node
    */
-  sealed trait TpNode extends ClarkNodes.Node
+  sealed trait TpNode extends ScopedNodes.Node
 
   /**
    * Potential document child
    */
-  sealed trait TpCanBeDocumentChild extends TpNode with ClarkNodes.CanBeDocumentChild
+  sealed trait TpCanBeDocumentChild extends TpNode with ScopedNodes.CanBeDocumentChild
 
   /**
-   * TP dialect element node, offering the `ClarkNodes.Elem` element query API.
+   * TP dialect element node, offering the `ScopedNodes.Elem` element query API.
    *
-   * Note that this TP element can work with any underlying `ClarkNodes.Elem` element,
+   * Note that this TP element can work with any underlying `ScopedNodes.Elem` element,
    * using its "raw" type, thus making the API easy to use.
    */
   sealed abstract class TpElem(
-    underlyingElem: ClarkNodes.Elem
-  ) extends AbstractDialectClarkElem(underlyingElem) with TpCanBeDocumentChild {
+    underlyingElem: ScopedNodes.Elem
+  ) extends AbstractDialectScopedElem(underlyingElem) with TpCanBeDocumentChild {
 
     type ThisElem = TpElem
 
     type ThisNode = TpNode
 
-    final def wrapElem(underlyingElem: ClarkNodes.Elem): ThisElem = TpElem(underlyingElem)
+    final def wrapElem(underlyingElem: ScopedNodes.Elem): ThisElem = TpElem(underlyingElem)
 
     // ClarkNodes.Elem
 
@@ -206,7 +207,7 @@ object TpDialectOverClarkElemQueryTest {
     }
   }
 
-  final case class TaxonomyPackage(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class TaxonomyPackage(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def findAllEntryPoints(): Seq[EntryPoint] = {
       filterDescendantElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
@@ -280,7 +281,7 @@ object TpDialectOverClarkElemQueryTest {
     }
   }
 
-  final case class Identifier(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Identifier(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def value: URI = URI.create(text)
   }
@@ -290,22 +291,22 @@ object TpDialectOverClarkElemQueryTest {
     def value: String
   }
 
-  final case class Name(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) with DocumentationGroup {
+  final case class Name(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) with DocumentationGroup {
 
     def value: String = text
   }
 
-  final case class Description(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) with DocumentationGroup {
+  final case class Description(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) with DocumentationGroup {
 
     def value: String = text
   }
 
-  final case class Version(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Version(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def value: String = text
   }
 
-  final case class License(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class License(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def href: URI = URI.create(attr(HrefEName))
 
@@ -314,49 +315,49 @@ object TpDialectOverClarkElemQueryTest {
     def value: String = text
   }
 
-  final case class Publisher(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Publisher(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def value: String = text
   }
 
-  final case class PublisherUrl(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class PublisherUrl(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def value: URI = URI.create(text)
   }
 
-  final case class PublisherCountry(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class PublisherCountry(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def value: String = text
   }
 
-  final case class PublicationDate(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class PublicationDate(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     // Ignoring time zones, because dates without times are unlikely to contain time zones.
     def value: LocalDate = LocalDate.parse(text)
   }
 
-  final case class EntryPointsElem(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class EntryPointsElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def findAllEntryPoints: Seq[EntryPoint] = {
       filterChildElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
     }
   }
 
-  final case class SupersededTaxonomyPackagesElem(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class SupersededTaxonomyPackagesElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def findAllTaxonomyPackageRefs: Seq[TaxonomyPackageRef] = {
       filterChildElems(havingType[TaxonomyPackageRef]).collect { case e: TaxonomyPackageRef => e }
     }
   }
 
-  final case class VersioningReportsElem(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class VersioningReportsElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def findAllVersioningReports: Seq[VersioningReport] = {
       filterChildElems(havingType[VersioningReport]).collect { case e: VersioningReport => e }
     }
   }
 
-  final case class EntryPoint(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class EntryPoint(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def findAllEntryPointHrefs: Seq[URI] = {
       findAllEntryPointDocuments.map(_.href)
@@ -387,44 +388,56 @@ object TpDialectOverClarkElemQueryTest {
     }
   }
 
-  final case class EntryPointDocument(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class EntryPointDocument(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def href: URI = URI.create(attr(HrefEName))
   }
 
-  final case class VersioningReport(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class VersioningReport(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def href: URI = URI.create(attr(HrefEName))
   }
 
-  final case class LanguagesElem(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class LanguagesElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def findAllLanguages: Seq[Language] = filterChildElems(havingType[Language]).collect { case e: Language => e }
   }
 
-  final case class Language(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Language(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def value: String = text
   }
 
-  final case class TaxonomyPackageRef(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem) {
+  final case class TaxonomyPackageRef(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
 
     def value: URI = URI.create(text)
   }
 
-  final case class OtherTpElem(override val underlyingElem: ClarkNodes.Elem) extends TpElem(underlyingElem)
+  final case class OtherTpElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem)
 
   /**
    * TP text node
    */
-  final case class TpText(text: String) extends TpNode with ClarkNodes.Text
+  final case class TpText(text: String) extends TpNode with ScopedNodes.Text
+
+  /**
+   * TP comment node
+   */
+  final case class TpComment(text: String) extends TpCanBeDocumentChild with ScopedNodes.Comment
+
+  /**
+   * TP processing instruction node
+   */
+  final case class TpProcessingInstruction(target: String, data: String) extends TpCanBeDocumentChild with ScopedNodes.ProcessingInstruction
 
   object TpNode {
 
-    def opt(underlyingNode: ClarkNodes.Node): Option[TpNode] = {
+    def opt(underlyingNode: ScopedNodes.Node): Option[TpNode] = {
       underlyingNode match {
-        case e: ClarkNodes.Elem => Some(TpElem(e))
-        case t: ClarkNodes.Text => Some(TpText(t.text))
+        case e: ScopedNodes.Elem => Some(TpElem(e))
+        case t: ScopedNodes.Text => Some(TpText(t.text))
+        case c: ScopedNodes.Comment => Some(TpComment(c.text))
+        case pi: ScopedNodes.ProcessingInstruction => Some(TpProcessingInstruction(pi.target, pi.data))
         case _ => None
       }
     }
@@ -432,13 +445,13 @@ object TpDialectOverClarkElemQueryTest {
 
   object TpElem {
 
-    def apply(underlyingElem: ClarkNodes.Elem): TpElem = {
+    def apply(underlyingElem: ScopedNodes.Elem): TpElem = {
       constructors.get(underlyingElem.name).map(f => f(underlyingElem)).getOrElse(OtherTpElem(underlyingElem))
     }
 
     // Fast construction using Map taking element name as key
 
-    private val constructors: Map[EName, ClarkNodes.Elem => TpElem] = Map(
+    private val constructors: Map[EName, ScopedNodes.Elem => TpElem] = Map(
       TpTaxonomyPackageEName -> { e => new TaxonomyPackage(e) },
       TpIdentifierEName -> { e => new Identifier(e) },
       TpVersionEName -> { e => new Version(e) },
@@ -463,7 +476,7 @@ object TpDialectOverClarkElemQueryTest {
 
   object TaxonomyPackage {
 
-    def apply(underlyingElem: ClarkNodes.Elem): TaxonomyPackage = {
+    def apply(underlyingElem: ScopedNodes.Elem): TaxonomyPackage = {
       require(underlyingElem.name == TpTaxonomyPackageEName, s"Expected taxonomy package but got '${underlyingElem.name}'")
       new TaxonomyPackage(underlyingElem)
     }
@@ -472,7 +485,7 @@ object TpDialectOverClarkElemQueryTest {
   /**
    * ElemStep factory API for TP elements.
    */
-  object TpElemSteps extends ClarkElemStepFactory {
+  object TpElemSteps extends ScopedElemStepFactory {
 
     type ElemType = TpElem
   }

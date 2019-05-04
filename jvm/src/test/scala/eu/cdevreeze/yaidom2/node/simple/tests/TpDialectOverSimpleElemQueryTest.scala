@@ -17,9 +17,9 @@
 package eu.cdevreeze.yaidom2.node.simple.tests
 
 import eu.cdevreeze.yaidom2.node.simple
-import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverClarkElemQueryTest
+import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverScopedElemQueryTest
 
-class TpDialectOverSimpleElemQueryTest extends TpDialectOverClarkElemQueryTest {
+class TpDialectOverSimpleElemQueryTest extends TpDialectOverScopedElemQueryTest {
 
   protected def rootElem: simple.Elem = {
     simple.Document.from(saxonDocument).documentElement
