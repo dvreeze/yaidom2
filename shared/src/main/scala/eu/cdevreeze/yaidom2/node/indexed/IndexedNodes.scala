@@ -25,6 +25,7 @@ import scala.collection.mutable
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
+import eu.cdevreeze.yaidom2.creationapi.BackingNodeConverters
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
@@ -341,6 +342,16 @@ object IndexedNodes {
       filterAncestorElemsOrSelf(p).headOption // TODO Improve performance!
     }
 
+    def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
+      val parentElemOption = findParentElem()
+
+      if (parentElemOption.isEmpty) {
+        ArraySeq.empty
+      } else {
+        parentElemOption.get.findAllChildElems().takeWhile(_ != Elem.this).reverse
+      }
+    }
+
     def baseUriOption: Option[URI] = {
       // Recursive call
       val parentBaseUriOption: Option[URI] =
@@ -403,11 +414,36 @@ object IndexedNodes {
    */
   final case class ProcessingInstruction(target: String, data: String) extends CanBeDocumentChild with BackingNodes.ProcessingInstruction
 
-  object Elem extends BackingElemFunctionWrapper {
+  object Node extends BackingNodeConverters.NodeConverter {
+
+    type TargetNodeType = Node
+
+    def from(node: BackingNodes.Node): Node = node match {
+      case e: BackingNodes.Elem => Elem.from(e)
+      case t: BackingNodes.Text => Text(t.text, false)
+      case c: BackingNodes.Comment => Comment(c.text)
+      case pi: BackingNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
+      case n => sys.error(s"Not an element, text, comment or processing instruction node: $n")
+    }
+  }
+
+  object Elem extends BackingElemFunctionWrapper with BackingNodeConverters.ElemConverter {
 
     type ElemType = Elem
 
     type NodeType = Node
+
+    type TargetElemType = Elem
+
+    def from(elm: BackingNodes.Elem): Elem = {
+      val docUriOption: Option[URI] = elm.docUriOption
+
+      val simpleRootElem = SimpleNodes.Elem.from(elm.rootElem)
+
+      val elemNavigationPathFromRoot: ArraySeq[Int] = computeElemNavigationPathFromRoot(elm)
+
+      of(docUriOption, simpleRootElem, elemNavigationPathFromRoot)
+    }
 
     /**
      * Creation method for indexed elements.
@@ -422,6 +458,21 @@ object IndexedNodes {
 
     def ofRoot(docUriOption: Option[URI], underlyingRootElem: SimpleNodes.Elem): Elem = {
       of(docUriOption, underlyingRootElem, Seq.empty)
+    }
+
+    private def computeElemNavigationPathFromRoot(elm: BackingNodes.Elem): ArraySeq[Int] = {
+      def computeReversePath(e: BackingNodes.Elem): List[Int] = {
+        val parentElemOption = elm.findParentElem()
+
+        if (parentElemOption.isEmpty) {
+          Nil
+        } else {
+          // Recursive call
+          elm.findAllPrecedingSiblingElems().size :: computeReversePath(parentElemOption.get)
+        }
+      }
+
+      computeReversePath(elm).reverse.to(ArraySeq)
     }
 
     private val emptyUri = URI.create("")

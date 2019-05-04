@@ -47,6 +47,11 @@ trait BackingElemApi extends ScopedElemApi {
   def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem]
 
   /**
+   * Returns all preceding sibling element nodes. This method is needed for computing the relative "navigation path" to the root.
+   */
+  def findAllPrecedingSiblingElems(): Seq[ThisElem]
+
+  /**
    * Returns the optional base URI, computed from the document URI, if any, and the XML base attributes of the
    * ancestors, if any.
    */

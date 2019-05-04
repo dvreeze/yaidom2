@@ -22,6 +22,7 @@ import scala.collection.immutable.SeqMap
 import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.creationapi.ClarkNodeConverters
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
@@ -227,11 +228,13 @@ object ResolvedNodes {
 
   // Next the functional query (and creation) API
 
-  object Node extends ElemCreationApi {
+  object Node extends ClarkNodeConverters.NodeConverter with ElemCreationApi {
 
     type NodeType = Node
 
     type ElemType = Elem
+
+    type TargetNodeType = Node
 
     def from(node: ClarkNodes.Node): Node = node match {
       case e: ClarkNodes.Elem => Elem.from(e)
@@ -264,11 +267,13 @@ object ResolvedNodes {
     }
   }
 
-  object Elem extends ClarkElemFunctionWrapper {
+  object Elem extends ClarkElemFunctionWrapper with ClarkNodeConverters.ElemConverter {
 
     type ElemType = Elem
 
     type NodeType = Node
+
+    type TargetElemType = Elem
 
     def from(elm: ClarkNodes.Elem): Elem = {
       val children = elm.children.collect {

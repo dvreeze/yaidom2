@@ -23,6 +23,7 @@ import scala.collection.mutable
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
+import eu.cdevreeze.yaidom2.creationapi.ScopedNodeConverters
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.oofun.ScopedElemFunctionWrapper
@@ -355,7 +356,9 @@ object SimpleNodes {
   // Next the functional query API
   // TODO ElemCreationApi (using invertible Scope as state)
 
-  object Node {
+  object Node extends ScopedNodeConverters.NodeConverter {
+
+    type TargetNodeType = Node
 
     def from(node: ScopedNodes.Node): Node = node match {
       case e: ScopedNodes.Elem => Elem.from(e)
@@ -376,11 +379,13 @@ object SimpleNodes {
     }
   }
 
-  object Elem extends ScopedElemFunctionWrapper {
+  object Elem extends ScopedElemFunctionWrapper with ScopedNodeConverters.ElemConverter {
 
     type ElemType = Elem
 
     type NodeType = Node
+
+    type TargetElemType = Elem
 
     def unapply(elem: Elem): Option[(QName, SeqMap[QName, String], Scope, Seq[Node])] = {
       val v = (elem.qname, elem.attributesByQName, elem.scope, elem.children)

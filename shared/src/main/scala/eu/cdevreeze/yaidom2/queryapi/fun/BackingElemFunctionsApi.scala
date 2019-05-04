@@ -44,6 +44,8 @@ trait BackingElemFunctionsApi extends ScopedElemFunctionsApi {
 
   def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
+  def findAllPrecedingSiblingElems(elem: ElemType): Seq[ElemType]
+
   /**
    * Returns the optional base URI, computed from the document URI, if any, and the XML base attributes of the
    * ancestors, if any.

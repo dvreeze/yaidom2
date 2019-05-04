@@ -279,6 +279,10 @@ object SaxonNodes {
       Elem.findAncestorElemOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
+    def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
+      Elem.findAllPrecedingSiblingElems(xdmNode).map(n => Elem(n))
+    }
+
     def baseUriOption: Option[URI] = {
       Elem.baseUriOption(xdmNode)
     }
@@ -646,6 +650,10 @@ object SaxonNodes {
 
     def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
       findElem(elem, ancestorOrSelf(), p)
+    }
+
+    def findAllPrecedingSiblingElems(elem: ElemType): Seq[ElemType] = {
+      filterElems(elem, precedingSibling(), _ => true)
     }
 
     def baseUriOption(elem: ElemType): Option[URI] = {

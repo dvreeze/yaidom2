@@ -64,6 +64,10 @@ trait BackingElemFunctionWrapper extends ScopedElemFunctionWrapper with BackingE
     elem.findAncestorElemOrSelf(p)
   }
 
+  final def findAllPrecedingSiblingElems(elem: ElemType): Seq[ElemType] = {
+    elem.findAllPrecedingSiblingElems()
+  }
+
   final def baseUriOption(elem: ElemType): Option[URI] = {
     elem.baseUriOption
   }
