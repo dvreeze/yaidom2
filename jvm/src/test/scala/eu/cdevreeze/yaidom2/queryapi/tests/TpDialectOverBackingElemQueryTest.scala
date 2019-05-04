@@ -124,6 +124,14 @@ abstract class TpDialectOverBackingElemQueryTest extends AnyFunSuite {
     }
   }
 
+  test("testResolvedElemProperty") {
+    val taxonomyPackage = TaxonomyPackage(rootElem)
+
+    assertResult(resolved.Elem.from(taxonomyPackage).findAllDescendantElemsOrSelf()) {
+      taxonomyPackage.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    }
+  }
+
   test("testQueryEntrypointOfEntrypointDocuments") {
     val taxoPackage = TaxonomyPackage(rootElem)
 

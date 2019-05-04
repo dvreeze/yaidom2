@@ -122,6 +122,14 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
       docs
     }
   }
+
+  test("testResolvedElemProperty") {
+    val taxonomyPackage = TaxonomyPackage(rootElem)
+
+    assertResult(resolved.Elem.from(taxonomyPackage).findAllDescendantElemsOrSelf()) {
+      taxonomyPackage.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    }
+  }
 }
 
 object TpDialectOverClarkElemQueryTest {
