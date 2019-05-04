@@ -67,6 +67,11 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     elem.findAncestorElemOrSelf(pred) == elem.filterAncestorElemsOrSelf(pred).headOption
   }
 
+  property("findAllPrecedingSiblingElems") = forAll { elem: E =>
+    elem.findAllPrecedingSiblingElems() ==
+      elem.findParentElem().toSeq.flatMap(_.findAllChildElems().takeWhile(_ != elem)).reverse
+  }
+
   property("docUri") = forAll { elem: E =>
     elem.docUri == elem.docUriOption.getOrElse(emptyUri)
   }
