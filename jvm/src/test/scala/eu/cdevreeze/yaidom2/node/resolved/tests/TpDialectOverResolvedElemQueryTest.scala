@@ -17,9 +17,9 @@
 package eu.cdevreeze.yaidom2.node.resolved.tests
 
 import eu.cdevreeze.yaidom2.node.resolved
-import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectQueryTest
+import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverClarkElemQueryTest
 
-class TpDialectOverResolvedElemQueryTest extends TpDialectQueryTest {
+class TpDialectOverResolvedElemQueryTest extends TpDialectOverClarkElemQueryTest {
 
   protected def rootElem: resolved.Elem = {
     resolved.Document.from(saxonDocument).documentElement

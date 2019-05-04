@@ -42,9 +42,9 @@ import org.scalatest.funsuite.AnyFunSuite
  *
  * @author Chris de Vreeze
  */
-abstract class TpDialectQueryTest extends AnyFunSuite {
+abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
 
-  import TpDialectQueryTest._
+  import TpDialectOverClarkElemQueryTest._
 
   private val processor = new Processor(false)
 
@@ -53,7 +53,7 @@ abstract class TpDialectQueryTest extends AnyFunSuite {
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[TpDialectQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
+    val file = new File(classOf[TpDialectOverClarkElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
     val doc = docBuilder.build(file)
 
     saxon.Document(doc)
@@ -124,7 +124,7 @@ abstract class TpDialectQueryTest extends AnyFunSuite {
   }
 }
 
-object TpDialectQueryTest {
+object TpDialectOverClarkElemQueryTest {
 
   // First the general yaidom dialect support
 
