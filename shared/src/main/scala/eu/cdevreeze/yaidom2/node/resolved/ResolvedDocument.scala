@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node.resolved
 
 import java.net.URI
 
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.creationapi.ClarkDocumentConverter
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
 
 /**
@@ -37,13 +37,11 @@ final case class ResolvedDocument(docUriOption: Option[URI], documentElement: Re
   def children: Seq[ResolvedNodes.CanBeDocumentChild] = Seq(documentElement)
 }
 
-object ResolvedDocument {
+object ResolvedDocument extends ClarkDocumentConverter {
 
-  def from(uriOption: Option[URI], document: ClarkDocumentApi): ResolvedDocument = {
-    ResolvedDocument(uriOption, ResolvedNodes.Elem.from(document.documentElement))
-  }
+  type TargetDocumentType = ResolvedDocument
 
-  def from(document: BackingDocumentApi): ResolvedDocument = {
-    from(document.docUriOption, document)
+  def from(document: ClarkDocumentApi): ResolvedDocument = {
+    ResolvedDocument(document.docUriOption, ResolvedNodes.Elem.from(document.documentElement))
   }
 }

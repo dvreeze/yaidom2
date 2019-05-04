@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node.simple
 
 import java.net.URI
 
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentConverter
 import eu.cdevreeze.yaidom2.queryapi.oo.Nodes
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
@@ -42,23 +42,21 @@ final case class SimpleDocument(docUriOption: Option[URI], children: Seq[SimpleN
   def documentElement: ElemType = children.collectFirst { case e: SimpleNodes.Elem => e }.get
 }
 
-object SimpleDocument {
+object SimpleDocument extends ScopedDocumentConverter {
+
+  type TargetDocumentType = SimpleDocument
 
   def apply(docUriOption: Option[URI], documentElement: SimpleNodes.Elem): SimpleDocument = {
     apply(docUriOption, Seq(documentElement))
   }
 
-  def from(uriOption: Option[URI], document: ScopedDocumentApi): SimpleDocument = {
+  def from(document: ScopedDocumentApi): SimpleDocument = {
     val docChildren = document.children.collect { case ch: ScopedNodes.CanBeDocumentChild => ch }
 
     val targetDocChildren =
       docChildren.filter(n => Set[Nodes.NodeKind](Nodes.ElementKind, Nodes.CommentKind, Nodes.ProcessingInstructionKind).contains(n.nodeKind))
         .map(n => SimpleNodes.CanBeDocumentChild.from(n))
 
-    SimpleDocument(uriOption, targetDocChildren)
-  }
-
-  def from(document: BackingDocumentApi): SimpleDocument = {
-    from(document.docUriOption, document)
+    SimpleDocument(document.docUriOption, targetDocChildren)
   }
 }
