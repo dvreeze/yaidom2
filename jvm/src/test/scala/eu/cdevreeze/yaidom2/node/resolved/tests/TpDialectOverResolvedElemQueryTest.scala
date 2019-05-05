@@ -21,7 +21,7 @@ import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverClarkElemQueryTest
 
 class TpDialectOverResolvedElemQueryTest extends TpDialectOverClarkElemQueryTest {
 
-  protected def rootElem: resolved.Elem = {
-    resolved.Document.from(saxonDocument).documentElement
+  protected def document: resolved.Document = {
+    resolved.Document.from(saxonDocument)
   }
 }

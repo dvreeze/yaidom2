@@ -28,6 +28,7 @@ import eu.cdevreeze.yaidom2.dialect.AbstractDialectClarkElem
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.havingName
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
@@ -49,7 +50,9 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
 
   private val processor = new Processor(false)
 
-  protected def rootElem: ClarkNodes.Elem
+  protected def document: ClarkDocumentApi
+
+  private def rootElem: ClarkNodes.Elem = document.documentElement
 
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
@@ -133,7 +136,7 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
   }
 
   test("testResolvedElemPropertyViaDocument") {
-    val taxonomyPackageDoc = TpDocument(None, TaxonomyPackage(rootElem))
+    val taxonomyPackageDoc = TpDocument(document)
 
     assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf()) {
       taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
@@ -186,13 +189,18 @@ object TpDialectOverClarkElemQueryTest {
   val HrefEName = EName.fromLocalName("href")
   val NameEName = EName.fromLocalName("name")
 
-  final case class TpDocument(docUriOption: Option[URI], documentElement: TaxonomyPackage) extends DocumentApi {
+  final case class TpDocument(underlyingDoc: ClarkDocumentApi) extends DocumentApi {
+    require(underlyingDoc.documentElement.name == TpTaxonomyPackageEName, s"Expected TaxonomyPackage document element")
 
     type NodeType = TpNode
 
     type CanBeDocumentChildType = TpCanBeDocumentChild
 
     type ElemType = TpElem
+
+    def docUriOption: Option[URI] = underlyingDoc.docUriOption
+
+    def documentElement: TaxonomyPackage = TaxonomyPackage(underlyingDoc.documentElement)
 
     def children: Seq[TpCanBeDocumentChild] = ArraySeq(documentElement)
   }

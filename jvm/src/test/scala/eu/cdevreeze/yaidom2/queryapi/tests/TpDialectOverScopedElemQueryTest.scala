@@ -30,6 +30,7 @@ import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ScopedElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.oo.havingName
@@ -50,7 +51,9 @@ abstract class TpDialectOverScopedElemQueryTest extends AnyFunSuite {
 
   private val processor = new Processor(false)
 
-  protected def rootElem: ScopedNodes.Elem
+  protected def document: ScopedDocumentApi
+
+  private def rootElem: ScopedNodes.Elem = document.documentElement
 
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
@@ -134,7 +137,7 @@ abstract class TpDialectOverScopedElemQueryTest extends AnyFunSuite {
   }
 
   test("testResolvedElemPropertyViaDocument") {
-    val taxonomyPackageDoc = TpDocument(None, Seq(TaxonomyPackage(rootElem)))
+    val taxonomyPackageDoc = TpDocument(document)
 
     assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf()) {
       taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
@@ -187,9 +190,8 @@ object TpDialectOverScopedElemQueryTest {
   val HrefEName = EName.fromLocalName("href")
   val NameEName = EName.fromLocalName("name")
 
-  final case class TpDocument(docUriOption: Option[URI], children: Seq[TpCanBeDocumentChild]) extends DocumentApi {
-    require(children.collect { case e: TpElem => e }.size == 1, s"Expected precisely 1 document element")
-    require(children.collect { case e: TaxonomyPackage => e }.size == 1, s"Expected precisely 1 TaxonomyPackage document element")
+  final case class TpDocument(underlyingDoc: ScopedDocumentApi) extends DocumentApi {
+    require(underlyingDoc.documentElement.name == TpTaxonomyPackageEName, s"Expected TaxonomyPackage document element")
 
     type NodeType = TpNode
 
@@ -197,7 +199,17 @@ object TpDialectOverScopedElemQueryTest {
 
     type ElemType = TpElem
 
-    def documentElement: TaxonomyPackage = children.collect { case e: TaxonomyPackage => e }.head
+    def docUriOption: Option[URI] = underlyingDoc.docUriOption
+
+    def documentElement: TaxonomyPackage = TaxonomyPackage(underlyingDoc.documentElement)
+
+    def children: Seq[TpCanBeDocumentChild] = {
+      underlyingDoc.children.map {
+        case e: ScopedNodes.Elem => documentElement
+        case c: ScopedNodes.Comment => TpComment(c.text)
+        case pi: ScopedNodes.ProcessingInstruction => TpProcessingInstruction(pi.target, pi.data)
+      }
+    }
   }
 
   /**

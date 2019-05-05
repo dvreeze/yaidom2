@@ -21,7 +21,7 @@ import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverScopedElemQueryTest
 
 class TpDialectOverSimpleElemQueryTest extends TpDialectOverScopedElemQueryTest {
 
-  protected def rootElem: simple.Elem = {
-    simple.Document.from(saxonDocument).documentElement
+  protected def document: simple.Document = {
+    simple.Document.from(saxonDocument)
   }
 }

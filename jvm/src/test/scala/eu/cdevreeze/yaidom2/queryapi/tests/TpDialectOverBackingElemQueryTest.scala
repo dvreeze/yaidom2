@@ -27,7 +27,9 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.dialect.AbstractDialectBackingElem
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.saxon.SaxonProducers
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
@@ -50,7 +52,9 @@ abstract class TpDialectOverBackingElemQueryTest extends AnyFunSuite {
 
   private val processor = new Processor(false)
 
-  protected def rootElem: BackingNodes.Elem
+  protected def document: BackingDocumentApi
+
+  private def rootElem: BackingNodes.Elem = document.documentElement
 
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
@@ -159,10 +163,23 @@ abstract class TpDialectOverBackingElemQueryTest extends AnyFunSuite {
   }
 
   test("testResolvedElemPropertyViaDocument") {
-    val taxonomyPackageDoc = TpDocument(Seq(TaxonomyPackage(rootElem)))
+    val taxonomyPackageDoc = TpDocument(document)
 
     assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf()) {
       taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    }
+  }
+
+  test("testDocumentRoundtrip") {
+    val taxonomyPackageDoc = TpDocument(document)
+
+    val saxonDocProducer = new SaxonProducers.DocumentProducer(processor)
+
+    val saxonDoc = saxonDocProducer.from(taxonomyPackageDoc.underlyingDoc)
+    val taxonomyPackageDoc2 = TpDocument(saxonDoc)
+
+    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement)) {
+      resolved.Elem.from(taxonomyPackageDoc2.documentElement)
     }
   }
 }
@@ -212,9 +229,8 @@ object TpDialectOverBackingElemQueryTest {
   val HrefEName = EName.fromLocalName("href")
   val NameEName = EName.fromLocalName("name")
 
-  final case class TpDocument(children: Seq[TpCanBeDocumentChild]) extends DocumentApi {
-    require(children.collect { case e: TpElem => e }.size == 1, s"Expected precisely 1 document element")
-    require(children.collect { case e: TaxonomyPackage => e }.size == 1, s"Expected precisely 1 TaxonomyPackage document element")
+  final case class TpDocument(underlyingDoc: BackingDocumentApi) extends DocumentApi {
+    require(underlyingDoc.documentElement.name == TpTaxonomyPackageEName, s"Expected TaxonomyPackage document element")
 
     type NodeType = TpNode
 
@@ -224,7 +240,15 @@ object TpDialectOverBackingElemQueryTest {
 
     def docUriOption: Option[URI] = documentElement.docUriOption
 
-    def documentElement: TaxonomyPackage = children.collect { case e: TaxonomyPackage => e }.head
+    def documentElement: TaxonomyPackage = TaxonomyPackage(underlyingDoc.documentElement)
+
+    def children: Seq[TpCanBeDocumentChild] = {
+      underlyingDoc.children.map {
+        case e: BackingNodes.Elem => documentElement
+        case c: BackingNodes.Comment => TpComment(c.text)
+        case pi: BackingNodes.ProcessingInstruction => TpProcessingInstruction(pi.target, pi.data)
+      }
+    }
   }
 
   /**

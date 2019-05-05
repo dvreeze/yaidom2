@@ -21,7 +21,7 @@ import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverBackingElemQueryTest
 
 class TpDialectOverSaxonElemQueryTest extends TpDialectOverBackingElemQueryTest {
 
-  protected def rootElem: saxon.Elem = {
-    saxonRootElem
+  protected def document: saxon.Document = {
+    saxonDocument
   }
 }
