@@ -74,6 +74,8 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
     // Do we need this jsEnv?
     jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
 
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.7",
+
     parallelExecution in Test := false
   )
 
