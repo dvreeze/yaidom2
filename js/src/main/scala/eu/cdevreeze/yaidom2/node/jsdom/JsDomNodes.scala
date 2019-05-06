@@ -40,6 +40,7 @@ import org.scalajs.dom.raw.NodeList
  *
  * @author Chris de Vreeze
  */
+// scalastyle:off file.size.limit
 object JsDomNodes {
 
   /**
@@ -760,7 +761,7 @@ object JsDomNodes {
       def doFilterPreviousSiblingElements(elem: raw.Element, acc: List[raw.Element]): List[raw.Element] = {
         val prev = elem.previousElementSibling
 
-        if (prev eq null) {
+        if (prev eq null) { // scalastyle:off null
           acc
         } else {
           val newAcc = prev :: acc
