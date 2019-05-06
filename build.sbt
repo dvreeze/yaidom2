@@ -23,7 +23,7 @@ lazy val commonSettings = Seq(
 
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings", "-Xlint"),
 
-  publishArtifact in Test := false,
+  Test / publishArtifact := false,
   publishMavenStyle := true,
 
   publishTo := {
@@ -77,7 +77,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.7",
 
-    parallelExecution in Test := false
+    Test / parallelExecution := false
   )
 
 lazy val yaidom2JVM = yaidom2.jvm
