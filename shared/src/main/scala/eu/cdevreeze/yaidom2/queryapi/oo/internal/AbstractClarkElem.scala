@@ -36,7 +36,7 @@ trait AbstractClarkElem extends ClarkNodes.Elem {
 
   protected[yaidom2] def self: ThisElem
 
-  protected[yaidom2] def toImmutableSeq(xs: mutable.Seq[ThisElem]): Seq[ThisElem]
+  protected[yaidom2] def toImmutableSeq(xs: collection.Seq[ThisElem]): Seq[ThisElem]
 
   // ElemApi
 

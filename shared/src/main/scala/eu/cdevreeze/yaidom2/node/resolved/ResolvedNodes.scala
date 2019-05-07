@@ -19,7 +19,6 @@ package eu.cdevreeze.yaidom2.node.resolved
 import scala.collection.immutable
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
-import scala.collection.mutable
 import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -63,7 +62,7 @@ object ResolvedNodes {
 
     protected[yaidom2] def self: Elem = this
 
-    protected[yaidom2] def toImmutableSeq(xs: mutable.Seq[Elem]): Seq[Elem] = {
+    protected[yaidom2] def toImmutableSeq(xs: collection.Seq[Elem]): Seq[Elem] = {
       ArraySeq.from(xs)(classTag[Elem])
     }
 

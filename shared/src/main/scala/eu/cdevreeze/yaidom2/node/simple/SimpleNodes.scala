@@ -18,7 +18,6 @@ package eu.cdevreeze.yaidom2.node.simple
 
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
-import scala.collection.mutable
 import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -51,7 +50,6 @@ object SimpleNodes {
   /**
    * "Simple" element node, offering the `ScopedNodes.Elem` element query API.
    */
-  // scalastyle:off number.of.methods
   final class Elem(
     val qname: QName,
     val attributesByQName: SeqMap[QName, String],
@@ -67,7 +65,7 @@ object SimpleNodes {
 
     protected[yaidom2] def self: Elem = this
 
-    protected[yaidom2] def toImmutableSeq(xs: mutable.Seq[Elem]): Seq[Elem] = {
+    protected[yaidom2] def toImmutableSeq(xs: collection.Seq[Elem]): Seq[Elem] = {
       ArraySeq.from(xs)(classTag[Elem])
     }
 
