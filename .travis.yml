@@ -3,8 +3,8 @@ language: scala
 
 install:
   - . $HOME/.nvm/nvm.sh
-  - nvm install --lts=boron
-  - nvm use --lts=boron
+  - nvm install node
+  - nvm use node
   - npm install
   - npm install jsdom@11.12.0
 
