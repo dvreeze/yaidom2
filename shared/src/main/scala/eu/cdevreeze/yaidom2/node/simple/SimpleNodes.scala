@@ -19,13 +19,14 @@ package eu.cdevreeze.yaidom2.node.simple
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
 import scala.collection.mutable
+import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeConverters
-import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractScopedElem
 import eu.cdevreeze.yaidom2.queryapi.oofun.ScopedElemFunctionWrapper
 
 /**
@@ -56,7 +57,7 @@ object SimpleNodes {
     val attributesByQName: SeqMap[QName, String],
     val scope: Scope,
     val children: ArraySeq[Node]
-  ) extends CanBeDocumentChild with ScopedNodes.Elem {
+  ) extends CanBeDocumentChild with AbstractScopedElem {
 
     // TODO Requirements on constructor parameters
 
@@ -64,87 +65,19 @@ object SimpleNodes {
 
     type ThisNode = Node
 
-    // ElemApi
+    protected[yaidom2] def self: Elem = this
+
+    protected[yaidom2] def toImmutableSeq(xs: mutable.Seq[Elem]): Seq[Elem] = {
+      ArraySeq.from(xs)(classTag[Elem])
+    }
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
       children.collect { case e@Elem(_, _, _, _) if p(e) => e }
     }
 
-    def findAllChildElems(): Seq[ThisElem] = {
-      filterChildElems(_ => true)
-    }
-
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
       children.collectFirst { case e@Elem(_, _, _, _) if p(e) => e }
     }
-
-    def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      findAllChildElems().flatMap(_.filterDescendantElemsOrSelf(p))
-    }
-
-    def findAllDescendantElems(): Seq[ThisElem] = {
-      filterDescendantElems(_ => true)
-    }
-
-    def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      findAllChildElems().view.flatMap(_.findDescendantElemOrSelf(p)).headOption
-    }
-
-    def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      val result = mutable.ArrayBuffer[ThisElem]()
-
-      def accumulate(elm: ThisElem): Unit = {
-        if (p(elm)) result += elm
-        // Recursive calls (not tail-recursive, but the depth is typically limited)
-        elm.findAllChildElems().foreach(accumulate)
-      }
-
-      accumulate(this)
-      result.to(ArraySeq)
-    }
-
-    def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
-      filterDescendantElemsOrSelf(_ => true)
-    }
-
-    def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
-      var result: Option[ThisElem] = None
-
-      def findElem(elm: ThisElem): Unit = {
-        if (result.isEmpty) {
-          if (p(elm)) result = Some(elm)
-        }
-        if (result.isEmpty) {
-          // Recursive calls (not tail-recursive, but the depth is typically limited)
-          elm.findAllChildElems().foreach(findElem)
-        }
-      }
-
-      findElem(this)
-      result
-    }
-
-    def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      findAllChildElems().flatMap(_.findTopmostElemsOrSelf(p))
-    }
-
-    def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-      val result = mutable.ArrayBuffer[ThisElem]()
-
-      def accumulate(elm: ThisElem): Unit = {
-        if (p(elm)) {
-          result += elm
-        } else {
-          // Recursive calls (not tail-recursive, but the depth is typically limited)
-          elm.findAllChildElems().foreach(accumulate)
-        }
-      }
-
-      accumulate(this)
-      result.to(ArraySeq)
-    }
-
-    // ClarkElemApi
 
     def name: EName = {
       scope.resolveQNameOption(qname)
@@ -162,142 +95,6 @@ object SimpleNodes {
 
         (attEName -> attValue)
       }
-    }
-
-    def localName: String = {
-      name.localPart
-    }
-
-    def namespaceOption: Option[String] = {
-      name.namespaceUriOption
-    }
-
-    def namespaceAsString: String = {
-      namespaceOption.getOrElse("")
-    }
-
-    def attrOption(attributeName: EName): Option[String] = {
-      attributes.get(attributeName)
-    }
-
-    def attrOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
-      attrOption(EName(attributeNamespaceOption, attributeLocalName))
-    }
-
-    def attrOption(attributeNamespace: String, attributeLocalName: String): Option[String] = {
-      attrOption(EName(Some(attributeNamespace), attributeLocalName))
-    }
-
-    def attrOption(attributeLocalName: String): Option[String] = {
-      attrOption(EName(None, attributeLocalName))
-    }
-
-    def attr(attributeName: EName): String = {
-      attrOption(attributeName).get
-    }
-
-    def attr(attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
-      attrOption(attributeNamespaceOption, attributeLocalName).get
-    }
-
-    def attr(attributeNamespace: String, attributeLocalName: String): String = {
-      attrOption(attributeNamespace, attributeLocalName).get
-    }
-
-    def attr(attributeLocalName: String): String = {
-      attrOption(attributeLocalName).get
-    }
-
-    def text: String = {
-      children.collect { case Text(t, _) => t }.mkString
-    }
-
-    def normalizedText: String = {
-      normalizeString(text)
-    }
-
-    def trimmedText: String = {
-      text.trim
-    }
-
-    // ScopedElemApi
-
-    def textAsQName: QName = {
-      QName.parse(text.trim)
-    }
-
-    def textAsResolvedQName: EName = {
-      scope.resolveQNameOption(textAsQName).getOrElse(
-        sys.error(s"Could not resolve QName-valued element text $textAsQName, given scope [$scope]"))
-    }
-
-    def attrAsQNameOption(attributeName: EName): Option[QName] = {
-      attrOption(attributeName).map(v => QName.parse(v.trim))
-    }
-
-    def attrAsQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
-      attrOption(attributeNamespaceOption, attributeLocalName).map(v => QName.parse(v.trim))
-    }
-
-    def attrAsQNameOption(attributeNamespace: String, attributeLocalName: String): Option[QName] = {
-      attrOption(attributeNamespace, attributeLocalName).map(v => QName.parse(v.trim))
-    }
-
-    def attrAsQName(attributeName: EName): QName = {
-      attrAsQNameOption(attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
-    }
-
-    def attrAsQName(attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
-      attrAsQNameOption(attributeNamespaceOption, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
-    }
-
-    def attrAsQName(attributeNamespace: String, attributeLocalName: String): QName = {
-      attrAsQNameOption(attributeNamespace, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
-    }
-
-    def attrAsResolvedQNameOption(attributeName: EName): Option[EName] = {
-      attrAsQNameOption(attributeName).map { qn =>
-        scope.resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [$scope]"))
-      }
-    }
-
-    def attrAsResolvedQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
-      attrAsQNameOption(attributeNamespaceOption, attributeLocalName).map { qn =>
-        scope.resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [$scope]"))
-      }
-    }
-
-    def attrAsResolvedQNameOption(attributeNamespace: String, attributeLocalName: String): Option[EName] = {
-      attrAsQNameOption(attributeNamespace, attributeLocalName).map { qn =>
-        scope.resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [$scope]"))
-      }
-    }
-
-    def attrAsResolvedQName(attributeName: EName): EName = {
-      attrAsResolvedQNameOption(attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
-    }
-
-    def attrAsResolvedQName(attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
-      attrAsResolvedQNameOption(attributeNamespaceOption, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
-    }
-
-    def attrAsResolvedQName(attributeNamespace: String, attributeLocalName: String): EName = {
-      attrAsResolvedQNameOption(attributeNamespace, attributeLocalName).getOrElse(
-        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
-    }
-
-    // ClarkNodes.Elem
-
-    def select(step: ElemStep[Elem]): Seq[Elem] = {
-      step(this)
     }
 
     // Other public methods
@@ -319,22 +116,6 @@ object SimpleNodes {
         // Recursive call
         childElem.atNavigationPath(navigationPath.tail)
       }
-    }
-
-    // Private methods
-
-    /**
-     * Normalizes the string, removing surrounding whitespace and normalizing internal whitespace to a single space.
-     * Whitespace includes #x20 (space), #x9 (tab), #xD (carriage return), #xA (line feed). If there is only whitespace,
-     * the empty string is returned. Inspired by the JDOM library.
-     */
-    private def normalizeString(s: String): String = {
-      require(s ne null) // scalastyle:off null
-
-      val separators = Array(' ', '\t', '\r', '\n')
-      val words: Seq[String] = s.split(separators).toSeq.filterNot(_.isEmpty)
-
-      words.mkString(" ") // Returns empty string if words.isEmpty
     }
   }
 

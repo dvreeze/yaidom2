@@ -23,7 +23,7 @@ import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 
 /**
- * Abstract partially implemented ClarkNodes.Elem, for re-usable partial element implementations in yaidom2.
+ * Abstract partially implemented ClarkNodes.Elem, for re-usable (but overridable) partial element implementations in yaidom2.
  *
  * This is an internal API, although it is visible from the outside. When using this API, keep in mind that the API
  * is not a stable as the purely abstract API.
