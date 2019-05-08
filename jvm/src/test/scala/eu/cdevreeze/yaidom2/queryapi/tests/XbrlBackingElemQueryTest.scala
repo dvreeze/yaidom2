@@ -49,18 +49,18 @@ abstract class XbrlBackingElemQueryTest[E <: BackingNodes.Elem.Aux[_, E]] extend
     }
 
     assertResult(Set(GaapNs)) {
-      rootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
+      rootElem.filterDescendantElems(named(XbrldiNs, "explicitMember"))
         .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
     }
 
     assertResult(true) {
-      rootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
-        .forall(_.findAncestorElem(havingName(XbrliNs, "context")).nonEmpty)
+      rootElem.filterDescendantElems(named(XbrldiNs, "explicitMember"))
+        .forall(_.findAncestorElem(named(XbrliNs, "context")).nonEmpty)
     }
 
     assertResult(true) {
-      rootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
-        .forall(e => havingName(XbrliNs, "xbrl")(e.rootElem))
+      rootElem.filterDescendantElems(named(XbrldiNs, "explicitMember"))
+        .forall(e => named(XbrliNs, "xbrl")(e.rootElem))
     }
   }
 
@@ -85,18 +85,18 @@ abstract class XbrlBackingElemQueryTest[E <: BackingNodes.Elem.Aux[_, E]] extend
     }
 
     assertResult(Set(GaapNs)) {
-      rootElem.select(descendantElems(havingName(XbrldiNs, "explicitMember")))
+      rootElem.select(descendantElems(named(XbrldiNs, "explicitMember")))
         .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
     }
 
     assertResult(true) {
-      rootElem.select(descendantElems(havingName(XbrldiNs, "explicitMember")))
-        .forall(_.select(ancestorElems(havingName(XbrliNs, "context"))).nonEmpty)
+      rootElem.select(descendantElems(named(XbrldiNs, "explicitMember")))
+        .forall(_.select(ancestorElems(named(XbrliNs, "context"))).nonEmpty)
     }
 
     assertResult(true) {
-      rootElem.select(descendantElems(havingName(XbrldiNs, "explicitMember")))
-        .forall(e => havingName(XbrliNs, "xbrl")(e.rootElem))
+      rootElem.select(descendantElems(named(XbrldiNs, "explicitMember")))
+        .forall(e => named(XbrliNs, "xbrl")(e.rootElem))
     }
   }
 
@@ -108,9 +108,9 @@ abstract class XbrlBackingElemQueryTest[E <: BackingNodes.Elem.Aux[_, E]] extend
 
     val expectedDimensionalContexts =
       (for {
-        member <- rootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
-        entity <- member.filterAncestorElems(havingName(XbrliNs, "entity"))
-        context <- entity.findParentElem(havingName(XbrliNs, "context"))
+        member <- rootElem.filterDescendantElems(named(XbrldiNs, "explicitMember"))
+        entity <- member.filterAncestorElems(named(XbrliNs, "entity"))
+        context <- entity.findParentElem(named(XbrliNs, "context"))
       } yield {
         context
       }).distinct
@@ -124,9 +124,9 @@ abstract class XbrlBackingElemQueryTest[E <: BackingNodes.Elem.Aux[_, E]] extend
 
     val expectedDimensionalContexts3 =
       for {
-        context <- rootElem.filterDescendantElems(havingName(XbrliNs, "context"))
-        if context.filterChildElems(havingName(XbrliNs, "entity"))
-          .flatMap(_.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))).nonEmpty
+        context <- rootElem.filterDescendantElems(named(XbrliNs, "context"))
+        if context.filterChildElems(named(XbrliNs, "entity"))
+          .flatMap(_.filterDescendantElems(named(XbrldiNs, "explicitMember"))).nonEmpty
       } yield {
         context
       }

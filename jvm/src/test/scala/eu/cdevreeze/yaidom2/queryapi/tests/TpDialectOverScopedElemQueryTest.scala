@@ -33,7 +33,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ScopedElemStepFactory
-import eu.cdevreeze.yaidom2.queryapi.oo.havingName
+import eu.cdevreeze.yaidom2.queryapi.oo.named
 import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -71,8 +71,8 @@ abstract class TpDialectOverScopedElemQueryTest extends AnyFunSuite {
   test("testQueryEntrypoints") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    assertResult(rootElem.filterDescendantElems(havingName(TpEntryPointEName))
-      .flatMap(_.filterChildElems(havingName(TpNameEName))).map(_.text).toSet) {
+    assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
+      .flatMap(_.filterChildElems(named(TpNameEName))).map(_.text).toSet) {
 
       taxoPackage.findAllEntryPoints().flatMap(_.findAllNames).map(_.value).toSet
     }
@@ -81,7 +81,7 @@ abstract class TpDialectOverScopedElemQueryTest extends AnyFunSuite {
   test("testEquivalenceOfEntrypointQueries") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    assertResult(rootElem.filterDescendantElems(havingName(TpEntryPointEName))
+    assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
       .map(e => resolved.Elem.from(e))) {
 
       taxoPackage.findAllEntryPoints().map(e => resolved.Elem.from(e))
@@ -123,7 +123,7 @@ abstract class TpDialectOverScopedElemQueryTest extends AnyFunSuite {
     assertResult(true) {
       docs.size > 10
     }
-    assertResult(taxoPackage.filterDescendantElems(havingName(TpEntryPointDocumentEName))) {
+    assertResult(taxoPackage.filterDescendantElems(named(TpEntryPointDocumentEName))) {
       docs
     }
   }

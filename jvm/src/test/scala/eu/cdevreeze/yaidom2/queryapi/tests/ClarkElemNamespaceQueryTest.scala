@@ -86,7 +86,7 @@ abstract class ClarkElemNamespaceQueryTest extends AnyFunSuite {
     val rootElem = getRootElem(feedFileName)
 
     assertResult(Some(rootElem)) {
-      rootElem.findDescendantElemOrSelf(havingName(nsAtom, "feed"))
+      rootElem.findDescendantElemOrSelf(named(nsAtom, "feed"))
     }
 
     val expectedElemNames = Set(
@@ -99,7 +99,7 @@ abstract class ClarkElemNamespaceQueryTest extends AnyFunSuite {
     )
 
     val elemNamesFound: Set[EName] =
-      expectedElemNames.filter(name => rootElem.findDescendantElemOrSelf(havingName(name)).nonEmpty)
+      expectedElemNames.filter(name => rootElem.findDescendantElemOrSelf(named(name)).nonEmpty)
 
     assertResult(expectedElemNames) {
       elemNamesFound
@@ -114,11 +114,11 @@ abstract class ClarkElemNamespaceQueryTest extends AnyFunSuite {
     }
 
     assertResult("verbally process") {
-      rootElem.filterDescendantElemsOrSelf(havingName(nsXhtml, "strong")).headOption.map(_.text).getOrElse("")
+      rootElem.filterDescendantElemsOrSelf(named(nsXhtml, "strong")).headOption.map(_.text).getOrElse("")
     }
 
     assertResult(Set(EName(nsXhtml, "strong"), EName(nsXhtml, "em"))) {
-      rootElem.filterDescendantElems(havingName(nsXhtml, "div")).flatMap(_.findAllChildElems()).map(_.name).toSet
+      rootElem.filterDescendantElems(named(nsXhtml, "div")).flatMap(_.findAllChildElems()).map(_.name).toSet
     }
 
     assertResult(Set(nsAtom, nsXhtml)) {
@@ -126,11 +126,11 @@ abstract class ClarkElemNamespaceQueryTest extends AnyFunSuite {
     }
 
     assertResult(Set("xhtml")) {
-      rootElem.filterDescendantElemsOrSelf(havingName(nsAtom, "rights")).map(_.attrOption(None, "type").getOrElse("")).toSet
+      rootElem.filterDescendantElemsOrSelf(named(nsAtom, "rights")).map(_.attrOption(None, "type").getOrElse("")).toSet
     }
 
     assertResult(Set("silly")) {
-      rootElem.filterDescendantElemsOrSelf(havingName(nsAtom, "rights")).map(_.attrOption(nsExamples, "type").getOrElse("")).toSet
+      rootElem.filterDescendantElemsOrSelf(named(nsAtom, "rights")).map(_.attrOption(nsExamples, "type").getOrElse("")).toSet
     }
   }
 }

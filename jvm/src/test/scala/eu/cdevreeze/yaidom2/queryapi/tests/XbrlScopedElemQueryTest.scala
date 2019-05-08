@@ -17,7 +17,7 @@
 package eu.cdevreeze.yaidom2.queryapi.tests
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.oo.havingName
+import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 
@@ -48,7 +48,7 @@ abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends 
     }
 
     assertResult(Set(GaapNs)) {
-      rootElem.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))
+      rootElem.filterDescendantElems(named(XbrldiNs, "explicitMember"))
         .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
     }
   }
@@ -74,7 +74,7 @@ abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends 
     }
 
     assertResult(Set(GaapNs)) {
-      rootElem.select(descendantElems(havingName(XbrldiNs, "explicitMember")))
+      rootElem.select(descendantElems(named(XbrldiNs, "explicitMember")))
         .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
     }
   }

@@ -29,7 +29,7 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
-import eu.cdevreeze.yaidom2.queryapi.oo.havingName
+import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ClarkElemStepFactory
@@ -70,8 +70,8 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
   test("testQueryEntrypoints") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    assertResult(rootElem.filterDescendantElems(havingName(TpEntryPointEName))
-      .flatMap(_.filterChildElems(havingName(TpNameEName))).map(_.text).toSet) {
+    assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
+      .flatMap(_.filterChildElems(named(TpNameEName))).map(_.text).toSet) {
 
       taxoPackage.findAllEntryPoints().flatMap(_.findAllNames).map(_.value).toSet
     }
@@ -80,7 +80,7 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
   test("testEquivalenceOfEntrypointQueries") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    assertResult(rootElem.filterDescendantElems(havingName(TpEntryPointEName))
+    assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
       .map(e => resolved.Elem.from(e))) {
 
       taxoPackage.findAllEntryPoints().map(e => resolved.Elem.from(e))
@@ -122,7 +122,7 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
     assertResult(true) {
       docs.size > 10
     }
-    assertResult(taxoPackage.filterDescendantElems(havingName(TpEntryPointDocumentEName))) {
+    assertResult(taxoPackage.filterDescendantElems(named(TpEntryPointDocumentEName))) {
       docs
     }
   }

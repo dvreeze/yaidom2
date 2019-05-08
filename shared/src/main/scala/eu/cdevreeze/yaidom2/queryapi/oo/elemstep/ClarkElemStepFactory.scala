@@ -22,7 +22,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.anyElem
 import eu.cdevreeze.yaidom2.queryapi.oo.havingLocalName
-import eu.cdevreeze.yaidom2.queryapi.oo.havingName
+import eu.cdevreeze.yaidom2.queryapi.oo.named
 
 /**
  * ElemStep factory implementation for Clark elements.
@@ -45,19 +45,19 @@ abstract class ClarkElemStepFactory extends ClarkElemStepFactoryApi {
   }
 
   final def childElems(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterChildElems(havingName(localName)) }
+    { (elem: ElemType) => elem.filterChildElems(named(localName)) }
   }
 
   final def childElems(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterChildElems(havingName(namespace, localName)) }
+    { (elem: ElemType) => elem.filterChildElems(named(namespace, localName)) }
   }
 
   final def childElems(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterChildElems(havingName(namespaceOption, localName)) }
+    { (elem: ElemType) => elem.filterChildElems(named(namespaceOption, localName)) }
   }
 
   final def childElems(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterChildElems(havingName(ename)) }
+    { (elem: ElemType) => elem.filterChildElems(named(ename)) }
   }
 
   final def childElemsIgnoringNamespace(localName: String): ElemStep[ElemType] = {
@@ -75,19 +75,19 @@ abstract class ClarkElemStepFactory extends ClarkElemStepFactoryApi {
   }
 
   final def descendantElems(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElems(havingName(localName)) }
+    { (elem: ElemType) => elem.filterDescendantElems(named(localName)) }
   }
 
   final def descendantElems(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElems(havingName(namespace, localName)) }
+    { (elem: ElemType) => elem.filterDescendantElems(named(namespace, localName)) }
   }
 
   final def descendantElems(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElems(havingName(namespaceOption, localName)) }
+    { (elem: ElemType) => elem.filterDescendantElems(named(namespaceOption, localName)) }
   }
 
   final def descendantElems(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElems(havingName(ename)) }
+    { (elem: ElemType) => elem.filterDescendantElems(named(ename)) }
   }
 
   final def descendantElemsIgnoringNamespace(localName: String): ElemStep[ElemType] = {
@@ -105,19 +105,19 @@ abstract class ClarkElemStepFactory extends ClarkElemStepFactoryApi {
   }
 
   final def descendantElemsOrSelf(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(havingName(localName)) }
+    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(named(localName)) }
   }
 
   final def descendantElemsOrSelf(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(havingName(namespace, localName)) }
+    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(named(namespace, localName)) }
   }
 
   final def descendantElemsOrSelf(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(havingName(namespaceOption, localName)) }
+    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(named(namespaceOption, localName)) }
   }
 
   final def descendantElemsOrSelf(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(havingName(ename)) }
+    { (elem: ElemType) => elem.filterDescendantElemsOrSelf(named(ename)) }
   }
 
   final def descendantElemsOrSelfIgnoringNamespace(localName: String): ElemStep[ElemType] = {
@@ -131,19 +131,19 @@ abstract class ClarkElemStepFactory extends ClarkElemStepFactoryApi {
   }
 
   final def topmostElems(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElems(havingName(localName)) }
+    { (elem: ElemType) => elem.findTopmostElems(named(localName)) }
   }
 
   final def topmostElems(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElems(havingName(namespace, localName)) }
+    { (elem: ElemType) => elem.findTopmostElems(named(namespace, localName)) }
   }
 
   final def topmostElems(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElems(havingName(namespaceOption, localName)) }
+    { (elem: ElemType) => elem.findTopmostElems(named(namespaceOption, localName)) }
   }
 
   final def topmostElems(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElems(havingName(ename)) }
+    { (elem: ElemType) => elem.findTopmostElems(named(ename)) }
   }
 
   final def topmostElemsIgnoringNamespace(localName: String): ElemStep[ElemType] = {
@@ -157,19 +157,19 @@ abstract class ClarkElemStepFactory extends ClarkElemStepFactoryApi {
   }
 
   final def topmostElemsOrSelf(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElemsOrSelf(havingName(localName)) }
+    { (elem: ElemType) => elem.findTopmostElemsOrSelf(named(localName)) }
   }
 
   final def topmostElemsOrSelf(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElemsOrSelf(havingName(namespace, localName)) }
+    { (elem: ElemType) => elem.findTopmostElemsOrSelf(named(namespace, localName)) }
   }
 
   final def topmostElemsOrSelf(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElemsOrSelf(havingName(namespaceOption, localName)) }
+    { (elem: ElemType) => elem.findTopmostElemsOrSelf(named(namespaceOption, localName)) }
   }
 
   final def topmostElemsOrSelf(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findTopmostElemsOrSelf(havingName(ename)) }
+    { (elem: ElemType) => elem.findTopmostElemsOrSelf(named(ename)) }
   }
 
   final def topmostElemsOrSelfIgnoringNamespace(localName: String): ElemStep[ElemType] = {

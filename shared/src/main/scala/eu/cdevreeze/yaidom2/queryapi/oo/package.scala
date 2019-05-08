@@ -30,11 +30,11 @@ package object oo {
     _ => true
   }
 
-  def havingName(name: EName): ClarkElemApi => Boolean = {
-    havingName(name.namespaceUriOption, name.localPart)
+  def named(name: EName): ClarkElemApi => Boolean = {
+    named(name.namespaceUriOption, name.localPart)
   }
 
-  def havingName(namespaceOption: Option[String], localName: String): ClarkElemApi => Boolean = {
+  def named(namespaceOption: Option[String], localName: String): ClarkElemApi => Boolean = {
     elem =>
       val nsAsString = namespaceOption.getOrElse("")
 
@@ -44,14 +44,14 @@ package object oo {
   /**
    * Predicate returning true for elements having the given non-empty namespace and local name
    */
-  def havingName(namespace: String, localName: String): ClarkElemApi => Boolean = {
+  def named(namespace: String, localName: String): ClarkElemApi => Boolean = {
     elem => elem.namespaceAsString == namespace && elem.localName == localName
   }
 
   /**
    * Predicate returning true for elements having no namespace but the given local name
    */
-  def havingName(localName: String): ClarkElemApi => Boolean = {
+  def named(localName: String): ClarkElemApi => Boolean = {
     elem => elem.namespaceAsString.isEmpty && elem.localName == localName
   }
 

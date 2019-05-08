@@ -107,9 +107,9 @@ abstract class XbrlClarkElemQueryTest[E <: ClarkNodes.Elem.Aux[_, E]] extends An
 
     val expectedDimensionalContexts =
       for {
-        context <- rootElem.filterDescendantElems(havingName(XbrliNs, "context"))
-        if context.filterChildElems(havingName(XbrliNs, "entity"))
-          .flatMap(_.filterDescendantElems(havingName(XbrldiNs, "explicitMember"))).nonEmpty
+        context <- rootElem.filterDescendantElems(named(XbrliNs, "context"))
+        if context.filterChildElems(named(XbrliNs, "entity"))
+          .flatMap(_.filterDescendantElems(named(XbrldiNs, "explicitMember"))).nonEmpty
       } yield {
         context
       }

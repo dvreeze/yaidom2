@@ -105,7 +105,7 @@ class JsDomElemQueryTest extends AnyFunSuite {
     val docElem = axesSchemaDoc.documentElement
 
     val abstractElemDecls =
-      docElem.filterDescendantElemsOrSelf(havingName(XsNamespace, "element"))
+      docElem.filterDescendantElemsOrSelf(named(XsNamespace, "element"))
         .filter(_.attrOption("abstract").getOrElse("true").toBoolean)
 
     assertResult(true) {
@@ -113,7 +113,7 @@ class JsDomElemQueryTest extends AnyFunSuite {
     }
 
     val nonAbstractElemDecls =
-      docElem.filterDescendantElemsOrSelf(havingName(XsNamespace, "element"))
+      docElem.filterDescendantElemsOrSelf(named(XsNamespace, "element"))
         .filter(_.attrOption("abstract").getOrElse("true").toBoolean == false)
 
     assertResult(Seq.empty) {
@@ -121,7 +121,7 @@ class JsDomElemQueryTest extends AnyFunSuite {
     }
 
     val indexedAbstractElemDecls =
-      indexed.Elem.from(docElem).filterDescendantElemsOrSelf(havingName(XsNamespace, "element"))
+      indexed.Elem.from(docElem).filterDescendantElemsOrSelf(named(XsNamespace, "element"))
         .filter(_.attrOption("abstract").getOrElse("true").toBoolean)
 
     assertResult(indexedAbstractElemDecls.map(e => resolved.Elem.from(e))) {

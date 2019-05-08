@@ -22,7 +22,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.BackingElemApi
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.anyElem
 import eu.cdevreeze.yaidom2.queryapi.oo.havingLocalName
-import eu.cdevreeze.yaidom2.queryapi.oo.havingName
+import eu.cdevreeze.yaidom2.queryapi.oo.named
 
 /**
  * ElemStep factory implementation for Backing elements.
@@ -45,19 +45,19 @@ abstract class BackingElemStepFactory extends ScopedElemStepFactory with Backing
   }
 
   final def parentElem(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(havingName(localName)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(localName)).toIndexedSeq }
   }
 
   final def parentElem(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(havingName(namespace, localName)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(namespace, localName)).toIndexedSeq }
   }
 
   final def parentElem(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(havingName(namespaceOption, localName)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(namespaceOption, localName)).toIndexedSeq }
   }
 
   final def parentElem(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(havingName(ename)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(ename)).toIndexedSeq }
   }
 
   final def parentElemIgnoringNamespace(localName: String): ElemStep[ElemType] = {
@@ -75,19 +75,19 @@ abstract class BackingElemStepFactory extends ScopedElemStepFactory with Backing
   }
 
   final def ancestorElems(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(havingName(localName)) }
+    { (elem: ElemType) => elem.filterAncestorElems(named(localName)) }
   }
 
   final def ancestorElems(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(havingName(namespace, localName)) }
+    { (elem: ElemType) => elem.filterAncestorElems(named(namespace, localName)) }
   }
 
   final def ancestorElems(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(havingName(namespaceOption, localName)) }
+    { (elem: ElemType) => elem.filterAncestorElems(named(namespaceOption, localName)) }
   }
 
   final def ancestorElems(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(havingName(ename)) }
+    { (elem: ElemType) => elem.filterAncestorElems(named(ename)) }
   }
 
   final def ancestorElemsIgnoringNamespace(localName: String): ElemStep[ElemType] = {
@@ -105,19 +105,19 @@ abstract class BackingElemStepFactory extends ScopedElemStepFactory with Backing
   }
 
   final def ancestorElemsOrSelf(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(havingName(localName)) }
+    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(localName)) }
   }
 
   final def ancestorElemsOrSelf(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(havingName(namespace, localName)) }
+    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(namespace, localName)) }
   }
 
   final def ancestorElemsOrSelf(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(havingName(namespaceOption, localName)) }
+    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(namespaceOption, localName)) }
   }
 
   final def ancestorElemsOrSelf(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(havingName(ename)) }
+    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(ename)) }
   }
 
   final def ancestorElemsOrSelfIgnoringNamespace(localName: String): ElemStep[ElemType] = {
