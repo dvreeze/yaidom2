@@ -26,8 +26,6 @@ import java.net.URI
  */
 trait BackingElemFunctionsApi extends ScopedElemFunctionsApi {
 
-  type ElemType
-
   def findParentElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType]
 
   def findParentElem(elem: ElemType): Option[ElemType]
@@ -75,8 +73,8 @@ trait BackingElemFunctionsApi extends ScopedElemFunctionsApi {
 
 object BackingElemFunctionsApi {
 
-  type Aux[E, N] = BackingElemFunctionsApi {
-    type ElemType = E
+  type Aux[N, E] = BackingElemFunctionsApi {
     type NodeType = N
+    type ElemType = E
   }
 }

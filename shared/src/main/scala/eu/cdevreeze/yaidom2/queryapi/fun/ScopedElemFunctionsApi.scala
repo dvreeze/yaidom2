@@ -30,8 +30,6 @@ import eu.cdevreeze.yaidom2.core.Scope
  */
 trait ScopedElemFunctionsApi extends ClarkElemFunctionsApi {
 
-  type ElemType
-
   def scope(elem: ElemType): Scope
 
   def qname(elem: ElemType): QName
@@ -69,8 +67,8 @@ trait ScopedElemFunctionsApi extends ClarkElemFunctionsApi {
 
 object ScopedElemFunctionsApi {
 
-  type Aux[E, N] = ScopedElemFunctionsApi {
-    type ElemType = E
+  type Aux[N, E] = ScopedElemFunctionsApi {
     type NodeType = N
+    type ElemType = E
   }
 }

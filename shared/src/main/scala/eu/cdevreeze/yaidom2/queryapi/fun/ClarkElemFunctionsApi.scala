@@ -28,8 +28,6 @@ import eu.cdevreeze.yaidom2.core.EName
  */
 trait ClarkElemFunctionsApi extends ElemFunctionsApi {
 
-  type ElemType
-
   type NodeType >: ElemType
 
   def name(elem: ElemType): EName
@@ -92,8 +90,8 @@ trait ClarkElemFunctionsApi extends ElemFunctionsApi {
 
 object ClarkElemFunctionsApi {
 
-  type Aux[E, N] = ClarkElemFunctionsApi {
-    type ElemType = E
+  type Aux[N, E] = ClarkElemFunctionsApi {
     type NodeType = N
+    type ElemType = E
   }
 }
