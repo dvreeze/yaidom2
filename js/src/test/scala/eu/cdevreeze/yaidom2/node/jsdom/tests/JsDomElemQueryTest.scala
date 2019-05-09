@@ -16,6 +16,7 @@
 
 package eu.cdevreeze.yaidom2.node.jsdom.tests
 
+import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.indexed
 import eu.cdevreeze.yaidom2.node.jsdom.JsDomDocument
 import eu.cdevreeze.yaidom2.node.resolved
@@ -142,6 +143,30 @@ class JsDomElemQueryTest extends AnyFunSuite {
     }
   }
 
+  test("testFindPrecedingSiblingElems") {
+    val docElem = axesSchemaDoc.documentElement
+
+    val lastLinkbaseRef = docElem.filterDescendantElems(named(LinkNamespace, "linkbaseRef")).ensuring(_.nonEmpty).last
+
+    val precedingLinkbaseRefs = lastLinkbaseRef.findAllPrecedingSiblingElems()
+
+    assertResult(Seq.fill(4)(EName(LinkNamespace, "linkbaseRef"))) {
+      precedingLinkbaseRefs.map(_.name)
+    }
+
+    assertResult(Seq("jenv-bw2-axes-lab-nl.xml", "jenv-bw2-axes-lab-fr.xml", "jenv-bw2-axes-lab-en.xml", "jenv-bw2-axes-lab-de.xml")) {
+      precedingLinkbaseRefs.map(_.attr(XLinkNamespace, "href"))
+    }
+
+    assertResult(docElem.findDescendantElem(named(XsNamespace, "appinfo")).toSeq) {
+      precedingLinkbaseRefs.flatMap(_.findParentElem()).distinct
+    }
+
+    assertResult(indexed.Elem.from(lastLinkbaseRef).findAllPrecedingSiblingElems().map(e => resolved.Elem.from(e))) {
+      precedingLinkbaseRefs.map(e => resolved.Elem.from(e))
+    }
+  }
+
   private val axesSchemaXml =
     """
       |<!--
@@ -230,4 +255,5 @@ class JsDomElemQueryTest extends AnyFunSuite {
 
   private val XsNamespace = "http://www.w3.org/2001/XMLSchema"
   private val LinkNamespace = "http://www.xbrl.org/2003/linkbase"
+  private val XLinkNamespace = "http://www.w3.org/1999/xlink"
 }

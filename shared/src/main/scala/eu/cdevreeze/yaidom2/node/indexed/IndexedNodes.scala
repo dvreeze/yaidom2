@@ -212,13 +212,13 @@ object IndexedNodes {
 
     private def computeElemNavigationPathFromRoot(elm: BackingNodes.Elem): ArraySeq[Int] = {
       def computeReversePath(e: BackingNodes.Elem): List[Int] = {
-        val parentElemOption = elm.findParentElem()
+        val parentElemOption = e.findParentElem()
 
         if (parentElemOption.isEmpty) {
           Nil
         } else {
           // Recursive call
-          elm.findAllPrecedingSiblingElems().size :: computeReversePath(parentElemOption.get)
+          e.findAllPrecedingSiblingElems().size :: computeReversePath(parentElemOption.get)
         }
       }
 

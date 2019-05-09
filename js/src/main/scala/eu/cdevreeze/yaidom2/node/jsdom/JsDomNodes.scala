@@ -550,7 +550,7 @@ object JsDomNodes {
         }
       }
 
-      doFilterPreviousSiblingElements(elem, Nil)
+      doFilterPreviousSiblingElements(elem, Nil).reverse
     }
 
     def baseUriOption(elem: ElemType): Option[URI] = {
