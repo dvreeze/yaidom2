@@ -19,14 +19,14 @@ package eu.cdevreeze.yaidom2.node.jsdom
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
-import org.scalajs.dom.raw
+import org.scalajs.dom
 
 /**
  * Document holding a JsDomNodes.Elem.
  *
  * @author Chris de Vreeze
  */
-final case class JsDomDocument(jsDomDocument: raw.Document) extends BackingDocumentApi {
+final case class JsDomDocument(jsDomDocument: dom.Document) extends BackingDocumentApi {
 
   type NodeType = JsDomNodes.Node
 

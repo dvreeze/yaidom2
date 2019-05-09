@@ -31,9 +31,9 @@ import eu.cdevreeze.yaidom2.core.UnprefixedName
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.fun.internal.AbstractBackingElemFunctions
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
-import org.scalajs.dom.raw
-import org.scalajs.dom.raw.NamedNodeMap
-import org.scalajs.dom.raw.NodeList
+import org.scalajs.dom
+import org.scalajs.dom.NamedNodeMap
+import org.scalajs.dom.NodeList
 
 /**
  * JS-DOM nodes.
@@ -57,7 +57,7 @@ object JsDomNodes {
    * JS-DOM element node, offering the `BackingNodes.Elem` element query API.
    */
   // scalastyle:off number.of.methods
-  final case class Elem(jsDomElement: raw.Element) extends CanBeDocumentChild with BackingNodes.Elem {
+  final case class Elem(jsDomElement: dom.Element) extends CanBeDocumentChild with BackingNodes.Elem {
 
     type ThisElem = Elem
 
@@ -318,7 +318,7 @@ object JsDomNodes {
   /**
    * JS-DOM text node
    */
-  final case class Text(jsDomText: raw.Text) extends Node with BackingNodes.Text {
+  final case class Text(jsDomText: dom.Text) extends Node with BackingNodes.Text {
 
     def text: String = {
       jsDomText.data
@@ -328,7 +328,7 @@ object JsDomNodes {
   /**
    * JS-DOM comment node
    */
-  final case class Comment(jsDomComment: raw.Comment) extends CanBeDocumentChild with BackingNodes.Comment {
+  final case class Comment(jsDomComment: dom.Comment) extends CanBeDocumentChild with BackingNodes.Comment {
 
     def text: String = {
       jsDomComment.data
@@ -338,7 +338,7 @@ object JsDomNodes {
   /**
    * JS-DOM processing instruction node
    */
-  final case class ProcessingInstruction(jsDomProcessingInstruction: raw.ProcessingInstruction) extends CanBeDocumentChild
+  final case class ProcessingInstruction(jsDomProcessingInstruction: dom.ProcessingInstruction) extends CanBeDocumentChild
     with BackingNodes.ProcessingInstruction {
 
     def target: String = {
@@ -352,36 +352,36 @@ object JsDomNodes {
 
   object Node {
 
-    def opt(jsDomNode: raw.Node): Option[Node] = {
+    def opt(jsDomNode: dom.Node): Option[Node] = {
       jsDomNode match {
-        case e: raw.Element => Some(Elem(e))
-        case t: raw.CDATASection => Some(Text(t))
-        case t: raw.Text => Some(Text(t))
-        case c: raw.Comment => Some(Comment(c))
-        case pi: raw.ProcessingInstruction => Some(ProcessingInstruction(pi))
+        case e: dom.Element => Some(Elem(e))
+        case t: dom.CDATASection => Some(Text(t))
+        case t: dom.Text => Some(Text(t))
+        case c: dom.Comment => Some(Comment(c))
+        case pi: dom.ProcessingInstruction => Some(ProcessingInstruction(pi))
         case _ => None
       }
     }
 
-    def extractEName(jsDomElement: raw.Element): EName = {
+    def extractEName(jsDomElement: dom.Element): EName = {
       val nsOption = Option(jsDomElement.namespaceURI)
       EName(nsOption, jsDomElement.localName)
     }
 
-    def extractEName(jsDomAttr: raw.Attr): EName = {
+    def extractEName(jsDomAttr: dom.Attr): EName = {
       require(!isNamespaceDeclaration(jsDomAttr), "Namespace declaration not allowed")
       val nsOption = Option(jsDomAttr.namespaceURI)
       EName(nsOption, jsDomAttr.localName)
     }
 
-    def extractQName(jsDomElement: raw.Element): QName = {
+    def extractQName(jsDomElement: dom.Element): QName = {
       val name: String = jsDomElement.tagName
       val arr = name.split(':')
       assert(arr.length >= 1 && arr.length <= 2)
       if (arr.length == 1) UnprefixedName(arr(0)) else QName(arr(0), arr(1))
     }
 
-    def extractQName(jsDomAttr: raw.Attr): QName = {
+    def extractQName(jsDomAttr: dom.Attr): QName = {
       require(!isNamespaceDeclaration(jsDomAttr), "Namespace declaration not allowed")
       val name: String = jsDomAttr.name
       val arr = name.split(':')
@@ -389,8 +389,8 @@ object JsDomNodes {
       if (arr.length == 1) UnprefixedName(arr(0)) else QName(arr(0), arr(1))
     }
 
-    /** Returns true if the `org.scalajs.dom.raw.Attr` is a namespace declaration */
-    def isNamespaceDeclaration(jsDomAttr: raw.Attr): Boolean = {
+    /** Returns true if the `org.scalajs.dom.Attr` is a namespace declaration */
+    def isNamespaceDeclaration(jsDomAttr: dom.Attr): Boolean = {
       val name: String = jsDomAttr.name
       val arr = name.split(':')
       assert(arr.length >= 1 && arr.length <= 2)
@@ -398,8 +398,8 @@ object JsDomNodes {
       result
     }
 
-    /** Helper method that converts a `NodeList` to an `Seq[org.scalajs.dom.raw.Node]` */
-    def nodeListToSeq(nodeList: NodeList): Seq[raw.Node] = {
+    /** Helper method that converts a `NodeList` to an `Seq[org.scalajs.dom.Node]` */
+    def nodeListToSeq(nodeList: NodeList): Seq[dom.Node] = {
       val result = (0 until nodeList.length).map(i => nodeList.item(i))
       result.to(ArraySeq)
     }
@@ -423,7 +423,7 @@ object JsDomNodes {
     }
 
     /** Extracts (optional) prefix and namespace. Call only if `isNamespaceDeclaration(v)`, since otherwise an exception is thrown. */
-    def extractNamespaceDeclaration(v: raw.Attr): (Option[String], String) = {
+    def extractNamespaceDeclaration(v: dom.Attr): (Option[String], String) = {
       val name: String = v.name
       val arr = name.split(':')
       assert(arr.length >= 1 && arr.length <= 2)
@@ -438,11 +438,11 @@ object JsDomNodes {
 
   object CanBeDocumentChild {
 
-    def opt(jsDomNode: raw.Node): Option[CanBeDocumentChild] = {
+    def opt(jsDomNode: dom.Node): Option[CanBeDocumentChild] = {
       jsDomNode match {
-        case e: raw.Element => Some(Elem(e))
-        case c: raw.Comment => Some(Comment(c))
-        case pi: raw.ProcessingInstruction => Some(ProcessingInstruction(pi))
+        case e: dom.Element => Some(Elem(e))
+        case c: dom.Comment => Some(Comment(c))
+        case pi: dom.ProcessingInstruction => Some(ProcessingInstruction(pi))
         case _ => None
       }
     }
@@ -450,20 +450,20 @@ object JsDomNodes {
 
   object Elem extends AbstractBackingElemFunctions {
 
-    type ElemType = raw.Element
+    type ElemType = dom.Element
 
-    type NodeType = raw.Node
+    type NodeType = dom.Node
 
     protected[yaidom2] def toImmutableSeq(xs: collection.Seq[ElemType]): Seq[ElemType] = {
       ArraySeq.from(xs)(classTag[ElemType])
     }
 
     def filterChildElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-      children(elem).collect { case e: raw.Element if p(e) => e }
+      children(elem).collect { case e: dom.Element if p(e) => e }
     }
 
     def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
-      children(elem).collectFirst { case e: raw.Element if p(e) => e }
+      children(elem).collectFirst { case e: dom.Element if p(e) => e }
     }
 
     def name(elem: ElemType): EName = {
@@ -486,7 +486,7 @@ object JsDomNodes {
     }
 
     def text(elem: ElemType): String = {
-      val textStrings = children(elem).collect { case t: raw.Text => t }.map(_.data)
+      val textStrings = children(elem).collect { case t: dom.Text => t }.map(_.data)
       textStrings.mkString
     }
 
@@ -533,12 +533,12 @@ object JsDomNodes {
     }
 
     def findParentElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
-      Option(elem.parentNode).collect { case e: raw.Element if p(e) => e }
+      Option(elem.parentNode).collect { case e: dom.Element if p(e) => e }
     }
 
     def findAllPrecedingSiblingElems(elem: ElemType): Seq[ElemType] = {
       @tailrec
-      def doFilterPreviousSiblingElements(elem: raw.Element, acc: List[raw.Element]): List[raw.Element] = {
+      def doFilterPreviousSiblingElements(elem: dom.Element, acc: List[dom.Element]): List[dom.Element] = {
         val prev = elem.previousElementSibling
 
         if (prev eq null) { // scalastyle:off null
