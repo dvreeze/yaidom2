@@ -16,12 +16,26 @@
 
 package eu.cdevreeze.yaidom2.node.saxon.tests
 
+import java.io.File
+
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.tests.ClarkElemNamespaceQueryTest
+import net.sf.saxon.s9api.Processor
 
 class SaxonElemNamespaceQueryTest extends ClarkElemNamespaceQueryTest {
 
   protected def getRootElem(fileName: String): saxon.Elem = {
     getSaxonDocument(fileName).documentElement
+  }
+
+  private val processor = new Processor(false)
+
+  private def getSaxonDocument(fileName: String): saxon.Document = {
+    val docBuilder = processor.newDocumentBuilder()
+
+    val file = new File(classOf[SaxonElemNamespaceQueryTest].getResource(s"/test-xml/$fileName").toURI)
+    val doc = docBuilder.build(file)
+
+    saxon.Document(doc)
   }
 }

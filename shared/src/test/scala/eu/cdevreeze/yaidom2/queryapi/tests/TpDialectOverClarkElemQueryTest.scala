@@ -16,7 +16,6 @@
 
 package eu.cdevreeze.yaidom2.queryapi.tests
 
-import java.io.File
 import java.net.URI
 import java.time.LocalDate
 
@@ -26,14 +25,12 @@ import scala.reflect.ClassTag
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.dialect.AbstractDialectClarkElem
 import eu.cdevreeze.yaidom2.node.resolved
-import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
-import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ClarkElemStepFactory
-import net.sf.saxon.s9api.Processor
+import eu.cdevreeze.yaidom2.queryapi.oo.named
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
@@ -48,24 +45,9 @@ abstract class TpDialectOverClarkElemQueryTest extends AnyFunSuite {
 
   import TpDialectOverClarkElemQueryTest._
 
-  private val processor = new Processor(false)
-
   protected def document: ClarkDocumentApi
 
   private def rootElem: ClarkNodes.Elem = document.documentElement
-
-  protected def saxonDocument: saxon.Document = {
-    val docBuilder = processor.newDocumentBuilder()
-
-    val file = new File(classOf[TpDialectOverClarkElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
-    val doc = docBuilder.build(file)
-
-    saxon.Document(doc)
-  }
-
-  protected def saxonRootElem: saxon.Elem = {
-    saxonDocument.documentElement
-  }
 
   test("testQueryEntrypoints") {
     val taxoPackage = TaxonomyPackage(rootElem)

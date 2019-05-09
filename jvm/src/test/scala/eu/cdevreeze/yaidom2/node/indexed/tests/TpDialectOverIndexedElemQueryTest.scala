@@ -16,12 +16,47 @@
 
 package eu.cdevreeze.yaidom2.node.indexed.tests
 
+import java.io.File
+
 import eu.cdevreeze.yaidom2.node.indexed
+import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.saxon.SaxonProducers
 import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverBackingElemQueryTest
+import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverBackingElemQueryTest.TpDocument
+import net.sf.saxon.s9api.Processor
 
 class TpDialectOverIndexedElemQueryTest extends TpDialectOverBackingElemQueryTest {
 
+  private val processor = new Processor(false)
+
   protected def document: indexed.Document = {
     indexed.Document.from(saxonDocument)
+  }
+
+  protected def saxonDocument: saxon.Document = {
+    val docBuilder = processor.newDocumentBuilder()
+
+    val file = new File(classOf[TpDialectOverIndexedElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
+    val doc = docBuilder.build(file)
+
+    saxon.Document(doc)
+  }
+
+  protected def saxonRootElem: saxon.Elem = {
+    saxonDocument.documentElement
+  }
+
+  test("testDocumentRoundtrip") {
+    val taxonomyPackageDoc = TpDocument(document)
+
+    val saxonDocProducer = new SaxonProducers.DocumentProducer(processor)
+
+    val saxonDoc = saxonDocProducer.from(taxonomyPackageDoc.underlyingDoc)
+    val taxonomyPackageDoc2 = TpDocument(saxonDoc)
+
+    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement)) {
+      resolved.Elem.from(taxonomyPackageDoc2.documentElement)
+    }
   }
 }

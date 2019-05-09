@@ -16,14 +16,10 @@
 
 package eu.cdevreeze.yaidom2.queryapi.tests
 
-import java.io.File
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
-import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo._
-import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
@@ -41,18 +37,9 @@ abstract class ClarkElemNamespaceQueryTest extends AnyFunSuite {
   private val nsXhtml = "http://www.w3.org/1999/xhtml"
   private val nsExamples = "http://xmlportfolio.com/xmlguild-examples"
 
-  private val processor = new Processor(false)
-
   protected def getRootElem(fileName: String): ClarkNodes.Elem
 
-  protected def getSaxonDocument(fileName: String): saxon.Document = {
-    val docBuilder = processor.newDocumentBuilder()
-
-    val file = new File(classOf[ClarkElemNamespaceQueryTest].getResource(s"/test-xml/$fileName").toURI)
-    val doc = docBuilder.build(file)
-
-    saxon.Document(doc)
-  }
+  protected val circumventBugInXmlStack = false
 
   test("feed1") {
     testFeed("feed1.xml")
@@ -125,8 +112,13 @@ abstract class ClarkElemNamespaceQueryTest extends AnyFunSuite {
       rootElem.findAllDescendantElemsOrSelf.map(_.namespaceAsString).toSet
     }
 
-    assertResult(Set("xhtml")) {
-      rootElem.filterDescendantElemsOrSelf(named(nsAtom, "rights")).map(_.attrOption(None, "type").getOrElse("")).toSet
+    // JS-DOM does not see 2 attributes with the same local name, but one prefixed and the other without prefix,
+    // so for JS-DOM we circumvent the following assertion.
+
+    if (!circumventBugInXmlStack) {
+      assertResult(Set("xhtml")) {
+        rootElem.filterDescendantElemsOrSelf(named(nsAtom, "rights")).map(_.attrOption(None, "type").getOrElse("")).toSet
+      }
     }
 
     assertResult(Set("silly")) {

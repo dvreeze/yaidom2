@@ -18,9 +18,9 @@ package eu.cdevreeze.yaidom2.queryapi.tests
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.oo._
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingElemStepFactoryApi
 
 abstract class XbrlBackingElemQueryTest[E <: BackingNodes.Elem.Aux[_, E]] extends XbrlScopedElemQueryTest[E] {
 

@@ -16,12 +16,31 @@
 
 package eu.cdevreeze.yaidom2.node.simple.tests
 
+import java.io.File
+
+import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverScopedElemQueryTest
+import net.sf.saxon.s9api.Processor
 
 class TpDialectOverSimpleElemQueryTest extends TpDialectOverScopedElemQueryTest {
 
+  private val processor = new Processor(false)
+
   protected def document: simple.Document = {
     simple.Document.from(saxonDocument)
+  }
+
+  protected def saxonDocument: saxon.Document = {
+    val docBuilder = processor.newDocumentBuilder()
+
+    val file = new File(classOf[TpDialectOverSimpleElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
+    val doc = docBuilder.build(file)
+
+    saxon.Document(doc)
+  }
+
+  protected def saxonRootElem: saxon.Elem = {
+    saxonDocument.documentElement
   }
 }

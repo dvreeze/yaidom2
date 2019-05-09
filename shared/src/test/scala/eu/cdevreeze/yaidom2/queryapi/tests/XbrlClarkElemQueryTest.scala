@@ -17,17 +17,21 @@
 package eu.cdevreeze.yaidom2.queryapi.tests
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.oo.named
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemStepFactoryApi
+import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.oo._
+import org.scalatest.funsuite.AnyFunSuite
 
-abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends XbrlClarkElemQueryTest[E] {
+abstract class XbrlClarkElemQueryTest[E <: ClarkNodes.Elem.Aux[_, E]] extends AnyFunSuite {
 
-  protected val elemStepFactory: ScopedElemStepFactoryApi.Aux[E]
+  protected def rootElem: E
+
+  protected val elemStepFactory: ClarkElemStepFactoryApi.Aux[E]
 
   import elemStepFactory._
 
-  test("testParseAndQueryScopedXml") {
+  test("testParseAndQueryClarkXml") {
     assertResult(true) {
       rootElem.findAllDescendantElemsOrSelf().size >= 100
     }
@@ -46,14 +50,9 @@ abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends 
     assertResult(Set(EName(XbrldiNs, "explicitMember"))) {
       rootElem.filterDescendantElemsOrSelf(_.attrOption("dimension").nonEmpty).map(_.name).toSet
     }
-
-    assertResult(Set(GaapNs)) {
-      rootElem.filterDescendantElems(named(XbrldiNs, "explicitMember"))
-        .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
-    }
   }
 
-  test("testParseAndQueryScopedXmlUsingSteps") {
+  test("testParseAndQueryClarkXmlUsingSteps") {
     assertResult(true) {
       rootElem.select(descendantElemsOrSelf()).size >= 100
     }
@@ -72,10 +71,34 @@ abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends 
     assertResult(Set(EName(XbrldiNs, "explicitMember"))) {
       rootElem.select(descendantElemsOrSelf(_.attrOption("dimension").nonEmpty)).map(_.name).toSet
     }
+  }
 
-    assertResult(Set(GaapNs)) {
-      rootElem.select(descendantElems(named(XbrldiNs, "explicitMember")))
-        .map(_.attrAsResolvedQName(None, "dimension")).map(_.namespaceUriOption.getOrElse("")).toSet
+  test("testSemanticsOfSteps") {
+    val dimensionalContexts =
+      rootElem.select {
+        descendantElems(XbrliNs, "context").where {
+          _.select(childElems(XbrliNs, "entity") / descendantElems(XbrldiNs, "explicitMember")).nonEmpty
+        }
+      }
+
+    val expectedDimensionalContexts =
+      for {
+        context <- rootElem.filterDescendantElems(named(XbrliNs, "context"))
+        if context.filterChildElems(named(XbrliNs, "entity"))
+          .flatMap(_.filterDescendantElems(named(XbrldiNs, "explicitMember"))).nonEmpty
+      } yield {
+        context
+      }
+
+    assertResult(true) {
+      dimensionalContexts.size >= 10
+    }
+    assertResult(expectedDimensionalContexts.map(e => resolved.Elem.from(e))) {
+      dimensionalContexts.map(e => resolved.Elem.from(e))
     }
   }
+
+  protected val XbrliNs = "http://www.xbrl.org/2003/instance"
+  protected val XbrldiNs = "http://xbrl.org/2006/xbrldi"
+  protected val GaapNs = "http://xasb.org/gaap"
 }
