@@ -19,6 +19,9 @@ package eu.cdevreeze.yaidom2.node.jsdom.tests
 import eu.cdevreeze.yaidom2.node.jsdom.JsDomDocument
 import eu.cdevreeze.yaidom2.node.jsdom.JsDomNodes
 import eu.cdevreeze.yaidom2.queryapi.tests.ClarkElemNamespaceQueryTest
+import eu.cdevreeze.yaidom2.testxml.Feed1
+import eu.cdevreeze.yaidom2.testxml.Feed2
+import eu.cdevreeze.yaidom2.testxml.Feed3
 import org.scalajs.dom.experimental.domparser.DOMParser
 import org.scalajs.dom.experimental.domparser.SupportedType
 
@@ -35,69 +38,6 @@ class JsDomElemNamespaceQueryTest extends ClarkElemNamespaceQueryTest {
 
   protected override val circumventBugInXmlStack = true
 
-  private val feed1 =
-    """<feed xmlns="http://www.w3.org/2005/Atom"
-      |      xmlns:xhtml="http://www.w3.org/1999/xhtml"
-      |      xmlns:my="http://xmlportfolio.com/xmlguild-examples">
-      |
-      |    <title>Example Feed</title>
-      |    <rights type="xhtml"
-      |            my:type="silly">
-      |        <xhtml:div>
-      |            You may not read, utter, interpret, or otherwise
-      |            <xhtml:strong>verbally process</xhtml:strong> the words
-      |            contained in this feed without <xhtml:em>express written
-      |            permission</xhtml:em> from the authors.
-      |        </xhtml:div>
-      |    </rights>
-      |
-      |    <!-- ... -->
-      |
-      |</feed>""".stripMargin
-
-  private val feed2 =
-    """<feed xmlns="http://www.w3.org/2005/Atom">
-      |
-      |    <title>Example Feed</title>
-      |    <rights type="xhtml"
-      |            example:type="silly"
-      |            xmlns:example="http://xmlportfolio.com/xmlguild-examples">
-      |        <div xmlns="http://www.w3.org/1999/xhtml">
-      |            You may not read, utter, interpret, or otherwise
-      |            <strong>verbally process</strong> the words
-      |            contained in this feed without <em>express written
-      |            permission</em> from the authors.
-      |        </div>
-      |    </rights>
-      |
-      |    <!-- ... -->
-      |
-      |</feed>""".stripMargin
-
-  private val feed3 =
-    """<feed xmlns="http://www.w3.org/2005/Atom"
-      |      xmlns:xhtml="http://www.w3.org/1999/xhtml"
-      |      xmlns:my="http://xmlportfolio.com/xmlguild-examples">
-      |
-      |    <title xmlns="http://www.w3.org/2005/Atom"
-      |           xmlns:xhtml="http://www.w3.org/1999/xhtml"
-      |           xmlns:my="http://xmlportfolio.com/xmlguild-examples">Example Feed</title>
-      |    <rights type="xhtml"
-      |            my:type="silly" xmlns="http://www.w3.org/2005/Atom"
-      |            xmlns:xhtml="http://www.w3.org/1999/xhtml"
-      |            xmlns:my="http://xmlportfolio.com/xmlguild-examples">
-      |        <xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml"
-      |                   xmlns:my="http://xmlportfolio.com/xmlguild-examples">
-      |            You may not read, utter, interpret, or otherwise
-      |            <xhtml:strong>verbally process</xhtml:strong> the words
-      |            contained in this feed without <xhtml:em>express written
-      |            permission</xhtml:em> from the authors.
-      |        </xhtml:div>
-      |    </rights>
-      |
-      |    <!-- ... -->
-      |
-      |</feed>""".stripMargin
-
-  private val xmlFiles: Map[String, String] = Map("feed1.xml" -> feed1, "feed2.xml" -> feed2, "feed3.xml" -> feed3)
+  private val xmlFiles: Map[String, String] =
+    Map("feed1.xml" -> Feed1.xmlString, "feed2.xml" -> Feed2.xmlString, "feed3.xml" -> Feed3.xmlString)
 }

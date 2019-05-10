@@ -17,17 +17,19 @@
 package eu.cdevreeze.yaidom2.node.jsdom.tests
 
 import eu.cdevreeze.yaidom2.node.jsdom.JsDomDocument
-import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverBackingElemQueryTest
-import eu.cdevreeze.yaidom2.testxml.TaxonomyPackage
+import eu.cdevreeze.yaidom2.node.jsdom.JsDomElemSteps
+import eu.cdevreeze.yaidom2.node.jsdom.JsDomNodes
+import eu.cdevreeze.yaidom2.queryapi.tests.XbrlBackingElemQueryTest
+import eu.cdevreeze.yaidom2.testxml.SampleXbrlInstance
 import org.scalajs.dom.experimental.domparser.DOMParser
 import org.scalajs.dom.experimental.domparser.SupportedType
 
-class TpDialectOverJsDomElemQueryTest extends TpDialectOverBackingElemQueryTest {
+class XbrlJsDomElemQueryTest extends XbrlBackingElemQueryTest[JsDomNodes.Elem] {
 
-  protected def document: JsDomDocument = {
+  protected def rootElem: JsDomNodes.Elem = {
     val domParser = new DOMParser()
-    JsDomDocument(domParser.parseFromString(taxonomyPackageXml, SupportedType.`text/xml`))
+    JsDomDocument(domParser.parseFromString(SampleXbrlInstance.xmlString, SupportedType.`text/xml`)).documentElement
   }
 
-  private val taxonomyPackageXml = TaxonomyPackage.xmlString
+  protected val elemStepFactory: JsDomElemSteps.type = JsDomElemSteps
 }
