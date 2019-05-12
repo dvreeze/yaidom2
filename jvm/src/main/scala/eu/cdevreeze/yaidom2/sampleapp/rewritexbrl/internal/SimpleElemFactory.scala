@@ -74,7 +74,7 @@ final class SimpleElemFactory(val knownScope: Scope) {
           } else {
             require(
               knownScopeWithoutDefaultNamespace.prefixesForNamespace(ns).nonEmpty,
-              s"Unknown prefix for QName resolving to EName $name")
+              s"Unknown prefix for QName resolving to EName $name in scope $knownScopeWithoutDefaultNamespace")
 
             // TODO Throw exception if conflicting prefix
 

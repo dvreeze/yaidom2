@@ -46,13 +46,16 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
     }.ensuring(_.defaultNamespaceOption.isEmpty)
   }
 
-  private val simpleElemFactory = new SimpleElemFactory(extraScope)
-
   def transformTaxonomy(): locatorfreetaxo.Taxonomy = {
     // TODO Enhance the entrypoints, but for that we need to know the DTSes
 
+    def isXbrlOrgDoc(docUri: URI): Boolean = docUri.toString.contains("www.xbr.org/") // TODO This is shaky
+    def isW3OrgDoc(docUri: URI): Boolean = docUri.toString.contains("www.w3.org/") // TODO This is shaky
+
     val docMap: Map[URI, locatorfreetaxo.TaxonomyDocument] = inputTaxonomy.documentMap.view.mapValues { doc =>
       if (inputTaxonomy.entrypointUris.contains(doc.docUri)) {
+        locatorfreetaxo.TaxonomyDocument.build(doc.doc)
+      } else if (isXbrlOrgDoc(doc.docUri) || isW3OrgDoc(doc.docUri)) {
         locatorfreetaxo.TaxonomyDocument.build(doc.doc)
       } else {
         println(s"Transforming document '${doc.docUri}'") // Poor man's logging
@@ -103,8 +106,10 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
       }
     }
 
+    val simpleElemFactory = new SimpleElemFactory(extraScope ++ schemaElem.scope)
+
     val simpleResultElem =
-      simpleElemFactory.fromResolvedElem(cleanupEmptyAppinfo(editedResolvedSchemaElem), schemaElem.scope ++ minimalCScope)
+      simpleElemFactory.fromResolvedElem(cleanupEmptyAppinfo(editedResolvedSchemaElem), minimalCScope ++ schemaElem.scope)
     val indexedResultElem = indexed.Elem.ofRoot(schema.docUriOption, simpleResultElem)
     locatorfreetaxo.TaxonomyDocument.build(indexed.Document(indexedResultElem))
   }
@@ -122,11 +127,11 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
     val resolvedLinkbaseElem = resolved.Elem.from(linkbaseElem)
 
-    var scope: Scope = minimalCScope
+    var scope: Scope = minimalCScope ++ linkbaseElem.scope
 
     val resultResolvedElem = resolvedLinkbaseElem.transformChildElems { che =>
       if (isExtendedLink(che)) {
-        val result = transformExtendedLink(che, linkbase.docUri)
+        val result = transformExtendedLink(che, linkbase.docUri, scope)
 
         scope = scope ++ result.scope
         result.elem
@@ -135,34 +140,38 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
       }
     }
 
+    val simpleElemFactory = new SimpleElemFactory(extraScope ++ scope)
+
     val simpleResultElem =
       simpleElemFactory.fromResolvedElem(resultResolvedElem, linkbaseElem.scope ++ scope)
     val indexedResultElem = indexed.Elem.ofRoot(linkbase.docUriOption, simpleResultElem)
     locatorfreetaxo.TaxonomyDocument.build(indexed.Document(indexedResultElem))
   }
 
-  def transformExtendedLink(extendedLink: resolved.Elem, baseUri: URI): ScopedResolvedElem = {
+  def transformExtendedLink(extendedLink: resolved.Elem, baseUri: URI, scope: Scope): ScopedResolvedElem = {
     import ENames._
 
     extendedLink.name match {
-      case LinkPresentationLinkEName => transformInterConceptExtendedLink(extendedLink, baseUri)
-      case LinkDefinitionLinkEName => transformInterConceptExtendedLink(extendedLink, baseUri)
-      case LinkCalculationLinkEName => transformInterConceptExtendedLink(extendedLink, baseUri)
-      case LinkLabelLinkEName => transformStandardResourceExtendedLink(extendedLink, baseUri)
-      case LinkReferenceLinkEName => transformStandardResourceExtendedLink(extendedLink, baseUri)
-      case GenLinkEName => transformGenericExtendedLink(extendedLink, baseUri)
+      case LinkPresentationLinkEName => transformInterConceptExtendedLink(extendedLink, baseUri, scope)
+      case LinkDefinitionLinkEName => transformInterConceptExtendedLink(extendedLink, baseUri, scope)
+      case LinkCalculationLinkEName => transformInterConceptExtendedLink(extendedLink, baseUri, scope)
+      case LinkLabelLinkEName => transformStandardResourceExtendedLink(extendedLink, baseUri, scope)
+      case LinkReferenceLinkEName => transformStandardResourceExtendedLink(extendedLink, baseUri, scope)
+      case GenLinkEName => transformGenericExtendedLink(extendedLink, baseUri, scope)
       case _ => ScopedResolvedElem(extendedLink, Scope.Empty) // TODO Is this correct?
     }
   }
 
-  def transformInterConceptExtendedLink(extendedLink: resolved.Elem, baseUri: URI): ScopedResolvedElem = {
+  def transformInterConceptExtendedLink(extendedLink: resolved.Elem, baseUri: URI, startScope: Scope): ScopedResolvedElem = {
     // TODO Handle xml:base attributes in extended link
 
     require(isExtendedLink(extendedLink), s"Not an extended link: $extendedLink")
 
     import ENames._
 
-    var scope: Scope = minimalCScope
+    var scope: Scope = minimalCScope ++ startScope
+
+    val simpleElemFactory = new SimpleElemFactory(extraScope ++ scope)
 
     val resultElem =
       extendedLink.transformDescendantElemsOrSelf { e =>
@@ -182,7 +191,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
             val conceptName: EName =
               TaxonomyElemKey.getTargetEName(inputTaxonomy.getElem(elemUri).ensuring(_.name == XsElementEName))
 
-            val ScopedQName(conceptQName, addedScope) = simpleElemFactory.convertToQName(conceptName, extraScope)
+            val ScopedQName(conceptQName, addedScope) = simpleElemFactory.convertToQName(conceptName, extraScope ++ scope)
             scope = scope ++ addedScope
 
             resolved.Node.textElem(
@@ -197,14 +206,16 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
     ScopedResolvedElem(resultElem, scope)
   }
 
-  def transformStandardResourceExtendedLink(extendedLink: resolved.Elem, baseUri: URI): ScopedResolvedElem = {
+  def transformStandardResourceExtendedLink(extendedLink: resolved.Elem, baseUri: URI, startScope: Scope): ScopedResolvedElem = {
     // TODO Handle xml:base attributes in extended link
 
     require(isExtendedLink(extendedLink), s"Not an extended link: $extendedLink")
 
     import ENames._
 
-    var scope: Scope = minimalCScope
+    var scope: Scope = minimalCScope ++ startScope
+
+    val simpleElemFactory = new SimpleElemFactory(extraScope ++ scope)
 
     val resultElem =
       extendedLink.transformDescendantElemsOrSelf { e =>
@@ -226,7 +237,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
             val conceptName: EName =
               TaxonomyElemKey.getTargetEName(inputTaxonomy.getElem(elemUri).ensuring(_.name == XsElementEName))
 
-            val ScopedQName(conceptQName, addedScope) = simpleElemFactory.convertToQName(conceptName, extraScope)
+            val ScopedQName(conceptQName, addedScope) = simpleElemFactory.convertToQName(conceptName, extraScope ++ scope)
             scope = scope ++ addedScope
 
             resolved.Node.textElem(
@@ -246,14 +257,16 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
     ScopedResolvedElem(resultElem, scope)
   }
 
-  def transformGenericExtendedLink(extendedLink: resolved.Elem, baseUri: URI): ScopedResolvedElem = {
+  def transformGenericExtendedLink(extendedLink: resolved.Elem, baseUri: URI, startScope: Scope): ScopedResolvedElem = {
     // TODO Handle xml:base attributes in extended link
 
     require(isExtendedLink(extendedLink), s"Not an extended link: $extendedLink")
 
     import ENames._
 
-    var scope: Scope = minimalCScope
+    var scope: Scope = minimalCScope ++ startScope
+
+    val simpleElemFactory = new SimpleElemFactory(extraScope ++ scope)
 
     val resultElem =
       extendedLink.transformDescendantElemsOrSelf { e =>
