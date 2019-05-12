@@ -49,7 +49,23 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
   private val simpleElemFactory = new SimpleElemFactory(extraScope)
 
   def transformTaxonomy(): locatorfreetaxo.Taxonomy = {
-    ???
+    // TODO Enhance the entrypoints, but for that we need to know the DTSes
+
+    val docMap: Map[URI, locatorfreetaxo.TaxonomyDocument] = inputTaxonomy.documentMap.view.mapValues { doc =>
+      if (inputTaxonomy.entrypointUris.contains(doc.docUri)) {
+        locatorfreetaxo.TaxonomyDocument.build(doc.doc)
+      } else {
+        println(s"Transforming document '${doc.docUri}'") // Poor man's logging
+
+        doc.documentElement.name match {
+          case ENames.XsSchemaEName => transformSchema(doc)
+          case ENames.LinkLinkbaseEName => transformLinkbase(doc)
+          case _ => locatorfreetaxo.TaxonomyDocument.build(doc.doc)
+        }
+      }
+    }.toMap
+
+    new locatorfreetaxo.Taxonomy(inputTaxonomy.entrypointUris, docMap)
   }
 
   /**

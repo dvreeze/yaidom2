@@ -37,9 +37,9 @@ class TaxonomyTransformerTest extends AnyFunSuite {
   test("testXPointer") {
     val file = "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/jenv/20181212/dictionary/jenv-bw2-axes.xsd"
     val document = parseFile(file)
-    val docUri = document.docUriOption.getOrElse(new URI(""))
+    val docUri = document.docUri
 
-    val inputTaxo = new taxo.Taxonomy(docUri, Map(docUri -> document))
+    val inputTaxo = new taxo.Taxonomy(Set.empty, Map(docUri -> document))
 
     val elemUris: Set[URI] = inputTaxo.documentMap.values.flatMap { doc =>
       doc.xpointerIndex.keySet.map(xp => new URI(doc.docUri.getScheme, doc.docUri.getSchemeSpecificPart, xp.toString))
@@ -61,7 +61,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
     val document = parseFile(file)
     val docUri = document.docUri
 
-    val inputTaxo = new taxo.Taxonomy(docUri, Map(docUri -> document))
+    val inputTaxo = new taxo.Taxonomy(Set.empty, Map(docUri -> document))
 
     val taxoTransformer = new TaxonomyTransformer(inputTaxo)
 
@@ -88,7 +88,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
     }
   }
 
-  test("testTransformLinkbase") {
+  test("testTransformPresentationLinkbase") {
     val files = Seq(
       "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/ezk/20181212/dictionary/ezk-ncgc-data.xsd",
       "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/ezk/20181212/presentation/ezk-ncgc-abstracts.xsd",
@@ -97,7 +97,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
 
     val documents = files.map(parseFile)
 
-    val inputTaxo = new taxo.Taxonomy(documents.last.docUri, documents.map(d => d.docUri -> d).toMap)
+    val inputTaxo = new taxo.Taxonomy(Set.empty, documents.map(d => d.docUri -> d).toMap)
 
     val taxoTransformer = new TaxonomyTransformer(inputTaxo)
 
@@ -119,6 +119,36 @@ class TaxonomyTransformerTest extends AnyFunSuite {
 
     assertResult(Set(ezkDataNamespace, ezkAbstractsNamespace)) {
       locs.map(_.textAsResolvedQName).flatMap(_.namespaceUriOption).toSet
+    }
+  }
+
+  test("testTransformGenericLinkbase") {
+    val files = Seq(
+      "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/ezk/20181212/dictionary/ezk-ncgc-linkroles.xsd",
+      "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/ezk/20181212/presentation/ezk-ncgc-generic-linkrole-order.xml"
+    )
+
+    val documents = files.map(parseFile)
+
+    val inputTaxo = new taxo.Taxonomy(Set.empty, documents.map(d => d.docUri -> d).toMap)
+
+    val taxoTransformer = new TaxonomyTransformer(inputTaxo)
+
+    val outputDocument = taxoTransformer.transformLinkbase(documents.last)
+
+    import TaxonomyTransformer._
+
+    val locs = outputDocument.documentElement.filterDescendantElems(named(CLinkNamespace, "loc"))
+
+    assertResult(true) {
+      locs.nonEmpty
+    }
+
+    assertResult(Some("roleType")) {
+      locs.head.attrOption(CLinkResourceTypeEName)
+    }
+    assertResult("urn:ez:linkrole:dutch-corporate-governance-code") {
+      locs.head.text
     }
   }
 

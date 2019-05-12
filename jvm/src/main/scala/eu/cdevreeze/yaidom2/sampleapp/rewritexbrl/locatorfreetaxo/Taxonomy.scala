@@ -25,7 +25,7 @@ import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.xpointer.XPointer
  * Concise locator-free XBRL taxonomy model. Prohibition/overriding can be made to work on this taxonomy, but not
  * using the standard XBRL functionality for that.
  */
-final class Taxonomy(val entrypointUri: URI, val documentMap: Map[URI, TaxonomyDocument]) {
+final class Taxonomy(val entrypointUris: Set[URI], val documentMap: Map[URI, TaxonomyDocument]) {
 
   def findElem(uri: URI): Option[BackingNodes.Elem] = {
     val docOption = documentMap.get(removeFragment(uri))

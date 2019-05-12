@@ -21,7 +21,7 @@ import java.net.URI
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.xpointer.XPointer
 
-final class Taxonomy(val entrypointUri: URI, val documentMap: Map[URI, TaxonomyDocument]) {
+final class Taxonomy(val entrypointUris: Set[URI], val documentMap: Map[URI, TaxonomyDocument]) {
 
   def findElem(uri: URI): Option[BackingNodes.Elem] = {
     val docOption = documentMap.get(removeFragment(uri))
