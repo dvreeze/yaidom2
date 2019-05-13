@@ -19,6 +19,7 @@ package eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
+import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.BackingNodesUtil
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.xpointer.XPointer
 
 final class Taxonomy(val entrypointUris: Set[URI], val documentMap: Map[URI, TaxonomyDocument]) {
@@ -28,7 +29,7 @@ final class Taxonomy(val entrypointUris: Set[URI], val documentMap: Map[URI, Tax
 
     docOption.flatMap { doc =>
       val xpointer: XPointer = XPointer.parse(uri.getFragment)
-      doc.xpointerIndex.get(xpointer)
+      doc.xpointerIndex.get(xpointer).orElse(BackingNodesUtil.findElem(doc.documentElement, xpointer))
     }
   }
 

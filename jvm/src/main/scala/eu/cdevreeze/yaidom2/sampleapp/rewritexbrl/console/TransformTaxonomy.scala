@@ -17,11 +17,17 @@
 package eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.console
 
 import java.io.File
+import java.io.FileInputStream
+import java.net.URI
 
 import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.saxon.SaxonProducers
+import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxorewriter.TaxonomyTransformer
+import javax.xml.transform.stream.StreamSource
 import net.sf.saxon.s9api.Processor
+import net.sf.saxon.s9api.Serializer
 
 object TransformTaxonomy {
 
@@ -39,7 +45,7 @@ object TransformTaxonomy {
     val files = readFiles(inputDir, filterFile)
 
     println(s"Parsing ${files.size} XML files ...")
-    val docMap = files.map(f => f.toURI -> parseFile(f)).toMap
+    val docMap = files.map(f => getOriginalUri(f, inputDir) -> parseFile(f, inputDir)).toMap
 
     val inputTaxonomy = new taxo.Taxonomy(Set.empty, docMap)
 
@@ -48,7 +54,11 @@ object TransformTaxonomy {
     println(s"Transforming ${docMap.size} taxonomy XML files ...")
     val outputTaxonomy = taxonomyTransformer.transformTaxonomy()
 
-    println("Ready transforming " + outputTaxonomy.documentMap.size + " files")
+    println("Ready transforming " + outputTaxonomy.documentMap.size + " files. Writing them to file system ...")
+
+    outputTaxonomy.documentMap.values.foreach(d => serializeDocument(d.doc, outputDir))
+
+    println("Ready")
   }
 
   private def filterFile(f: File): Boolean = {
@@ -70,9 +80,51 @@ object TransformTaxonomy {
     }
   }
 
-  private def parseFile(file: File): taxo.TaxonomyDocument = {
+  private def parseFile(file: File, rootDir: File): taxo.TaxonomyDocument = {
     val docBuilder = processor.newDocumentBuilder()
-    val doc = docBuilder.build(file)
+    val originalUri = getOriginalUri(file, rootDir)
+    val doc = docBuilder.build(new StreamSource(new FileInputStream(file), originalUri.toString))
     taxo.TaxonomyDocument.build(saxon.Document(doc))
+  }
+
+  private def getOriginalUri(file: File, rootDir: File): URI = {
+    catalog(rootDir).toSeq.sortBy(_._2.toString.length).reverse
+      .find(kv => file.toURI.toString.startsWith(kv._2.toString))
+      .map(kv => kv._1.resolve(kv._2.relativize(file.toURI)))
+      .getOrElse(file.toURI)
+  }
+
+  private def catalog(rootDir: File): Map[URI, URI] = {
+    require(rootDir.isDirectory)
+
+    // Very sensitive and minimal!
+    Map(
+      URI.create("http://www.nltaxonomie.nl/") -> rootDir.toURI.resolve("www.nltaxonomie.nl/"),
+      URI.create("http://www.xbrl.org/") -> rootDir.toURI.resolve("www.xbrl.org/"),
+      URI.create("http://www.w3.org/") -> rootDir.toURI.resolve("www.w3.org/"),
+    )
+  }
+
+  private def getFileUri(originalUri: URI, rootDir: File): URI = {
+    catalog(rootDir).toSeq.sortBy(_._1.toString.length).reverse
+      .find(kv => originalUri.toString.startsWith(kv._1.toString))
+      .map(kv => kv._2.resolve(kv._1.relativize(originalUri)))
+      .getOrElse(originalUri)
+  }
+
+  private def serializeDocument(doc: BackingDocumentApi, outputDir: File): Unit = {
+    require(outputDir.isDirectory)
+
+    val saxonProducer = new SaxonProducers.DocumentProducer(processor)
+    val saxonDoc = saxonProducer.from(doc)
+
+    val fileUri = getFileUri(saxonDoc.docUriOption.getOrElse(URI.create("")), outputDir)
+    val outputFile = new File(fileUri)
+
+    val serializer = processor.newSerializer(outputFile)
+    serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "no")
+    serializer.setOutputProperty(Serializer.Property.INDENT, "yes")
+
+    serializer.serializeXdmValue(saxonDoc.xdmNode)
   }
 }

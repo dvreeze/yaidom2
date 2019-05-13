@@ -69,7 +69,7 @@ object TaxonomyElemKey {
     elem.name match {
       case XsElementEName => ElementDeclaration(getTargetEName(elem))
       case LinkRoleTypeEName => RoleType(elem.attr(RoleURIEName))
-      case LinkArcroleTypeEName => RoleType(elem.attr(ArcroleURIEName))
+      case LinkArcroleTypeEName => ArcroleType(elem.attr(ArcroleURIEName))
       case XsComplexTypeEName => NamedType(getTargetEName(elem))
       case XsSimpleTypeEName => NamedType(getTargetEName(elem))
       case XsEnumerationEName =>
