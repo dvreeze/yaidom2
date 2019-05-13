@@ -212,7 +212,7 @@ object XPointer {
 
       parentElemOption.map { parent =>
         // Recursive call
-        toXPointer(parent).addOneBasedChildElemIndex(zeroBasedElemIndex(elem, parent) + 1)
+        toXPointer(parent).addOneBasedChildElemIndex(zeroBasedElemIndex(elem) + 1)
       }.getOrElse {
         ChildSequencePointer(List(1))
       }
@@ -228,7 +228,7 @@ object XPointer {
     result
   }
 
-  private def zeroBasedElemIndex(elem: BackingNodes.Elem, parent: BackingNodes.Elem): Int = {
-    parent.findAllChildElems.zipWithIndex.find { case (che, idx) => che == elem }.get._2
+  private def zeroBasedElemIndex(elem: BackingNodes.Elem): Int = {
+    elem.findAllPrecedingSiblingElems().size
   }
 }
