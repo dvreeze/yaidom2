@@ -62,7 +62,8 @@ object TransformTaxonomy {
   }
 
   private def filterFile(f: File): Boolean = {
-    f.isFile && Set(".xml", ".xsd").exists(ext => f.getName().endsWith(ext))
+    f.isFile && Set(".xml", ".xsd").exists(ext => f.getName().endsWith(ext)) &&
+      f.getName != "catalog.xml" && f.getName != "taxonomyPackage.xml"
   }
 
   private def readFiles(dir: File, fileFilter: File => Boolean): Seq[File] = {
