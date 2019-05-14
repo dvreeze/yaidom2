@@ -204,12 +204,12 @@ object TaxonomyElemKey {
       case LinkArcroleTypeEName => ArcroleType(elem.attr(ArcroleURIEName))
       case XsComplexTypeEName => NamedType(getTargetEName(elem))
       case XsSimpleTypeEName => NamedType(getTargetEName(elem))
-      case _ if elem.findAncestorElemOrSelf(named(LinkLinkbaseEName)).nonEmpty =>
+      case _ if elem.findAncestorElemOrSelf(isExtendedLink).nonEmpty =>
         require(elem.attrOption(IdEName).nonEmpty, s"Missing ID on ${elem.name}")
 
-        val extLink = elem.findAncestorElemOrSelf(named(LinkLinkbaseEName)).get
+        val extLink = elem.findAncestorElemOrSelf(isExtendedLink).get
 
-        UniqueIdInLink(elem.attr(IdEName), extLink.name, extLink.attr(XLinkRoleEName))
+        UniqueIdInLink(elem.attr(IdEName), extLink.name, extLink.attrOption(XLinkRoleEName).getOrElse(""))
       case _ =>
         require(elem.attrOption(IdEName).nonEmpty, s"Missing ID on ${elem.name}")
         require(elem.findAncestorElemOrSelf(named(XsSchemaEName)).nonEmpty, s"Missing ancestor-of-self schema element")
@@ -231,5 +231,9 @@ object TaxonomyElemKey {
       elem.findAncestorElemOrSelf(_.name == ENames.XsSchemaEName).flatMap(_.attrOption(ENames.TargetNamespaceEName))
 
     EName(tnsOption, elem.attr(ENames.NameEName))
+  }
+
+  private def isExtendedLink(elem: BackingNodes.Elem): Boolean = {
+    elem.attrOption(ENames.XLinkTypeEName).contains("extended")
   }
 }
