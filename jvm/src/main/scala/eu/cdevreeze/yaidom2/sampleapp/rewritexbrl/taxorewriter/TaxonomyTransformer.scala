@@ -240,7 +240,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               mapArcElementName(nm),
               e.attributes,
               e.children)
-          case nm if Set(LinkLabelEName, LinkReferenceLinkEName).contains(nm) =>
+          case nm if Set(LinkLabelEName, LinkReferenceEName).contains(nm) =>
             resolved.Elem(
               mapResourceElementName(nm),
               e.attributes,
