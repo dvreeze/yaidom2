@@ -188,14 +188,12 @@ object XPointer {
   def parseXPointers(s: String): List[XPointer] = {
     val idx = s.indexOf(")element(")
 
-    if (idx < 0) {
+    (if (idx < 0) {
       List(parse(s))
     } else {
       // Recursive call
       parse(s.substring(0, idx + 1)) :: parseXPointers(s.substring(idx + 1))
-    } ensuring { result =>
-      result.nonEmpty
-    }
+    }).ensuring(_.nonEmpty)
   }
 
   /**

@@ -72,6 +72,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
       } else if (isXbrlOrgDoc(doc.docUri) || isW3OrgDoc(doc.docUri)) {
         locatorfreetaxo.TaxonomyDocument.build(doc.doc)
       } else {
+        // scalastyle:off
         println(s"Transforming document '${doc.docUri}'") // Poor man's logging
 
         doc.documentElement.name match {
