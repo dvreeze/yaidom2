@@ -209,7 +209,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               TaxonomyElemKey.Concept(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
             scope = scope ++ addedScope
-            elem.copy(attributes = (e.attributes - XLinkHrefEName - XLinkTypeEName) ++ elem.attributes)
+            elem.copy(attributes = (e.attributes - XLinkHrefEName) ++ elem.attributes)
           case _ =>
             e
         }
@@ -256,7 +256,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               TaxonomyElemKey.Concept(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
             scope = scope ++ addedScope
-            elem.copy(attributes = (e.attributes - XLinkHrefEName - XLinkTypeEName) ++ elem.attributes)
+            elem.copy(attributes = (e.attributes - XLinkHrefEName) ++ elem.attributes)
           case _ =>
             e
         }
@@ -293,7 +293,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               key.convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
             scope = scope ++ addedScope
-            elem.copy(attributes = (e.attributes - XLinkHrefEName - XLinkTypeEName) ++ elem.attributes)
+            elem.copy(attributes = (e.attributes - XLinkHrefEName) ++ elem.attributes)
           case _ =>
             e
         }
