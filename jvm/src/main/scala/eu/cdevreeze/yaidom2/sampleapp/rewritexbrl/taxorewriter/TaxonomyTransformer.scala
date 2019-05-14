@@ -235,7 +235,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
     val resultElem =
       extendedLink.transformDescendantElemsOrSelf { e =>
         e.name match {
-          case nm if Set(LinkLabelEName, LinkReferenceLinkEName).contains(nm) =>
+          case nm if Set(LinkLabelLinkEName, LinkReferenceLinkEName).contains(nm) =>
             resolved.Elem(
               mapExtendedLinkElementName(nm),
               e.attributes,
@@ -243,6 +243,11 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
           case nm if Set(LinkLabelArcEName, LinkReferenceArcEName).contains(nm) =>
             resolved.Elem(
               mapArcElementName(nm),
+              e.attributes,
+              e.children)
+          case nm if Set(LinkLabelEName, LinkReferenceLinkEName).contains(nm) =>
+            resolved.Elem(
+              mapResourceElementName(nm),
               e.attributes,
               e.children)
           case LinkLocEName =>
@@ -259,11 +264,6 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               getLocatorElementNameInStandardLink,
               (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource"),
               conceptQName.toString)
-          case nm if Set(LinkLabelEName, LinkReferenceEName).contains(nm) =>
-            resolved.Elem(
-              mapResourceElementName(nm),
-              e.attributes,
-              e.children)
           case _ =>
             e
         }
