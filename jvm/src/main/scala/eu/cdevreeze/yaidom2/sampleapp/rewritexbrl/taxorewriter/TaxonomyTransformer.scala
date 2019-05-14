@@ -33,6 +33,20 @@ import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.locatorfreetaxo
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.locatorfreetaxo.TaxonomyElemKey
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 
+/**
+ * Transformer of an XBRL taxonomy to its locator-free counterpart. Files are converted one by one to their counterpart.
+ * The locator-free taxonomies are not valid XBRL taxonomies, nor are they meant to be. Locator-free taxonomies contain
+ * no XLink locators or XLink simple links. XLink locators are replaced by XLink resources with a semantically meaningful
+ * element name and element text value.
+ *
+ * The locator-free taxonomies lean on the 2 core XML schemas for XLink attributes and XLink elements in XBRL. They can
+ * contain normal generic link content (like formulas and tables), but the "link" namespace is replaced by a corresponding
+ * namespace (no longer XBRL so no longer limited by its requirements on the use of simple links, for example). Also,
+ * besides the linkbase root element, generic links are in another namespace. Standard linkbase content is also in another
+ * namespace in this representation. Arcroles and roles remain the same as in the original.
+ *
+ * @author Chris de Vreeze
+ */
 final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
   // TODO What do we add to schema in order to locally reason about substitution groups?
@@ -79,7 +93,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
    *
    * TODO Transform role types and arcrole types (in the "used" elements).
    *
-   * TODO Consider replacing the xbrldt:typedDomainRef attributes by QName-valued attributes.
+   * TODO Replace the xbrldt:typedDomainRef attributes by QName-valued attributes.
    */
   def transformSchema(schema: taxo.TaxonomyDocument): locatorfreetaxo.TaxonomyDocument = {
     val schemaElem = schema.documentElement
@@ -116,7 +130,8 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
   /**
    * Transforms a linkbase document. The most important part of the transformation is the substitution of XLink
-   * resources for XLink locators.
+   * resources for XLink locators. Also, the root element is linkbase in another (non-XBRL) namespace, and simple
+   * links like roleRefs are removed.
    *
    * TODO Consider embedding the linkbase in a schema where the used roleTypes and arcroleTypes are added.
    * TODO Alternatively, repeat the used roleTypes and arcroleTypes in a separate schema very close to the linkbase.
@@ -129,14 +144,14 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
     var scope: Scope = minimalCScope ++ linkbaseElem.scope
 
-    val resultResolvedElem = resolvedLinkbaseElem.transformChildElems { che =>
+    val resultResolvedElem = resolvedLinkbaseElem.copy(name = EName(CLinkNamespace, "linkbase")).transformChildElemsToNodeSeq { che =>
       if (isExtendedLink(che)) {
         val result = transformExtendedLink(che, linkbase.docUri, scope)
 
         scope = scope ++ result.scope
-        result.elem
+        Seq(result.elem)
       } else {
-        che
+        Seq(che).filterNot(_.attrOption(ENames.XLinkTypeEName).contains("simple"))
       }
     }
 
@@ -158,7 +173,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
       case LinkLabelLinkEName => transformStandardResourceExtendedLink(extendedLink, baseUri, scope)
       case LinkReferenceLinkEName => transformStandardResourceExtendedLink(extendedLink, baseUri, scope)
       case GenLinkEName => transformGenericExtendedLink(extendedLink, baseUri, scope)
-      case _ => ScopedResolvedElem(extendedLink, Scope.Empty) // TODO Is this correct?
+      case _ => ScopedResolvedElem(extendedLink, Scope.Empty) // TODO Is this correct? No, the link element namespace is not.
     }
   }
 
@@ -179,12 +194,12 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
           case nm if Set(LinkPresentationLinkEName, LinkDefinitionLinkEName, LinkCalculationLinkEName).contains(nm) =>
             resolved.Elem(
               mapExtendedLinkElementName(nm),
-              e.attributes + (XLinkRoleEName -> mapRole(e.attr(XLinkRoleEName))),
+              e.attributes,
               e.children)
           case nm if Set(LinkPresentationArcEName, LinkDefinitionArcEName, LinkCalculationArcEName).contains(nm) =>
             resolved.Elem(
               mapArcElementName(nm),
-              e.attributes + (XLinkArcroleEName -> mapRole(e.attr(XLinkArcroleEName))),
+              e.attributes,
               e.children)
           case LinkLocEName =>
             val elemUri: URI = baseUri.resolve(e.attr(XLinkHrefEName))
@@ -195,7 +210,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
             scope = scope ++ addedScope
 
             resolved.Node.textElem(
-              mapLocatorElementName(e.name),
+              getLocatorElementNameInStandardLink,
               (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource"),
               conceptQName.toString)
           case _ =>
@@ -223,12 +238,12 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
           case nm if Set(LinkLabelEName, LinkReferenceLinkEName).contains(nm) =>
             resolved.Elem(
               mapExtendedLinkElementName(nm),
-              e.attributes + (XLinkRoleEName -> mapRole(e.attr(XLinkRoleEName))),
+              e.attributes,
               e.children)
           case nm if Set(LinkLabelArcEName, LinkReferenceArcEName).contains(nm) =>
             resolved.Elem(
               mapArcElementName(nm),
-              e.attributes + (XLinkArcroleEName -> mapRole(e.attr(XLinkArcroleEName))),
+              e.attributes,
               e.children)
           case LinkLocEName =>
             // TODO Locators to resources (prohibition/overriding)
@@ -241,13 +256,13 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
             scope = scope ++ addedScope
 
             resolved.Node.textElem(
-              mapLocatorElementName(e.name),
+              getLocatorElementNameInStandardLink,
               (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource"),
               conceptQName.toString)
           case nm if Set(LinkLabelEName, LinkReferenceEName).contains(nm) =>
             resolved.Elem(
               mapResourceElementName(nm),
-              e.attributes + (XLinkRoleEName -> mapRole(e.attr(XLinkRoleEName))),
+              e.attributes,
               e.children)
           case _ =>
             e
@@ -297,8 +312,8 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
             }
 
             resolved.Node.textElem(
-              mapLocatorElementName(e.name),
-              (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource") + (CLinkResourceTypeEName -> key.kind),
+              mapLocatorElementNameInGenericLink(e.name, key),
+              (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource"),
               keyAsString)
           case _ =>
             e
@@ -331,30 +346,6 @@ object TaxonomyTransformer {
 
   case class ScopedResolvedElem(elem: resolved.Elem, scope: Scope)
 
-  /**
-   * Maps an XLink role to the locator-free model. Roles for which a roleRef is used remain the same.
-   */
-  def mapRole(role: String): String = {
-    role match {
-      case role if role.startsWith(sourceSite.toString) =>
-        targetSite.resolve(sourceSite.relativize(URI.create(role))).toString
-      case _ =>
-        role
-    }
-  }
-
-  /**
-   * Maps an XLink arcrole to the locator-free model. Arcroles for which an arcroleRef is used remain the same.
-   */
-  def mapArcrole(arcrole: String): String = {
-    arcrole match {
-      case arcrole if arcrole.startsWith(sourceSite.toString) =>
-        targetSite.resolve(sourceSite.relativize(URI.create(arcrole))).toString
-      case _ =>
-        arcrole
-    }
-  }
-
   def mapExtendedLinkElementName(name: EName): EName = {
     name match {
       case ENames.LinkPresentationLinkEName => EName(CLinkNamespace, "presentationLink")
@@ -377,10 +368,22 @@ object TaxonomyTransformer {
     }
   }
 
-  def mapLocatorElementName(name: EName): EName = {
+  def getLocatorElementNameInStandardLink: EName = {
+    EName(CLinkNamespace, "concept")
+  }
+
+  def mapLocatorElementNameInGenericLink(name: EName, key: TaxonomyElemKey): EName = {
     name match {
-      case ENames.LinkLocEName => EName(CLinkNamespace, "loc")
-      case _ => name
+      case ENames.LinkLocEName =>
+        key match {
+          case TaxonomyElemKey.ElementDeclaration(name) => EName(CLinkNamespace, "elementDecl")
+          case TaxonomyElemKey.NamedType(name) => EName(CLinkNamespace, "namedType")
+          case TaxonomyElemKey.RoleType(uri) => EName(CLinkNamespace, "roleType")
+          case TaxonomyElemKey.ArcroleType(uri) => EName(CLinkNamespace, "arcroleType")
+          case TaxonomyElemKey.EnumerationValue(id) => EName(CLinkNamespace, "enumerationValue")
+          case TaxonomyElemKey.Id(id) => EName(CLinkNamespace, "id")
+        }
+      case _ => name // TODO Correct?
     }
   }
 
@@ -400,8 +403,6 @@ object TaxonomyTransformer {
   val CLinkNamespace: String = "http://www.concisexbrl.org/2003/linkbase"
 
   val CLinkPrefix: String = "clink"
-
-  val CLinkResourceTypeEName = EName(CLinkNamespace, "resourceType")
 
   val minimalCScope: Scope =
     Scope.from(

@@ -108,7 +108,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
 
     import TaxonomyTransformer._
 
-    val locs = outputDocument.documentElement.filterDescendantElems(named(CLinkNamespace, "loc"))
+    val locs = outputDocument.documentElement.filterDescendantElems(named(CLinkNamespace, "concept"))
 
     assertResult(true) {
       locs.size >= 30
@@ -138,14 +138,14 @@ class TaxonomyTransformerTest extends AnyFunSuite {
 
     import TaxonomyTransformer._
 
-    val locs = outputDocument.documentElement.filterDescendantElems(named(CLinkNamespace, "loc"))
+    val locs = outputDocument.documentElement.filterDescendantElems(named(CLinkNamespace, "roleType"))
 
     assertResult(true) {
       locs.nonEmpty
     }
 
-    assertResult(Some("roleType")) {
-      locs.head.attrOption(CLinkResourceTypeEName)
+    assertResult("roleType") {
+      locs.head.name.localPart
     }
     assertResult("urn:ez:linkrole:dutch-corporate-governance-code") {
       locs.head.text
