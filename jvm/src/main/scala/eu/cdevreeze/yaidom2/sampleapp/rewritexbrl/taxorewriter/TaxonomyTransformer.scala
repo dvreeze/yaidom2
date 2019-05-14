@@ -27,8 +27,8 @@ import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.ENames
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.Namespaces
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ResolvedElemTransformations
+import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ScopedResolvedElem
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.SimpleElemFactory
-import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.SimpleElemFactory.ScopedQName
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.locatorfreetaxo
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.locatorfreetaxo.TaxonomyElemKey
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
@@ -91,7 +91,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
    *
    * Do not call this method for an entrypoint schema.
    *
-   * TODO Transform role types and arcrole types (in the "used" elements).
+   * TODO Transform role types and arcrole types in the "used" elements.
    *
    * TODO Replace the xbrldt:typedDomainRef attributes by QName-valued attributes.
    */
@@ -144,7 +144,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
     var scope: Scope = minimalCScope ++ linkbaseElem.scope
 
-    val resultResolvedElem = resolvedLinkbaseElem.copy(name = EName(CLinkNamespace, "linkbase")).transformChildElemsToNodeSeq { che =>
+    val resultResolvedElem = resolvedLinkbaseElem.copy(name = EName(Namespaces.CLinkNamespace, "linkbase")).transformChildElemsToNodeSeq { che =>
       if (isExtendedLink(che)) {
         val result = transformExtendedLink(che, linkbase.docUri, scope)
 
@@ -186,8 +186,6 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
     var scope: Scope = minimalCScope ++ startScope
 
-    val simpleElemFactory = new SimpleElemFactory(extraScope ++ scope)
-
     val resultElem =
       extendedLink.transformDescendantElemsOrSelf { e =>
         e.name match {
@@ -206,13 +204,11 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
             val conceptName: EName =
               TaxonomyElemKey.getTargetEName(inputTaxonomy.getElem(elemUri).ensuring(_.name == XsElementEName))
 
-            val ScopedQName(conceptQName, addedScope) = simpleElemFactory.convertToQName(conceptName, extraScope ++ scope)
-            scope = scope ++ addedScope
+            val ScopedResolvedElem(elem, addedScope) =
+              TaxonomyElemKey.Concept(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
-            resolved.Node.textElem(
-              getLocatorElementNameInStandardLink,
-              (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource"),
-              conceptQName.toString)
+            scope = scope ++ addedScope
+            elem.copy(attributes = (e.attributes - XLinkHrefEName - XLinkTypeEName) ++ elem.attributes)
           case _ =>
             e
         }
@@ -229,8 +225,6 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
     import ENames._
 
     var scope: Scope = minimalCScope ++ startScope
-
-    val simpleElemFactory = new SimpleElemFactory(extraScope ++ scope)
 
     val resultElem =
       extendedLink.transformDescendantElemsOrSelf { e =>
@@ -251,19 +245,17 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               e.attributes,
               e.children)
           case LinkLocEName =>
-            // TODO Locators to resources (prohibition/overriding)
+            // TODO "Locators" to resources (prohibition/overriding)
 
             val elemUri: URI = baseUri.resolve(e.attr(XLinkHrefEName))
             val conceptName: EName =
               TaxonomyElemKey.getTargetEName(inputTaxonomy.getElem(elemUri).ensuring(_.name == XsElementEName))
 
-            val ScopedQName(conceptQName, addedScope) = simpleElemFactory.convertToQName(conceptName, extraScope ++ scope)
-            scope = scope ++ addedScope
+            val ScopedResolvedElem(elem, addedScope) =
+              TaxonomyElemKey.Concept(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
-            resolved.Node.textElem(
-              getLocatorElementNameInStandardLink,
-              (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource"),
-              conceptQName.toString)
+            scope = scope ++ addedScope
+            elem.copy(attributes = (e.attributes - XLinkHrefEName - XLinkTypeEName) ++ elem.attributes)
           case _ =>
             e
         }
@@ -281,40 +273,26 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
     var scope: Scope = minimalCScope ++ startScope
 
-    val simpleElemFactory = new SimpleElemFactory(extraScope ++ scope)
-
     val resultElem =
       extendedLink.transformDescendantElemsOrSelf { e =>
         e.name match {
+          case GenLinkEName =>
+            resolved.Elem(
+              mapExtendedLinkElementName(GenLinkEName),
+              e.attributes,
+              e.children)
           case LinkLocEName =>
             // TODO Locators to resources (prohibition/overriding)
 
             val elemUri: URI = baseUri.resolve(e.attr(XLinkHrefEName))
             val locatedElem: BackingNodes.Elem = inputTaxonomy.getElem(elemUri)
+            val key: TaxonomyElemKey = TaxonomyElemKey.fromReferredElement(locatedElem)
 
-            val key: TaxonomyElemKey = TaxonomyElemKey.from(locatedElem)
+            val ScopedResolvedElem(elem, addedScope) =
+              key.convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
-            val keyAsString: String = key match {
-              case TaxonomyElemKey.ElementDeclaration(nm) =>
-                val ScopedQName(qname, addedScope) = simpleElemFactory.convertToQName(nm, extraScope)
-                scope = scope ++ addedScope
-
-                qname.toString
-              case TaxonomyElemKey.NamedType(nm) =>
-                val ScopedQName(qname, addedScope) = simpleElemFactory.convertToQName(nm, extraScope)
-                scope = scope ++ addedScope
-
-                qname.toString
-              case TaxonomyElemKey.RoleType(uri) => uri
-              case TaxonomyElemKey.ArcroleType(uri) => uri
-              case TaxonomyElemKey.EnumerationValue(id) => id
-              case TaxonomyElemKey.Id(id) => id
-            }
-
-            resolved.Node.textElem(
-              mapLocatorElementNameInGenericLink(e.name, key),
-              (e.attributes - XLinkHrefEName) + (XLinkTypeEName -> "resource"),
-              keyAsString)
+            scope = scope ++ addedScope
+            elem.copy(attributes = (e.attributes - XLinkHrefEName - XLinkTypeEName) ++ elem.attributes)
           case _ =>
             e
         }
@@ -344,7 +322,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
 object TaxonomyTransformer {
 
-  case class ScopedResolvedElem(elem: resolved.Elem, scope: Scope)
+  import Namespaces._
 
   def mapExtendedLinkElementName(name: EName): EName = {
     name match {
@@ -353,6 +331,7 @@ object TaxonomyTransformer {
       case ENames.LinkCalculationLinkEName => EName(CLinkNamespace, "calculationLink")
       case ENames.LinkLabelLinkEName => EName(CLinkNamespace, "labelLink")
       case ENames.LinkReferenceLinkEName => EName(CLinkNamespace, "referenceLink")
+      case ENames.GenLinkEName => EName(CGenNamespace, "link")
       case _ => name
     }
   }
@@ -368,25 +347,6 @@ object TaxonomyTransformer {
     }
   }
 
-  def getLocatorElementNameInStandardLink: EName = {
-    EName(CLinkNamespace, "concept")
-  }
-
-  def mapLocatorElementNameInGenericLink(name: EName, key: TaxonomyElemKey): EName = {
-    name match {
-      case ENames.LinkLocEName =>
-        key match {
-          case TaxonomyElemKey.ElementDeclaration(name) => EName(CLinkNamespace, "elementDecl")
-          case TaxonomyElemKey.NamedType(name) => EName(CLinkNamespace, "namedType")
-          case TaxonomyElemKey.RoleType(uri) => EName(CLinkNamespace, "roleType")
-          case TaxonomyElemKey.ArcroleType(uri) => EName(CLinkNamespace, "arcroleType")
-          case TaxonomyElemKey.EnumerationValue(id) => EName(CLinkNamespace, "enumerationValue")
-          case TaxonomyElemKey.Id(id) => EName(CLinkNamespace, "id")
-        }
-      case _ => name // TODO Correct?
-    }
-  }
-
   def mapResourceElementName(name: EName): EName = {
     name match {
       case ENames.LinkLabelEName => EName(CLinkNamespace, "label")
@@ -395,20 +355,15 @@ object TaxonomyTransformer {
     }
   }
 
-  val sourceSite: URI = new URI("http://www.xbrl.org/").ensuring(_.getPath == "/")
-  val dimSourceSite: URI = new URI("http://xbrl.org/").ensuring(_.getPath == "/")
-
-  val targetSite: URI = new URI("http://www.concisexbrl.org/").ensuring(_.getPath == "/")
-
-  val CLinkNamespace: String = "http://www.concisexbrl.org/2003/linkbase"
-
   val CLinkPrefix: String = "clink"
+  val CGenPrefix: String = "cgen"
 
   val minimalCScope: Scope =
     Scope.from(
       CLinkPrefix -> CLinkNamespace,
-      "link" -> Namespaces.LinkNamespace,
-      "xlink" -> Namespaces.XLinkNamespace,
-      "gen" -> Namespaces.GenNamespace
+      CGenPrefix -> CGenNamespace,
+      "link" -> LinkNamespace,
+      "xlink" -> XLinkNamespace,
+      "gen" -> GenNamespace
     )
 }

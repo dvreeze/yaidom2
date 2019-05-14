@@ -76,4 +76,9 @@ object Namespaces {
       VfNamespace,
       AcfNamespace,
       CrfNamespace)
+
+  // Namespaces in the locator-free model
+
+  val CLinkNamespace: String = "http://www.concisexbrl.org/2003/linkbase"
+  val CGenNamespace: String = "http://www.concisexbrl.org/2008/generic"
 }

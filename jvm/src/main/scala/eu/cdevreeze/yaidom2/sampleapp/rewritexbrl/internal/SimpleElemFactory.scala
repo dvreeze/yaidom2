@@ -27,8 +27,6 @@ import eu.cdevreeze.yaidom2.node.simple
 
 final class SimpleElemFactory(val knownScope: Scope) {
 
-  import SimpleElemFactory.ScopedQName
-
   val knownScopeWithoutDefaultNamespace = knownScope.withoutDefaultNamespace
 
   def fromResolvedElem(elem: resolved.Elem, parentScope: Scope): simple.Elem = {
@@ -87,9 +85,4 @@ final class SimpleElemFactory(val knownScope: Scope) {
         ScopedQName(QName(prefixOption, localName), nextScope)
     }
   }
-}
-
-object SimpleElemFactory {
-
-  case class ScopedQName(qname: QName, scope: Scope)
 }

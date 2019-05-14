@@ -23,6 +23,7 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.ENames
+import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.Namespaces
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxorewriter.TaxonomyTransformer
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ResolvedElemTransformations._
@@ -106,9 +107,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
     val ezkDataNamespace = "http://www.nltaxonomie.nl/nt13/ezk/20181212/dictionary/ezk-ncgc-data"
     val ezkAbstractsNamespace = "http://www.nltaxonomie.nl/nt13/ezk/20181212/presentation/ezk-ncgc-abstracts"
 
-    import TaxonomyTransformer._
-
-    val locs = outputDocument.documentElement.filterDescendantElems(named(CLinkNamespace, "concept"))
+    val locs = outputDocument.documentElement.filterDescendantElems(named(Namespaces.CLinkNamespace, "concept"))
 
     assertResult(true) {
       locs.size >= 30
@@ -136,9 +135,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
 
     val outputDocument = taxoTransformer.transformLinkbase(documents.last)
 
-    import TaxonomyTransformer._
-
-    val locs = outputDocument.documentElement.filterDescendantElems(named(CLinkNamespace, "roleType"))
+    val locs = outputDocument.documentElement.filterDescendantElems(named(Namespaces.CLinkNamespace, "roleType"))
 
     assertResult(true) {
       locs.nonEmpty
