@@ -133,9 +133,6 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
    * Transforms a linkbase document. The most important part of the transformation is the substitution of XLink
    * resources for XLink locators. Also, the root element is linkbase in another (non-XBRL) namespace, and simple
    * links like roleRefs are removed.
-   *
-   * TODO Consider embedding the linkbase in a schema where the used roleTypes and arcroleTypes are added.
-   * TODO Alternatively, repeat the used roleTypes and arcroleTypes in a separate schema very close to the linkbase.
    */
   def transformLinkbase(linkbase: taxo.TaxonomyDocument): locatorfreetaxo.TaxonomyDocument = {
     val linkbaseElem = linkbase.documentElement
@@ -145,7 +142,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
     var scope: Scope = minimalCScope ++ linkbaseElem.scope
 
-    val resultResolvedElem = resolvedLinkbaseElem.copy(name = EName(Namespaces.CLinkNamespace, "linkbase")).transformChildElemsToNodeSeq { che =>
+    val resultResolvedElem = resolvedLinkbaseElem.copy(name = ENames.CLinkLinkbaseEName).transformChildElemsToNodeSeq { che =>
       if (isExtendedLink(che)) {
         val result = transformExtendedLink(che, linkbase.docUri, scope)
 
@@ -206,7 +203,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               TaxonomyElemKey.getTargetEName(inputTaxonomy.getElem(elemUri).ensuring(_.name == XsElementEName))
 
             val ScopedResolvedElem(elem, addedScope) =
-              TaxonomyElemKey.Concept(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
+              TaxonomyElemKey.ConceptKey(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
             scope = scope ++ addedScope
             elem.copy(attributes = (e.attributes - XLinkHrefEName) ++ elem.attributes)
@@ -253,7 +250,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               TaxonomyElemKey.getTargetEName(inputTaxonomy.getElem(elemUri).ensuring(_.name == XsElementEName))
 
             val ScopedResolvedElem(elem, addedScope) =
-              TaxonomyElemKey.Concept(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
+              TaxonomyElemKey.ConceptKey(conceptName).convertToResolvedElem(e.attr(XLinkLabelEName), extraScope ++ scope)
 
             scope = scope ++ addedScope
             elem.copy(attributes = (e.attributes - XLinkHrefEName) ++ elem.attributes)
@@ -283,7 +280,7 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
               e.attributes,
               e.children)
           case LinkLocEName =>
-            // TODO Locators to resources (prohibition/overriding)
+            // TODO "Locators" to resources (prohibition/overriding)
 
             val elemUri: URI = baseUri.resolve(e.attr(XLinkHrefEName))
             val locatedElem: BackingNodes.Elem = inputTaxonomy.getElem(elemUri)
@@ -323,48 +320,55 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
 object TaxonomyTransformer {
 
-  import Namespaces._
+  import ENames._
 
   def mapExtendedLinkElementName(name: EName): EName = {
     name match {
-      case ENames.LinkPresentationLinkEName => EName(CLinkNamespace, "presentationLink")
-      case ENames.LinkDefinitionLinkEName => EName(CLinkNamespace, "definitionLink")
-      case ENames.LinkCalculationLinkEName => EName(CLinkNamespace, "calculationLink")
-      case ENames.LinkLabelLinkEName => EName(CLinkNamespace, "labelLink")
-      case ENames.LinkReferenceLinkEName => EName(CLinkNamespace, "referenceLink")
-      case ENames.GenLinkEName => EName(CGenNamespace, "link")
+      case ENames.LinkPresentationLinkEName => CLinkPresentationLinkEName
+      case ENames.LinkDefinitionLinkEName => CLinkDefinitionLinkEName
+      case ENames.LinkCalculationLinkEName => CLinkCalculationLinkEName
+      case ENames.LinkLabelLinkEName => CLinkLabelLinkEName
+      case ENames.LinkReferenceLinkEName => CLinkReferenceLinkEName
+      case ENames.GenLinkEName => CGenLinkEName
       case _ => name
     }
   }
 
   def mapArcElementName(name: EName): EName = {
     name match {
-      case ENames.LinkPresentationArcEName => EName(CLinkNamespace, "presentationArc")
-      case ENames.LinkDefinitionArcEName => EName(CLinkNamespace, "definitionArc")
-      case ENames.LinkCalculationArcEName => EName(CLinkNamespace, "calculationArc")
-      case ENames.LinkLabelArcEName => EName(CLinkNamespace, "labelArc")
-      case ENames.LinkReferenceArcEName => EName(CLinkNamespace, "referenceArc")
+      case ENames.LinkPresentationArcEName => CLinkPresentationArcEName
+      case ENames.LinkDefinitionArcEName => CLinkDefinitionArcEName
+      case ENames.LinkCalculationArcEName => CLinkCalculationArcEName
+      case ENames.LinkLabelArcEName => CLinkLabelArcEName
+      case ENames.LinkReferenceArcEName => CLinkReferenceArcEName
       case _ => name
     }
   }
 
   def mapResourceElementName(name: EName): EName = {
     name match {
-      case ENames.LinkLabelEName => EName(CLinkNamespace, "label")
-      case ENames.LinkReferenceEName => EName(CLinkNamespace, "reference")
+      case ENames.LinkLabelEName => CLinkLabelEName
+      case ENames.LinkReferenceEName => CLinkReferenceEName
       case _ => name
     }
   }
 
   val CLinkPrefix: String = "clink"
   val CGenPrefix: String = "cgen"
+  val CKeyPrefix: String = "ckey"
+  val CXbrldtPrefix: String = "cxbrldt"
 
-  val minimalCScope: Scope =
+  val minimalCScope: Scope = {
+    import Namespaces._
+
     Scope.from(
       CLinkPrefix -> CLinkNamespace,
       CGenPrefix -> CGenNamespace,
+      CKeyPrefix -> CKeyNamespace,
+      CXbrldtPrefix -> CXbrldtNamespace,
       "link" -> LinkNamespace,
       "xlink" -> XLinkNamespace,
       "gen" -> GenNamespace
     )
+  }
 }

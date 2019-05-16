@@ -23,7 +23,6 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.ENames
-import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.Namespaces
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxorewriter.TaxonomyTransformer
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ResolvedElemTransformations._
@@ -107,17 +106,17 @@ class TaxonomyTransformerTest extends AnyFunSuite {
     val ezkDataNamespace = "http://www.nltaxonomie.nl/nt13/ezk/20181212/dictionary/ezk-ncgc-data"
     val ezkAbstractsNamespace = "http://www.nltaxonomie.nl/nt13/ezk/20181212/presentation/ezk-ncgc-abstracts"
 
-    val locs = outputDocument.documentElement.filterDescendantElems(named(Namespaces.CLinkNamespace, "concept"))
+    val keys = outputDocument.documentElement.filterDescendantElems(named(ENames.CKeyConceptKeyEName))
 
     assertResult(true) {
-      locs.size >= 30
+      keys.size >= 30
     }
     assertResult(documents.last.documentElement.filterDescendantElems(named(ENames.LinkLocEName)).size) {
-      locs.size
+      keys.size
     }
 
     assertResult(Set(ezkDataNamespace, ezkAbstractsNamespace)) {
-      locs.map(_.textAsResolvedQName).flatMap(_.namespaceUriOption).toSet
+      keys.map(_.textAsResolvedQName).flatMap(_.namespaceUriOption).toSet
     }
   }
 
@@ -135,17 +134,17 @@ class TaxonomyTransformerTest extends AnyFunSuite {
 
     val outputDocument = taxoTransformer.transformLinkbase(documents.last)
 
-    val locs = outputDocument.documentElement.filterDescendantElems(named(Namespaces.CLinkNamespace, "roleType"))
+    val keys = outputDocument.documentElement.filterDescendantElems(named(ENames.CKeyRoleKeyEName))
 
     assertResult(true) {
-      locs.nonEmpty
+      keys.nonEmpty
     }
 
-    assertResult("roleType") {
-      locs.head.name.localPart
+    assertResult("roleKey") {
+      keys.head.name.localPart
     }
     assertResult("urn:ez:linkrole:dutch-corporate-governance-code") {
-      locs.head.text
+      keys.head.text
     }
   }
 

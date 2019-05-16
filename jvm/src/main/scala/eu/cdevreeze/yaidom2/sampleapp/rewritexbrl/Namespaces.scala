@@ -77,8 +77,43 @@ object Namespaces {
       AcfNamespace,
       CrfNamespace)
 
-  // Namespaces in the locator-free model
+  // Namespaces in the locator-free model. The locator-free taxonomy model is not XBRL (although very similar-looking),
+  // but it does use the XLink schemas with namespaces "http://www.w3.org/1999/xlink" and "http://www.xbrl.org/2003/XLink".
+  // The former schema declares XLink attributes, and the latter schema declares substitution groups for XLink elements
+  // in an XBRL context.
 
-  val CLinkNamespace: String = "http://www.concisexbrl.org/2003/linkbase"
-  val CGenNamespace: String = "http://www.concisexbrl.org/2008/generic"
+  // We need an extra schema and namespace for locator-free extended links. It introduces a substitution group for
+  // extended links (themselves in substitution group xl:extended) that restrict the content model by not allowing
+  // any XLink locators. The aim is to prohibit XLink locators and simple links in locator-free taxonomies.
+
+  // The "C" prefixing the namespace prefixes stands for concise. It is not the case that the taxonomy files are concise,
+  // but the set of taxononmy files needed for certain validation tasks is typically more concise than entire DTSes.
+
+  // The "CLink" namespace mirrors most of the "link" namespace, but without the "loc" element. The linkbase element
+  // is also mirrored, and the differing namespace is indeed not an XBRL linkbase meant to be understood by XBRL tooling.
+  // Some differences with the original "link" namespace and schema: of course we restrict the extended links to counterparts
+  // having no locators, we have no loc element, no footnotes, no roleRefs/arcroleRefs/schemaRefs/linkbaseRefs (so also
+  // not in our linkbase elements). We do re-use the "link namespace" roleTypes/arcroleTypes and their content, however.
+
+  val CLinkNamespace: String = "http://www.locfreexbrl.org/2003/linkbase" // prefix "clink"
+
+  // Note that the "instance" schema, which also contains item types, also depends on the "link" schema, so probably it is hard
+  // to get rid of that schema, and likely we do not have to, as long as we use our linkbase elements with their defined content.
+  // We can define a restricted schema for the "link" namespace, in the same way that the Taxonomy Packages spec restricts catalogs.
+
+  // Without the link:loc element or any direct counterpart, we need an extensible scheme for taxonomy element keys.
+  // The (new) substitution group for those keys is taxonomyElementKey. The most common element in that substitution
+  // group is conceptKey.
+
+  val CKeyNamespace: String = "http://www.locfreexbrl.org/2019/key" // prefix "ckey"
+
+  // Since we have to mirror all extended links, limiting them to content without any locators, we need to do the same
+  // for generic links. See the following namespace. Fortunately, we can still use generic arcs and any XLink resource
+  // (including tables, assertions etc.) in the locator-free taxonomies.
+
+  val CGenNamespace: String = "http://www.locfreexbrl.org/2008/generic" // prefix "cgen"
+
+  // Namespace for the counterpart of xbrldt:typedDomainRef attributes
+
+  val CXbrldtNamespace: String = "http://locfreexbrl.org/2005/xbrldt"
 }

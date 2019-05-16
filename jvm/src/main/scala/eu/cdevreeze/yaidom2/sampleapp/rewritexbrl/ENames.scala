@@ -475,4 +475,45 @@ object ENames {
   val MeasureEName = EName.fromLocalName("measure")
   val PeriodTypeEName = EName.fromLocalName("periodType")
   val BalanceEName = EName.fromLocalName("balance")
+
+  // ENames in the locator-free model.
+
+  // The "clink" namespace. It has no counterparts for the simple links (like schemaRef), nor for roleTypes etc. (which
+  // are re-used from the "link" namespace, like link:part). Foremost of all, it has no counterpart for the link:loc name.
+
+  val CLinkLinkbaseEName = EName(CLinkNamespace, "linkbase")
+
+  val CLinkLabelLinkEName = EName(CLinkNamespace, "labelLink")
+  val CLinkLabelEName = EName(CLinkNamespace, "label")
+  val CLinkLabelArcEName = EName(CLinkNamespace, "labelArc")
+
+  val CLinkPresentationLinkEName = EName(LinkNamespace, "presentationLink")
+  val CLinkPresentationArcEName = EName(CLinkNamespace, "presentationArc")
+
+  val CLinkReferenceLinkEName = EName(CLinkNamespace, "referenceLink")
+  val CLinkReferenceEName = EName(CLinkNamespace, "reference")
+  val CLinkReferenceArcEName = EName(CLinkNamespace, "referenceArc")
+
+  val CLinkDefinitionLinkEName = EName(CLinkNamespace, "definitionLink")
+  val CLinkDefinitionArcEName = EName(CLinkNamespace, "definitionArc")
+
+  val CLinkCalculationLinkEName = EName(CLinkNamespace, "calculationLink")
+  val CLinkCalculationArcEName = EName(CLinkNamespace, "calculationArc")
+
+  // The "cxbrldt" namespace.
+
+  val CXbrldtTypedDomainRefEName = EName(CXbrldtNamespace, "typedDomainRef")
+
+  // The "cgen" namespace.
+
+  val CGenLinkEName = EName(CGenNamespace, "link")
+
+  // The "ckey" namespace.
+
+  val CKeyConceptKeyEName = EName(CKeyNamespace, "conceptKey")
+  val CKeyElementKeyEName = EName(CKeyNamespace, "elementKey")
+  val CKeyTypeKeyEName = EName(CKeyNamespace, "typeKey")
+  val CKeyRoleKeyEName = EName(CKeyNamespace, "roleKey")
+  val CKeyArcroleKeyEName = EName(CKeyNamespace, "arcroleKey")
+  val CKeyAnyElemKeyEName = EName(CKeyNamespace, "anyElemKey")
 }
