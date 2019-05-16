@@ -57,18 +57,22 @@ class TaxonomyTransformerTest extends AnyFunSuite {
   }
 
   test("testTransformSchema") {
-    val file = "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/jenv/20181212/dictionary/jenv-bw2-axes.xsd"
-    val document = parseFile(file)
-    val docUri = document.docUri
+    val files = Seq(
+      "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/jenv/20181212/dictionary/jenv-bw2-domains.xsd",
+      "/test-xbrl-taxo/www.nltaxonomie.nl/nt13/jenv/20181212/dictionary/jenv-bw2-axes.xsd",
+    )
 
-    val inputTaxo = new taxo.Taxonomy(Set.empty, Map(docUri -> document))
+    val documents = files.map(parseFile)
+
+    val inputTaxo = new taxo.Taxonomy(Set.empty, documents.map(d => d.docUri -> d).toMap)
 
     val taxoTransformer = new TaxonomyTransformer(inputTaxo)
 
+    val document = documents.last
     val outputDocument = taxoTransformer.transformSchema(document)
 
-    assertResult(removeSchemaLocation(removeAnnotation(resolved.Elem.from(document.documentElement)))) {
-      removeSchemaLocation(removeAnnotation(resolved.Elem.from(outputDocument.documentElement)))
+    assertResult(removeTypedDomainRef(removeSchemaLocation(removeAnnotation(resolved.Elem.from(document.documentElement))))) {
+      removeTypedDomainRef(removeSchemaLocation(removeAnnotation(resolved.Elem.from(outputDocument.documentElement))))
     }
 
     assertResult(document.documentElement.findAllDescendantElemsOrSelf().size) {
@@ -83,8 +87,18 @@ class TaxonomyTransformerTest extends AnyFunSuite {
       outputDocument.documentElement.filterDescendantElemsOrSelf(_.attrOption(ENames.SchemaLocationEName).isDefined).map(_.name)
     }
 
-    assertResult(retainElementDeclarations(resolved.Elem.from(document.documentElement))) {
-      retainElementDeclarations(resolved.Elem.from(outputDocument.documentElement))
+    assertResult(Seq.empty) {
+      outputDocument.documentElement.filterDescendantElemsOrSelf(named(ENames.XsElementEName))
+        .flatMap(_.attrOption(ENames.XbrldtTypedDomainRefEName))
+    }
+
+    assertResult(true) {
+      outputDocument.documentElement.filterDescendantElemsOrSelf(named(ENames.XsElementEName))
+        .flatMap(_.attrOption(ENames.CXbrldtTypedDomainKeyEName)).nonEmpty
+    }
+
+    assertResult(removeTypedDomainRef(retainElementDeclarations(resolved.Elem.from(document.documentElement)))) {
+      removeTypedDomainRef(retainElementDeclarations(resolved.Elem.from(outputDocument.documentElement)))
     }
   }
 
@@ -164,6 +178,14 @@ class TaxonomyTransformerTest extends AnyFunSuite {
   private def removeSchemaLocation(elem: resolved.Elem): resolved.Elem = {
     elem.transformDescendantElems { e =>
       if (e.attrOption(ENames.SchemaLocationEName).isDefined) e.copy(attributes = e.attributes - ENames.SchemaLocationEName) else e
+    }
+  }
+
+  private def removeTypedDomainRef(elem: resolved.Elem): resolved.Elem = {
+    elem.transformDescendantElems { e =>
+      if (e.attrOption(ENames.XbrldtTypedDomainRefEName).isDefined) e.copy(attributes = e.attributes - ENames.XbrldtTypedDomainRefEName) else e
+    }.transformDescendantElems { e =>
+      if (e.attrOption(ENames.CXbrldtTypedDomainKeyEName).isDefined) e.copy(attributes = e.attributes - ENames.CXbrldtTypedDomainKeyEName) else e
     }
   }
 

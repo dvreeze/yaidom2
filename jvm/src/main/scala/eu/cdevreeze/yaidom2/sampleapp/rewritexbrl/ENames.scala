@@ -487,7 +487,7 @@ object ENames {
   val CLinkLabelEName = EName(CLinkNamespace, "label")
   val CLinkLabelArcEName = EName(CLinkNamespace, "labelArc")
 
-  val CLinkPresentationLinkEName = EName(LinkNamespace, "presentationLink")
+  val CLinkPresentationLinkEName = EName(CLinkNamespace, "presentationLink")
   val CLinkPresentationArcEName = EName(CLinkNamespace, "presentationArc")
 
   val CLinkReferenceLinkEName = EName(CLinkNamespace, "referenceLink")
@@ -500,14 +500,6 @@ object ENames {
   val CLinkCalculationLinkEName = EName(CLinkNamespace, "calculationLink")
   val CLinkCalculationArcEName = EName(CLinkNamespace, "calculationArc")
 
-  // The "cxbrldt" namespace.
-
-  val CXbrldtTypedDomainRefEName = EName(CXbrldtNamespace, "typedDomainRef")
-
-  // The "cgen" namespace.
-
-  val CGenLinkEName = EName(CGenNamespace, "link")
-
   // The "ckey" namespace.
 
   val CKeyConceptKeyEName = EName(CKeyNamespace, "conceptKey")
@@ -516,4 +508,12 @@ object ENames {
   val CKeyRoleKeyEName = EName(CKeyNamespace, "roleKey")
   val CKeyArcroleKeyEName = EName(CKeyNamespace, "arcroleKey")
   val CKeyAnyElemKeyEName = EName(CKeyNamespace, "anyElemKey")
+
+  // The "cxbrldt" namespace.
+
+  val CXbrldtTypedDomainKeyEName = EName(CXbrldtNamespace, "typedDomainKey")
+
+  // The "cgen" namespace.
+
+  val CGenLinkEName = EName(CGenNamespace, "link")
 }

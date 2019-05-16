@@ -41,24 +41,24 @@ object TransformTaxonomy {
     outputDir.mkdirs()
     require(outputDir.isDirectory)
 
-    println(s"Reading files ...")
+    println(s"Reading files ...") // scalastyle:off
     val files = readFiles(inputDir, filterFile)
 
-    println(s"Parsing ${files.size} XML files ...")
+    println(s"Parsing ${files.size} XML files ...") // scalastyle:off
     val docMap = files.map(f => getOriginalUri(f, inputDir) -> parseFile(f, inputDir)).toMap
 
     val inputTaxonomy = new taxo.Taxonomy(Set.empty, docMap)
 
     val taxonomyTransformer = new TaxonomyTransformer(inputTaxonomy)
 
-    println(s"Transforming ${docMap.size} taxonomy XML files ...")
+    println(s"Transforming ${docMap.size} taxonomy XML files ...") // scalastyle:off
     val outputTaxonomy = taxonomyTransformer.transformTaxonomy()
 
-    println("Ready transforming " + outputTaxonomy.documentMap.size + " files. Writing them to file system ...")
+    println("Ready transforming " + outputTaxonomy.documentMap.size + " files. Writing them to file system ...") // scalastyle:off
 
     outputTaxonomy.documentMap.values.foreach(d => serializeDocument(d.doc, outputDir))
 
-    println("Ready")
+    println("Ready") // scalastyle:off
   }
 
   private def filterFile(f: File): Boolean = {
@@ -102,7 +102,7 @@ object TransformTaxonomy {
     Map(
       URI.create("http://www.nltaxonomie.nl/") -> rootDir.toURI.resolve("www.nltaxonomie.nl/"),
       URI.create("http://www.xbrl.org/") -> rootDir.toURI.resolve("www.xbrl.org/"),
-      URI.create("http://www.w3.org/") -> rootDir.toURI.resolve("www.w3.org/"),
+      URI.create("http://www.w3.org/") -> rootDir.toURI.resolve("www.w3.org/")
     )
   }
 

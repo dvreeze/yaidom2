@@ -180,9 +180,7 @@ object TaxonomyElemKey {
       ScopedResolvedElem(
         resolved.Node.textElem(
           resourceElementName,
-          SeqMap(
-            ENames.XLinkTypeEName -> "resource",
-            ENames.XLinkLabelEName -> xlinkLabel),
+          SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel),
           uri.toString),
         Scope.Empty)
     }

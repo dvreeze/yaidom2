@@ -107,13 +107,13 @@ object Namespaces {
 
   val CKeyNamespace: String = "http://www.locfreexbrl.org/2019/key" // prefix "ckey"
 
+  // Namespace for the counterpart of xbrldt:typedDomainRef attributes
+
+  val CXbrldtNamespace: String = "http://locfreexbrl.org/2005/xbrldt"
+
   // Since we have to mirror all extended links, limiting them to content without any locators, we need to do the same
   // for generic links. See the following namespace. Fortunately, we can still use generic arcs and any XLink resource
   // (including tables, assertions etc.) in the locator-free taxonomies.
 
   val CGenNamespace: String = "http://www.locfreexbrl.org/2008/generic" // prefix "cgen"
-
-  // Namespace for the counterpart of xbrldt:typedDomainRef attributes
-
-  val CXbrldtNamespace: String = "http://locfreexbrl.org/2005/xbrldt"
 }
