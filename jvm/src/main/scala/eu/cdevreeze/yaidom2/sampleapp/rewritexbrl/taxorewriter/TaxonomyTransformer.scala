@@ -29,7 +29,6 @@ import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.ENames
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.Namespaces
-import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ResolvedElemTransformations
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ScopedQName
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ScopedResolvedElem
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.SimpleElemFactory
@@ -54,8 +53,6 @@ import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
 
   // TODO What do we add to schema in order to locally reason about substitution groups?
-
-  import ResolvedElemTransformations._
   import TaxonomyTransformer._
 
   private val defaultExtraScope: Scope = {
@@ -348,13 +345,13 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
   }
 
   private def cleanupEmptyAppinfo(elem: resolved.Elem): resolved.Elem = {
-    transformDescendantElemsToNodeSeq(elem, { e =>
+    elem.transformDescendantElemsToNodeSeq(e =>
       if (e.name == ENames.XsAnnotationEName && e.findAllDescendantElems().size == 1) {
         Seq.empty
       } else {
         Seq(e)
       }
-    })
+    )
   }
 
   private def removeXsiSchemaLocation(elem: resolved.Elem): resolved.Elem = {

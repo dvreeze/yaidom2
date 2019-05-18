@@ -25,7 +25,6 @@ import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.ENames
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxorewriter.TaxonomyTransformer
-import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal.ResolvedElemTransformations._
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.xpointer.XPointer
 import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite

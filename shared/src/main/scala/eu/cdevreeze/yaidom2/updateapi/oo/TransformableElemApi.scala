@@ -14,55 +14,55 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.internal
+package eu.cdevreeze.yaidom2.updateapi.oo
 
 /**
- * Element transformation API.
+ * Transformable element API.
  *
  * @author Chris de Vreeze
  */
-trait ElemTransformationApi {
+trait TransformableElemApi {
 
-  type NodeType
+  type ThisNode
 
-  type ElemType <: NodeType
-
-  /**
-   * Returns the same element, except that child elements have been replaced by applying the given function. Non-element
-   * child nodes occur in the result element unaltered.
-   */
-  def transformChildElems(elem: ElemType, f: ElemType => ElemType): ElemType
+  type ThisElem <: ThisNode with TransformableElemApi
 
   /**
    * Returns the same element, except that child elements have been replaced by applying the given function. Non-element
    * child nodes occur in the result element unaltered.
    */
-  def transformChildElemsToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): ElemType
+  def transformChildElems(f: ThisElem => ThisElem): ThisElem
+
+  /**
+   * Returns the same element, except that child elements have been replaced by applying the given function. Non-element
+   * child nodes occur in the result element unaltered.
+   */
+  def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem
 
   /**
    * Transforms the element by applying the given function to all its descendant-or-self elements, in a bottom-up manner.
    *
    * That is, returns the equivalent of:
    * {{{
-   * f(transformChildElems(elem, e => transformDescendantElemsOrSelf(e, f)))
+   * f(transformChildElems(_.transformDescendantElemsOrSelf(f)))
    * }}}
    *
    * In other words, returns the equivalent of:
    * {{{
-   * f(transformDescendantElems(elem, f))
+   * f(transformDescendantElems(f))
    * }}}
    */
-  def transformDescendantElemsOrSelf(elem: ElemType, f: ElemType => ElemType): ElemType
+  def transformDescendantElemsOrSelf(f: ThisElem => ThisElem): ThisElem
 
   /**
    * Transforms the element by applying the given function to all its descendant elements, in a bottom-up manner.
    *
    * That is, returns the equivalent of:
    * {{{
-   * transformChildElems(elem, e => transformDescendantElemsOrSelf(e, f))
+   * transformChildElems(_.transformDescendantElemsOrSelf(f))
    * }}}
    */
-  def transformDescendantElems(elem: ElemType, f: ElemType => ElemType): ElemType
+  def transformDescendantElems(f: ThisElem => ThisElem): ThisElem
 
   /**
    * Transforms each descendant element to a node sequence by applying the given function to all its descendant-or-self elements,
@@ -70,15 +70,15 @@ trait ElemTransformationApi {
    *
    * That is, returns the equivalent of:
    * {{{
-   * f(transformChildElemsToNodeSeq(elem, e => transformDescendantElemsOrSelfToNodeSeq(e, f)))
+   * f(transformChildElemsToNodeSeq(_.transformDescendantElemsOrSelfToNodeSeq(f)))
    * }}}
    *
    * In other words, returns the equivalent of:
    * {{{
-   * f(transformDescendantElemsToNodeSeq(elem, f))
+   * f(transformDescendantElemsToNodeSeq(f))
    * }}}
    */
-  def transformDescendantElemsOrSelfToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): Seq[NodeType]
+  def transformDescendantElemsOrSelfToNodeSeq(f: ThisElem => Seq[ThisNode]): Seq[ThisNode]
 
   /**
    * Transforms each descendant element to a node sequence by applying the given function to all its descendant elements,
@@ -86,24 +86,24 @@ trait ElemTransformationApi {
    *
    * That is, returns the equivalent of:
    * {{{
-   * transformChildElemsToNodeSeq(elem, e => transformDescendantElemsOrSelfToNodeSeq(e, f))
+   * transformChildElemsToNodeSeq(_.transformDescendantElemsOrSelfToNodeSeq(f))
    * }}}
    *
    * It is equivalent to the following expression:
    * {{{
-   * transformDescendantElemsOrSelf(elem, { e => transformChildElemsToNodeSeq(e, f) })
+   * transformDescendantElemsOrSelf(_.transformChildElemsToNodeSeq(f))
    * }}}
    */
-  def transformDescendantElemsToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): ElemType
+  def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem
 }
 
-object ElemTransformationApi {
+object TransformableElemApi {
 
   /**
-   * This query API type, restricting NodeType and ElemType to the passed type parameters.
+   * This update API type, restricting Node and Elem to the passed type parameters.
    *
    * @tparam N The node type
    * @tparam E The element type
    */
-  type Aux[N, E] = ElemTransformationApi { type NodeType = N; type ElemType = E }
+  type Aux[N, E] = TransformableElemApi { type ThisNode = N; type ThisElem = E }
 }

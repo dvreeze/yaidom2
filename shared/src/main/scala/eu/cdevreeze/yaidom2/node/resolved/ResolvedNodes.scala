@@ -27,6 +27,8 @@ import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractClarkElem
 import eu.cdevreeze.yaidom2.queryapi.oofun.ClarkElemFunctionWrapper
+import eu.cdevreeze.yaidom2.updateapi.fun.ElemTransformationApi
+import eu.cdevreeze.yaidom2.updateapi.oo.TransformableElemApi
 
 /**
  * "Resolved" nodes.
@@ -54,11 +56,13 @@ object ResolvedNodes {
     name: EName,
     attributes: SeqMap[EName, String],
     children: ArraySeq[Node]
-  ) extends CanBeDocumentChild with AbstractClarkElem {
+  ) extends CanBeDocumentChild with AbstractClarkElem with TransformableElemApi {
 
     type ThisElem = Elem
 
     type ThisNode = Node
+
+    // Query API methods
 
     protected[yaidom2] def self: Elem = this
 
@@ -72,6 +76,32 @@ object ResolvedNodes {
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
       children.collectFirst { case e@Elem(_, _, _) if p(e) => e }
+    }
+
+    // Update API methods
+
+    def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
+      Elem.transformChildElems(this, f)
+    }
+
+    def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
+      Elem.transformChildElemsToNodeSeq(this, f)
+    }
+
+    def transformDescendantElemsOrSelf(f: ThisElem => ThisElem): ThisElem = {
+      Elem.transformDescendantElemsOrSelf(this, f)
+    }
+
+    def transformDescendantElems(f: ThisElem => ThisElem): ThisElem = {
+      Elem.transformDescendantElems(this, f)
+    }
+
+    def transformDescendantElemsOrSelfToNodeSeq(f: ThisElem => Seq[ThisNode]): Seq[ThisNode] = {
+      Elem.transformDescendantElemsOrSelfToNodeSeq(this, f)
+    }
+
+    def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
+      Elem.transformDescendantElemsToNodeSeq(this, f)
     }
   }
 
@@ -90,11 +120,15 @@ object ResolvedNodes {
 
     type TargetNodeType = Node
 
+    // NodeFactory method
+
     def from(node: ClarkNodes.Node): Node = node match {
       case e: ClarkNodes.Elem => Elem.from(e)
       case t: ClarkNodes.Text => Text(t.text)
       case n => sys.error(s"Not an element or text node: $n")
     }
+
+    // ElemCreationApi methods
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {
       Elem(name, SeqMap.empty, children.to(ArraySeq))
@@ -121,7 +155,7 @@ object ResolvedNodes {
     }
   }
 
-  object Elem extends ClarkElemFunctionWrapper with ClarkNodeFactories.ElemFactory {
+  object Elem extends ClarkElemFunctionWrapper with ClarkNodeFactories.ElemFactory with ElemTransformationApi {
 
     type ElemType = Elem
 
@@ -138,6 +172,42 @@ object ResolvedNodes {
       val resolvedChildren = children.map { node => Node.from(node) }
 
       Elem(elm.name, elm.attributes, resolvedChildren.to(ArraySeq))
+    }
+
+    // ElemTransformationApi methods
+
+    def transformChildElems(elem: ElemType, f: ElemType => ElemType): ElemType = {
+      val children = elem.children.map {
+        case e: Elem => f(e)
+        case n => n
+      }
+
+      Elem(elem.name, elem.attributes, children)
+    }
+
+    def transformChildElemsToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): ElemType = {
+      val children = elem.children.flatMap {
+        case e: Elem => f(e)
+        case n => Seq(n)
+      }
+
+      Elem(elem.name, elem.attributes, children)
+    }
+
+    def transformDescendantElemsOrSelf(elem: ElemType, f: ElemType => ElemType): ElemType = {
+      f(transformChildElems(elem, e => transformDescendantElemsOrSelf(e, f)))
+    }
+
+    def transformDescendantElems(elem: ElemType, f: ElemType => ElemType): ElemType = {
+      transformChildElems(elem, e => transformDescendantElemsOrSelf(e, f))
+    }
+
+    def transformDescendantElemsOrSelfToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): Seq[NodeType] = {
+      f(transformChildElemsToNodeSeq(elem, e => transformDescendantElemsOrSelfToNodeSeq(e, f)))
+    }
+
+    def transformDescendantElemsToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): ElemType = {
+      transformChildElemsToNodeSeq(elem, e => transformDescendantElemsOrSelfToNodeSeq(e, f))
     }
   }
 
