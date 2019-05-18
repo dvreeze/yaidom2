@@ -16,7 +16,6 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
-import scala.collection.immutable
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
 import scala.reflect.classTag
@@ -134,24 +133,24 @@ object ResolvedNodes {
       Elem(name, SeqMap.empty, children.to(ArraySeq))
     }
 
-    def elem(name: EName, attributes: immutable.Iterable[(EName, String)], children: Seq[NodeType]): ElemType = {
-      Elem(name, attributes.to(SeqMap), children.to(ArraySeq))
+    def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
+      Elem(name, attributes, children.to(ArraySeq))
     }
 
     def textElem(name: EName, txt: String): ElemType = {
       Elem(name, SeqMap.empty, ArraySeq(Text(txt)))
     }
 
-    def textElem(name: EName, attributes: immutable.Iterable[(EName, String)], txt: String): ElemType = {
-      Elem(name, attributes.to(SeqMap), ArraySeq(Text(txt)))
+    def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
+      Elem(name, attributes, ArraySeq(Text(txt)))
     }
 
     def emptyElem(name: EName): ElemType = {
       Elem(name, SeqMap.empty, ArraySeq.empty)
     }
 
-    def emptyElem(name: EName, attributes: immutable.Iterable[(EName, String)]): ElemType = {
-      Elem(name, attributes.to(SeqMap), ArraySeq.empty)
+    def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
+      Elem(name, attributes, ArraySeq.empty)
     }
   }
 

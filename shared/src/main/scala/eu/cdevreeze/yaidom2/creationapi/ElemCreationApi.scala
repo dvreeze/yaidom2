@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import scala.collection.immutable
+import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.core.EName
 
@@ -33,15 +33,15 @@ trait ElemCreationApi {
 
   def elem(name: EName, children: Seq[NodeType]): ElemType
 
-  def elem(name: EName, attributes: immutable.Iterable[(EName, String)], children: Seq[NodeType]): ElemType
+  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType
 
   def textElem(name: EName, txt: String): ElemType
 
-  def textElem(name: EName, attributes: immutable.Iterable[(EName, String)], txt: String): ElemType
+  def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType
 
   def emptyElem(name: EName): ElemType
 
-  def emptyElem(name: EName, attributes: immutable.Iterable[(EName, String)]): ElemType
+  def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType
 }
 
 object ElemCreationApi {
