@@ -23,7 +23,7 @@ import scala.reflect.classTag
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.creationapi.ScopedNodeConverters
+import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractScopedElem
 import eu.cdevreeze.yaidom2.queryapi.oofun.ScopedElemFunctionWrapper
@@ -135,7 +135,7 @@ object SimpleNodes {
   // Next the functional query API
   // TODO ElemCreationApi (using invertible Scope as state)
 
-  object Node extends ScopedNodeConverters.NodeConverter {
+  object Node extends ScopedNodeFactories.NodeFactory {
 
     type TargetNodeType = Node
 
@@ -158,7 +158,7 @@ object SimpleNodes {
     }
   }
 
-  object Elem extends ScopedElemFunctionWrapper with ScopedNodeConverters.ElemConverter {
+  object Elem extends ScopedElemFunctionWrapper with ScopedNodeFactories.ElemFactory {
 
     type ElemType = Elem
 

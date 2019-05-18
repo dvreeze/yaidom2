@@ -25,7 +25,7 @@ import scala.reflect.classTag
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.creationapi.BackingNodeConverters
+import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractBackingElem
@@ -164,7 +164,7 @@ object IndexedNodes {
    */
   final case class ProcessingInstruction(target: String, data: String) extends CanBeDocumentChild with BackingNodes.ProcessingInstruction
 
-  object Node extends BackingNodeConverters.NodeConverter {
+  object Node extends BackingNodeFactories.NodeFactory {
 
     type TargetNodeType = Node
 
@@ -177,7 +177,7 @@ object IndexedNodes {
     }
   }
 
-  object Elem extends BackingElemFunctionWrapper with BackingNodeConverters.ElemConverter {
+  object Elem extends BackingElemFunctionWrapper with BackingNodeFactories.ElemFactory {
 
     type ElemType = Elem
 

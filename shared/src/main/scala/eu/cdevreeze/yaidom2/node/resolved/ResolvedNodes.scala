@@ -22,7 +22,7 @@ import scala.collection.immutable.SeqMap
 import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.creationapi.ClarkNodeConverters
+import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractClarkElem
@@ -82,7 +82,7 @@ object ResolvedNodes {
 
   // Next the functional query (and creation) API
 
-  object Node extends ClarkNodeConverters.NodeConverter with ElemCreationApi {
+  object Node extends ClarkNodeFactories.NodeFactory with ElemCreationApi {
 
     type NodeType = Node
 
@@ -121,7 +121,7 @@ object ResolvedNodes {
     }
   }
 
-  object Elem extends ClarkElemFunctionWrapper with ClarkNodeConverters.ElemConverter {
+  object Elem extends ClarkElemFunctionWrapper with ClarkNodeFactories.ElemFactory {
 
     type ElemType = Elem
 

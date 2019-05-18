@@ -19,20 +19,20 @@ package eu.cdevreeze.yaidom2.creationapi
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 
 /**
- * Converter APIs for Backing nodes.
+ * Factory APIs for Backing nodes.
  *
  * @author Chris de Vreeze
  */
-object BackingNodeConverters {
+object BackingNodeFactories {
 
-  trait NodeConverter {
+  trait NodeFactory {
 
     type TargetNodeType <: BackingNodes.Node
 
     def from(node: BackingNodes.Node): TargetNodeType
   }
 
-  trait ElemConverter {
+  trait ElemFactory {
 
     type TargetElemType <: BackingNodes.Elem
 

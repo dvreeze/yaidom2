@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node.indexed
 
 import java.net.URI
 
-import eu.cdevreeze.yaidom2.creationapi.BackingDocumentConverter
+import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
 import eu.cdevreeze.yaidom2.node.simple.SimpleDocument
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
@@ -44,7 +44,7 @@ final case class IndexedDocument(children: Seq[IndexedNodes.CanBeDocumentChild])
   def documentElement: ElemType = children.collectFirst { case e: IndexedNodes.Elem => e }.get
 }
 
-object IndexedDocument extends BackingDocumentConverter {
+object IndexedDocument extends BackingDocumentFactory {
 
   type TargetDocumentType = IndexedDocument
 

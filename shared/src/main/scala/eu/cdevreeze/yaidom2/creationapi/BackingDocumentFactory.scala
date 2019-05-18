@@ -19,11 +19,11 @@ package eu.cdevreeze.yaidom2.creationapi
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
 
 /**
- * Converter API for Backing documents.
+ * Factory API for Backing documents.
  *
  * @author Chris de Vreeze
  */
-trait BackingDocumentConverter {
+trait BackingDocumentFactory {
 
   type TargetDocumentType <: BackingDocumentApi
 

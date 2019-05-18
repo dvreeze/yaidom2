@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.node.saxon
 
-import eu.cdevreeze.yaidom2.creationapi.BackingDocumentConverter
+import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
 import eu.cdevreeze.yaidom2.jaxp.SaxEventProducers
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
 import net.sf.saxon.event.ReceivingContentHandler
@@ -35,7 +35,7 @@ object SaxonProducers {
    * SaxonDocument factory from backing documents. The factory constructor takes a Saxon Processor, which must
    * use the tiny tree model under the hood.
    */
-  final class DocumentProducer(val processor: Processor) extends BackingDocumentConverter {
+  final class DocumentProducer(val processor: Processor) extends BackingDocumentFactory {
 
     type TargetDocumentType = SaxonDocument
 

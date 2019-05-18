@@ -45,7 +45,10 @@ object SaxonNodes {
   /**
    * Arbitrary Saxon node
    */
-  sealed trait Node extends BackingNodes.Node
+  sealed trait Node extends BackingNodes.Node {
+
+    def xdmNode: XdmNode
+  }
 
   /**
    * Potential Saxon document child, so an element, processing instruction or comment

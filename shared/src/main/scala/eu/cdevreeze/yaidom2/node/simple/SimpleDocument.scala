@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node.simple
 
 import java.net.URI
 
-import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentConverter
+import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.queryapi.oo.Nodes
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
@@ -42,7 +42,7 @@ final case class SimpleDocument(docUriOption: Option[URI], children: Seq[SimpleN
   def documentElement: ElemType = children.collectFirst { case e: SimpleNodes.Elem => e }.get
 }
 
-object SimpleDocument extends ScopedDocumentConverter {
+object SimpleDocument extends ScopedDocumentFactory {
 
   type TargetDocumentType = SimpleDocument
 

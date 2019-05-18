@@ -16,26 +16,16 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
 
 /**
- * Converter APIs for Clark nodes.
+ * Factory API for Scoped documents.
  *
  * @author Chris de Vreeze
  */
-object ClarkNodeConverters {
+trait ScopedDocumentFactory {
 
-  trait NodeConverter {
+  type TargetDocumentType <: ScopedDocumentApi
 
-    type TargetNodeType <: ClarkNodes.Node
-
-    def from(node: ClarkNodes.Node): TargetNodeType
-  }
-
-  trait ElemConverter {
-
-    type TargetElemType <: ClarkNodes.Elem
-
-    def from(elem: ClarkNodes.Elem): TargetElemType
-  }
+  def from(doc: ScopedDocumentApi): TargetDocumentType
 }
