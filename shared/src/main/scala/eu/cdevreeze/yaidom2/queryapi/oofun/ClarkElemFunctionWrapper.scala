@@ -28,6 +28,7 @@ import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
  *
  * @author Chris de Vreeze
  */
+// scalastyle:off number.of.methods
 trait ClarkElemFunctionWrapper extends ClarkElemFunctionsApi {
 
   type ElemType <: ClarkNodes.Elem.Aux[NodeType, ElemType]
@@ -76,6 +77,14 @@ trait ClarkElemFunctionWrapper extends ClarkElemFunctionsApi {
 
   final def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
     elem.findTopmostElemsOrSelf(p)
+  }
+
+  final def findDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): Option[ElemType] = {
+    elem.findDescendantElemOrSelf(navigationPath)
+  }
+
+  final def getDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): ElemType = {
+    elem.getDescendantElemOrSelf(navigationPath)
   }
 
   final def name(elem: ElemType): EName = {

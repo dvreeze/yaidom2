@@ -94,6 +94,22 @@ object IndexedNodes {
       filterChildElems(p).headOption
     }
 
+    def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
+      if (navigationPath.isEmpty) {
+        Some(self)
+      } else {
+        val childElemIdx: Int = navigationPath(0)
+        val childElems: Seq[Elem] = findAllChildElems()
+
+        if (childElemIdx >= 0 && childElemIdx < childElems.size) {
+          // Recursive call
+          Option(childElems(childElemIdx)).flatMap(_.findDescendantElemOrSelf(navigationPath.drop(1)))
+        } else {
+          None
+        }
+      }
+    }
+
     def name: EName = {
       underlyingElem.name
     }
@@ -119,7 +135,7 @@ object IndexedNodes {
         None
       } else {
         val parentPath = elemNavigationPathFromRoot.init
-        val underlyingParentElem = underlyingRootElem.atNavigationPath(parentPath)
+        val underlyingParentElem = underlyingRootElem.getDescendantElemOrSelf(parentPath)
         val parentElem = new Elem(docUriOption, underlyingRootElem, parentPath, underlyingParentElem)
         Some(parentElem).filter(p)
       }
@@ -203,7 +219,7 @@ object IndexedNodes {
         docUriOption,
         underlyingRootElem,
         elemNavigationPathFromRoot.to(ArraySeq),
-        underlyingRootElem.atNavigationPath(elemNavigationPathFromRoot))
+        underlyingRootElem.getDescendantElemOrSelf(elemNavigationPathFromRoot))
     }
 
     def ofRoot(docUriOption: Option[URI], underlyingRootElem: SimpleNodes.Elem): Elem = {

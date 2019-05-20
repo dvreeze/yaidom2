@@ -109,6 +109,14 @@ object JsDomNodes {
       Elem.findTopmostElemsOrSelf(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
+    def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
+      Elem.findDescendantElemOrSelf(jsDomElement, navigationPath).map(n => Elem(n))
+    }
+
+    def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = {
+      Elem(Elem.getDescendantElemOrSelf(jsDomElement, navigationPath))
+    }
+
     // ClarkElemApi
 
     def name: EName = {
@@ -464,6 +472,22 @@ object JsDomNodes {
 
     def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
       children(elem).collectFirst { case e: dom.Element if p(e) => e }
+    }
+
+    def findDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): Option[ElemType] = {
+      if (navigationPath.isEmpty) {
+        Some(elem)
+      } else {
+        val childElemIdx: Int = navigationPath(0)
+        val childElems: Seq[ElemType] = findAllChildElems(elem)
+
+        if (childElemIdx >= 0 && childElemIdx < childElems.size) {
+          // Recursive call
+          Option(childElems(childElemIdx)).flatMap(che => findDescendantElemOrSelf(che, navigationPath.drop(1)))
+        } else {
+          None
+        }
+      }
     }
 
     def name(elem: ElemType): EName = {

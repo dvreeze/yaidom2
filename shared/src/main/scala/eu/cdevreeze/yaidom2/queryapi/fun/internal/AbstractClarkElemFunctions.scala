@@ -105,6 +105,10 @@ trait AbstractClarkElemFunctions extends ClarkElemFunctionsApi {
     toImmutableSeq(result)
   }
 
+  def getDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): ElemType = {
+    findDescendantElemOrSelf(elem, navigationPath).getOrElse(sys.error(s"Missing element at navigation path $navigationPath"))
+  }
+
   // ClarkElemFunctionsApi
 
   def localName(elem: ElemType): String = {

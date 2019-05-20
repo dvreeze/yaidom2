@@ -112,6 +112,14 @@ object SaxonNodes {
       Elem.findTopmostElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
+    def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
+      Elem.findDescendantElemOrSelf(xdmNode, navigationPath).map(n => Elem(n))
+    }
+
+    def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = {
+      Elem(Elem.getDescendantElemOrSelf(xdmNode, navigationPath))
+    }
+
     // ClarkElemApi
 
     def name: EName = {
@@ -445,6 +453,26 @@ object SaxonNodes {
 
     def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
       findTopmostElemsOrSelfAsStream(elem, p).toScala(ArraySeq)
+    }
+
+    def findDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): Option[ElemType] = {
+      if (navigationPath.isEmpty) {
+        Some(elem)
+      } else {
+        val childElemIdx: Int = navigationPath(0)
+        val childElems: Seq[ElemType] = findAllChildElems(elem)
+
+        if (childElemIdx >= 0 && childElemIdx < childElems.size) {
+          // Recursive call
+          Option(childElems(childElemIdx)).flatMap(che => findDescendantElemOrSelf(che, navigationPath.drop(1)))
+        } else {
+          None
+        }
+      }
+    }
+
+    def getDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): ElemType = {
+      findDescendantElemOrSelf(elem, navigationPath).getOrElse(sys.error(s"Missing element at navigation path $navigationPath"))
     }
 
     def name(elem: ElemType): EName = {

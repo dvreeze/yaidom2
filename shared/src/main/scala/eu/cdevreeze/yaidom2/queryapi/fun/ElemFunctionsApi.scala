@@ -46,6 +46,26 @@ trait ElemFunctionsApi {
   def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
 
   def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType]
+
+  /**
+   * Returns the optional descendant-or-self element at the given navigation path. If the navigation path is Seq(3, 5, 0),
+   * the first navigation step is to the child element at (element) index 3, zero-based, the next navigation step is
+   * to its child element at zero-based (element) index 5, and the last navigation step is to the latter's child element
+   * at zero-based (element) index 0.
+   *
+   * If the navigation path is out of bounds in one of the steps, None is returned.
+   */
+  def findDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): Option[ElemType]
+
+  /**
+   * Returns the descendant-or-self element at the given navigation path. If the navigation path is Seq(3, 5, 0),
+   * the first navigation step is to the child element at (element) index 3, zero-based, the next navigation step is
+   * to its child element at zero-based (element) index 5, and the last navigation step is to the latter's child element
+   * at zero-based (element) index 0.
+   *
+   * If the navigation path is out of bounds in one of the steps, an exception is thrown.
+   */
+  def getDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): ElemType
 }
 
 object ElemFunctionsApi {

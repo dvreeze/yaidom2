@@ -100,6 +100,14 @@ abstract class AbstractDialectBackingElem(
     underlyingElem.findTopmostElemsOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
+  final def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
+    underlyingElem.findDescendantElemOrSelf(navigationPath).map(e => wrapElem(e))
+  }
+
+  final def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = {
+    wrapElem(underlyingElem.getDescendantElemOrSelf(navigationPath))
+  }
+
   // ClarkElemApi
 
   final def name: EName = {

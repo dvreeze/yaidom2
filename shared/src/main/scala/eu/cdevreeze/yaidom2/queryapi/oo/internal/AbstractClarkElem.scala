@@ -110,6 +110,10 @@ trait AbstractClarkElem extends ClarkNodes.Elem {
     toImmutableSeq(result)
   }
 
+  def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = {
+    findDescendantElemOrSelf(navigationPath).getOrElse(sys.error(s"Missing element at navigation path $navigationPath"))
+  }
+
   // ClarkElemApi
 
   def localName: String = {

@@ -77,6 +77,22 @@ object ResolvedNodes {
       children.collectFirst { case e@Elem(_, _, _) if p(e) => e }
     }
 
+    def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
+      if (navigationPath.isEmpty) {
+        Some(self)
+      } else {
+        val childElemIdx: Int = navigationPath(0)
+        val childElems: Seq[Elem] = findAllChildElems()
+
+        if (childElemIdx >= 0 && childElemIdx < childElems.size) {
+          // Recursive call
+          Option(childElems(childElemIdx)).flatMap(_.findDescendantElemOrSelf(navigationPath.drop(1)))
+        } else {
+          None
+        }
+      }
+    }
+
     // Update API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {

@@ -77,6 +77,22 @@ object SimpleNodes {
       children.collectFirst { case e@Elem(_, _, _, _) if p(e) => e }
     }
 
+    def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
+      if (navigationPath.isEmpty) {
+        Some(self)
+      } else {
+        val childElemIdx: Int = navigationPath(0)
+        val childElems: Seq[Elem] = findAllChildElems()
+
+        if (childElemIdx >= 0 && childElemIdx < childElems.size) {
+          // Recursive call
+          Option(childElems(childElemIdx)).flatMap(_.findDescendantElemOrSelf(navigationPath.drop(1)))
+        } else {
+          None
+        }
+      }
+    }
+
     def name: EName = {
       scope.resolveQNameOption(qname)
         .getOrElse(sys.error(s"Element name '${qname}' should resolve to an EName in scope [${scope}]"))
@@ -98,23 +114,6 @@ object SimpleNodes {
     // Other public methods
 
     def attributeScope: Scope = scope.withoutDefaultNamespace
-
-    /**
-     * Returns the element found by navigating the given element navigation path starting with this element.
-     * If no element exists at the given navigation path, an exception is thrown.
-     *
-     * Note that each step in the navigation path is a zero-based child element index, not any child node index!
-     */
-    def atNavigationPath(navigationPath: Seq[Int]): Elem = {
-      if (navigationPath.isEmpty) {
-        this
-      } else {
-        val childElem: Elem = findAllChildElems().apply(navigationPath.head)
-
-        // Recursive call
-        childElem.atNavigationPath(navigationPath.tail)
-      }
-    }
   }
 
   /**
