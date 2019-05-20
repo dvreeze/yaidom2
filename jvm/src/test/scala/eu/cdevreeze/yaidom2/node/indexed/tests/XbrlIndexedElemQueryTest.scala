@@ -19,7 +19,7 @@ package eu.cdevreeze.yaidom2.node.indexed.tests
 import java.io.File
 
 import scala.collection.immutable.ArraySeq
-import scala.jdk.StreamConverters.Ops._
+import scala.jdk.StreamConverters._
 
 import eu.cdevreeze.yaidom2.node.indexed
 import eu.cdevreeze.yaidom2.node.indexed.IndexedElemSteps

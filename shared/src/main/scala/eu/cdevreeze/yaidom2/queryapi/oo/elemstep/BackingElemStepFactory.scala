@@ -37,31 +37,31 @@ abstract class BackingElemStepFactory extends ScopedElemStepFactory with Backing
   // Parent axis, for element nodes only
 
   final def parentElem(p: ElemType => Boolean): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(p).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(p).toList.toIndexedSeq }
   }
 
   final def parentElem(): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(anyElem).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(anyElem).toList.toIndexedSeq }
   }
 
   final def parentElem(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(localName)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(localName)).toList.toIndexedSeq }
   }
 
   final def parentElem(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(namespace, localName)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(namespace, localName)).toList.toIndexedSeq }
   }
 
   final def parentElem(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(namespaceOption, localName)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(namespaceOption, localName)).toList.toIndexedSeq }
   }
 
   final def parentElem(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(ename)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(named(ename)).toList.toIndexedSeq }
   }
 
   final def parentElemIgnoringNamespace(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(havingLocalName(localName)).toIndexedSeq }
+    { (elem: ElemType) => elem.findParentElem(havingLocalName(localName)).toList.toIndexedSeq }
   }
 
   // Ancestor axis, for element nodes only

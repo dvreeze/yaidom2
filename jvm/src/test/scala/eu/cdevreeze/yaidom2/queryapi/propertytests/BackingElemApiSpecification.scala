@@ -42,7 +42,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
 
   property("filterAncestorElems") = forAll { (elem: E, pred: E => Boolean) =>
     elem.filterAncestorElems(pred) ==
-      elem.findParentElem().toSeq.flatMap(_.filterAncestorElemsOrSelf(pred))
+      elem.findParentElem().toList.flatMap(_.filterAncestorElemsOrSelf(pred))
   }
 
   property("findAllAncestorElems") = forAll { elem: E =>
@@ -52,7 +52,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
   property("filterAncestorElemsOrSelf") = forAll { (elem: E, pred: E => Boolean) =>
     // Recursive calls
     elem.filterAncestorElemsOrSelf(pred) ==
-      Seq(elem).filter(pred) ++ elem.findParentElem().toSeq.flatMap(_.filterAncestorElemsOrSelf(pred))
+      Seq(elem).filter(pred) ++ elem.findParentElem().toList.flatMap(_.filterAncestorElemsOrSelf(pred))
   }
 
   property("findAllAncestorElemsOrSelf") = forAll { elem: E =>
@@ -69,7 +69,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
 
   property("findAllPrecedingSiblingElems") = forAll { elem: E =>
     elem.findAllPrecedingSiblingElems() ==
-      elem.findParentElem().toSeq.flatMap(_.findAllChildElems().takeWhile(_ != elem)).reverse
+      elem.findParentElem().toList.flatMap(_.findAllChildElems().takeWhile(_ != elem)).reverse
   }
 
   property("docUri") = forAll { elem: E =>
@@ -145,7 +145,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     val elemSteps = elemStepFactory
     import elemSteps._
 
-    elem.select(parentElem(pred)) == elem.findParentElem(pred).toSeq
+    elem.select(parentElem(pred)) == elem.findParentElem(pred).toList
   }
 
   property("select-ancestor") = forAll { (elem: E, pred: E => Boolean) =>
@@ -166,7 +166,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     val elemSteps = elemStepFactory
     import elemSteps._
 
-    elem.select(parentElem() / childElems()) == elem.findParentElem().toSeq.flatMap(_.findAllChildElems())
+    elem.select(parentElem() / childElems()) == elem.findParentElem().toList.flatMap(_.findAllChildElems())
   }
 
   property("own-navigation-path-followed-from-root-returns-same-element") = forAll { elem: E =>

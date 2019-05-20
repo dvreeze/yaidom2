@@ -235,18 +235,18 @@ object TpDialectOverClarkElemQueryTest {
     }
 
     def findEntryPoint(p: EntryPoint => Boolean): Option[EntryPoint] = {
-      findDescendantElem(where[EntryPoint](p)).collectFirst { case e: EntryPoint => e }
+      findDescendantElem(where[EntryPoint](p)).toList.collectFirst { case e: EntryPoint => e }
     }
 
     def getEntryPoint(p: EntryPoint => Boolean): EntryPoint = {
-      findDescendantElem(where[EntryPoint](p)).collectFirst { case e: EntryPoint => e }
+      findDescendantElem(where[EntryPoint](p)).toList.collectFirst { case e: EntryPoint => e }
         .getOrElse(sys.error(s"Missing entryPoint obeying the given predicate"))
     }
 
     // Child elements
 
     def getIdentifier: Identifier = {
-      findChildElem(havingType[Identifier]).collectFirst { case e: Identifier => e }.get
+      findChildElem(havingType[Identifier]).toList.collectFirst { case e: Identifier => e }.get
     }
 
     def findAllDocumentationGroups: Seq[DocumentationGroup] = {
@@ -262,11 +262,11 @@ object TpDialectOverClarkElemQueryTest {
     }
 
     def findVersion: Option[Version] = {
-      findChildElem(havingType[Version]).collectFirst { case e: Version => e }
+      findChildElem(havingType[Version]).toList.collectFirst { case e: Version => e }
     }
 
     def findLicense: Option[License] = {
-      findChildElem(havingType[License]).collectFirst { case e: License => e }
+      findChildElem(havingType[License]).toList.collectFirst { case e: License => e }
     }
 
     def findAllPublishers: Seq[Publisher] = {
@@ -274,27 +274,27 @@ object TpDialectOverClarkElemQueryTest {
     }
 
     def findPublisherUrl: Option[PublisherUrl] = {
-      findChildElem(havingType[PublisherUrl]).collectFirst { case e: PublisherUrl => e }
+      findChildElem(havingType[PublisherUrl]).toList.collectFirst { case e: PublisherUrl => e }
     }
 
     def findPublisherCountry: Option[PublisherCountry] = {
-      findChildElem(havingType[PublisherCountry]).collectFirst { case e: PublisherCountry => e }
+      findChildElem(havingType[PublisherCountry]).toList.collectFirst { case e: PublisherCountry => e }
     }
 
     def findPublicationDate: Option[PublicationDate] = {
-      findChildElem(havingType[PublicationDate]).collectFirst { case e: PublicationDate => e }
+      findChildElem(havingType[PublicationDate]).toList.collectFirst { case e: PublicationDate => e }
     }
 
     def findEntryPointsElem: Option[EntryPointsElem] = {
-      findChildElem(havingType[EntryPointsElem]).collectFirst { case e: EntryPointsElem => e }
+      findChildElem(havingType[EntryPointsElem]).toList.collectFirst { case e: EntryPointsElem => e }
     }
 
     def findSupersededTaxonomyPackagesElem: Option[SupersededTaxonomyPackagesElem] = {
-      findChildElem(havingType[SupersededTaxonomyPackagesElem]).collectFirst { case e: SupersededTaxonomyPackagesElem => e }
+      findChildElem(havingType[SupersededTaxonomyPackagesElem]).toList.collectFirst { case e: SupersededTaxonomyPackagesElem => e }
     }
 
     def findVersioningReportsElem: Option[VersioningReportsElem] = {
-      findChildElem(havingType[VersioningReportsElem]).collectFirst { case e: VersioningReportsElem => e }
+      findChildElem(havingType[VersioningReportsElem]).toList.collectFirst { case e: VersioningReportsElem => e }
     }
   }
 
@@ -393,7 +393,7 @@ object TpDialectOverClarkElemQueryTest {
     }
 
     def findVersion: Option[Version] = {
-      findChildElem(havingType[Version]).collectFirst { case e: Version => e }
+      findChildElem(havingType[Version]).toList.collectFirst { case e: Version => e }
     }
 
     def findAllEntryPointDocuments: Seq[EntryPointDocument] = {
@@ -401,7 +401,7 @@ object TpDialectOverClarkElemQueryTest {
     }
 
     def findLanguagesElem: Option[LanguagesElem] = {
-      findChildElem(havingType[LanguagesElem]).collectFirst { case e: LanguagesElem => e }
+      findChildElem(havingType[LanguagesElem]).toList.collectFirst { case e: LanguagesElem => e }
     }
   }
 

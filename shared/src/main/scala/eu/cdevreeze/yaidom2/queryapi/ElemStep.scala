@@ -65,7 +65,7 @@ trait ElemStep[E] extends Function1[E, Seq[E]] {
   }
 
   final def firstOption(implicit clsTag: ClassTag[E]): ElemStep[E] = {
-    { elem => this(elem).headOption.to(ArraySeq) }
+    { elem => this(elem).headOption.toList.to(ArraySeq) }
   }
 }
 

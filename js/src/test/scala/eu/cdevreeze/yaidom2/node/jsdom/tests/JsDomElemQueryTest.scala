@@ -158,7 +158,7 @@ class JsDomElemQueryTest extends AnyFunSuite {
       precedingLinkbaseRefs.map(_.attr(XLinkNamespace, "href"))
     }
 
-    assertResult(docElem.findDescendantElem(named(XsNamespace, "appinfo")).toSeq) {
+    assertResult(docElem.findDescendantElem(named(XsNamespace, "appinfo")).toList) {
       precedingLinkbaseRefs.flatMap(_.findParentElem()).distinct
     }
 

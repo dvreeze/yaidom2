@@ -9,7 +9,7 @@
 
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalaVer = "2.13.0-RC1"
+val scalaVer = "2.13.0-RC2"
 val crossScalaVer = Seq(scalaVer)
 
 lazy val commonSettings = Seq(
@@ -41,7 +41,7 @@ lazy val commonSettings = Seq(
 
   libraryDependencies ++= {
     scalaBinaryVersion.value match {
-      case "2.13.0-RC1" => Seq("org.scalatest" %%% "scalatest" % "3.1.0-SNAP9" % "test")
+      case "2.13.0-RC2" => Seq("org.scalatest" %%% "scalatest" % "3.1.0-SNAP11" % "test")
       case _            => Seq("org.scalatest" %%% "scalatest" % "3.0.7" % "test")
     }
   }

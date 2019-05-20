@@ -39,7 +39,7 @@ trait AbstractBackingElemFunctions extends AbstractScopedElemFunctions with Back
   }
 
   def filterAncestorElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
-    toImmutableSeq(findParentElem(elem).toSeq).flatMap(e => filterAncestorElemsOrSelf(e, p))
+    toImmutableSeq(findParentElem(elem).toList).flatMap(e => filterAncestorElemsOrSelf(e, p))
   }
 
   def findAllAncestorElems(elem: ElemType): Seq[ElemType] = {
@@ -52,7 +52,7 @@ trait AbstractBackingElemFunctions extends AbstractScopedElemFunctions with Back
 
   def filterAncestorElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
     // Recursive calls
-    toImmutableSeq(Seq(elem)).filter(p) ++ toImmutableSeq(findParentElem(elem).toSeq).flatMap(e => filterAncestorElemsOrSelf(e, p))
+    toImmutableSeq(Seq(elem)).filter(p) ++ toImmutableSeq(findParentElem(elem).toList).flatMap(e => filterAncestorElemsOrSelf(e, p))
   }
 
   def findAllAncestorElemsOrSelf(elem: ElemType): Seq[ElemType] = {

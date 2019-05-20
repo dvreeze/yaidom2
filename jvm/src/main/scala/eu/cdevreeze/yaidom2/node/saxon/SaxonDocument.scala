@@ -19,8 +19,8 @@ package eu.cdevreeze.yaidom2.node.saxon
 import java.net.URI
 
 import scala.collection.immutable.ArraySeq
-import scala.jdk.OptionConverters.Ops._
-import scala.jdk.StreamConverters.Ops._
+import scala.jdk.OptionConverters._
+import scala.jdk.StreamConverters._
 
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
 import net.sf.saxon.s9api.XdmNode

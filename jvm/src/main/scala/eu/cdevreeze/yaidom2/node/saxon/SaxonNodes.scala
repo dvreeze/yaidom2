@@ -20,8 +20,8 @@ import java.net.URI
 
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
-import scala.jdk.OptionConverters.Ops._
-import scala.jdk.StreamConverters.Ops._
+import scala.jdk.OptionConverters._
+import scala.jdk.StreamConverters._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
