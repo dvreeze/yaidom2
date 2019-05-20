@@ -291,6 +291,10 @@ object JsDomNodes {
       Elem.findAllPrecedingSiblingElems(jsDomElement).map(n => Elem(n))
     }
 
+    def ownNavigationPathRelativeToRootElem: Seq[Int] = {
+      Elem.ownNavigationPathRelativeToRootElem(jsDomElement)
+    }
+
     def baseUriOption: Option[URI] = {
       Elem.baseUriOption(jsDomElement)
     }

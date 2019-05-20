@@ -169,6 +169,10 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     elem.select(parentElem() / childElems()) == elem.findParentElem().toSeq.flatMap(_.findAllChildElems())
   }
 
+  property("own-navigation-path-followed-from-root-returns-same-element") = forAll { elem: E =>
+    elem.rootElem.getDescendantElemOrSelf(elem.ownNavigationPathRelativeToRootElem) == elem
+  }
+
   private val emptyUri = URI.create("")
 
   private val XmlBaseEName = EName("http://www.w3.org/XML/1998/namespace", "base")

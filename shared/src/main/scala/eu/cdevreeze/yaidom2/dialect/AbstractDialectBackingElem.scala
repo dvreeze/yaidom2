@@ -282,6 +282,10 @@ abstract class AbstractDialectBackingElem(
     underlyingElem.findAllPrecedingSiblingElems().map(e => wrapElem(e))
   }
 
+  final def ownNavigationPathRelativeToRootElem: Seq[Int] = {
+    underlyingElem.ownNavigationPathRelativeToRootElem
+  }
+
   final def baseUriOption: Option[URI] = {
     underlyingElem.baseUriOption
   }

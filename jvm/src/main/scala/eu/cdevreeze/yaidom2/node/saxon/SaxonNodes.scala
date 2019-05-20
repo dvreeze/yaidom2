@@ -294,6 +294,10 @@ object SaxonNodes {
       Elem.findAllPrecedingSiblingElems(xdmNode).map(n => Elem(n))
     }
 
+    def ownNavigationPathRelativeToRootElem: Seq[Int] = {
+      Elem.ownNavigationPathRelativeToRootElem(xdmNode)
+    }
+
     def baseUriOption: Option[URI] = {
       Elem.baseUriOption(xdmNode)
     }
@@ -685,6 +689,17 @@ object SaxonNodes {
 
     def findAllPrecedingSiblingElems(elem: ElemType): Seq[ElemType] = {
       filterElems(elem, precedingSibling(), _ => true)
+    }
+
+    def ownNavigationPathRelativeToRootElem(elem: ElemType): Seq[Int] = {
+      def relativeNavigationPath(e: ElemType): Seq[Int] = {
+        findParentElem(e).map { pe =>
+          // Recursive call
+          relativeNavigationPath(pe).appended(findAllPrecedingSiblingElems(e).size)
+        }.getOrElse(IndexedSeq.empty)
+      }
+
+      relativeNavigationPath(elem).to(ArraySeq)
     }
 
     def baseUriOption(elem: ElemType): Option[URI] = {

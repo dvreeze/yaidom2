@@ -18,6 +18,8 @@ package eu.cdevreeze.yaidom2.queryapi.fun.internal
 
 import java.net.URI
 
+import scala.collection.immutable.ArraySeq
+
 import eu.cdevreeze.yaidom2.queryapi.fun.BackingElemFunctionsApi
 
 /**
@@ -59,6 +61,17 @@ trait AbstractBackingElemFunctions extends AbstractScopedElemFunctions with Back
 
   def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
     filterAncestorElemsOrSelf(elem, p).headOption
+  }
+
+  def ownNavigationPathRelativeToRootElem(elem: ElemType): Seq[Int] = {
+    def relativeNavigationPath(e: ElemType): Seq[Int] = {
+      findParentElem(e).map { pe =>
+        // Recursive call
+        relativeNavigationPath(pe).appended(findAllPrecedingSiblingElems(e).size)
+      }.getOrElse(IndexedSeq.empty)
+    }
+
+    relativeNavigationPath(elem).to(ArraySeq)
   }
 
   def baseUri(elem: ElemType): URI = {

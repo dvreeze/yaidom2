@@ -79,6 +79,17 @@ trait AbstractBackingElem extends AbstractScopedElem with BackingNodes.Elem {
     }
   }
 
+  def ownNavigationPathRelativeToRootElem: Seq[Int] = {
+    def relativeNavigationPath(e: ThisElem): Seq[Int] = {
+      e.findParentElem().map { pe =>
+        // Recursive call
+        relativeNavigationPath(pe).appended(e.findAllPrecedingSiblingElems().size)
+      }.getOrElse(IndexedSeq.empty)
+    }
+
+    relativeNavigationPath(self).to(ArraySeq)
+  }
+
   def baseUriOption: Option[URI] = {
     // Recursive call
     val parentBaseUriOption: Option[URI] =

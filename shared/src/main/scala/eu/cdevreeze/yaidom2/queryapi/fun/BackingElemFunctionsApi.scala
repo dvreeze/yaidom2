@@ -45,6 +45,14 @@ trait BackingElemFunctionsApi extends ScopedElemFunctionsApi {
   def findAllPrecedingSiblingElems(elem: ElemType): Seq[ElemType]
 
   /**
+   * Returns the own navigation path relative to the root element. For example, if it is Seq(3, 5, 0), this means that
+   * this element can be found from the root element as follows: from the root, take the child element with zero-based
+   * element index 3, from there take its child element with zero-based element index 5, and finally from there take its
+   * child element with zero-based element index 0.
+   */
+  def ownNavigationPathRelativeToRootElem(elem: ElemType): Seq[Int]
+
+  /**
    * Returns the optional base URI, computed from the document URI, if any, and the XML base attributes of the
    * ancestors, if any.
    */
