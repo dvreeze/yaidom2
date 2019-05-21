@@ -23,6 +23,7 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.oo.named
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.ENames
+import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.Namespaces
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxo
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxorewriter.TaxonomyTransformer
 import eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.xpointer.XPointer
@@ -71,11 +72,14 @@ class TaxonomyTransformerTest extends AnyFunSuite {
     val outputDocument = taxoTransformer.transformSchema(document)
 
     assertResult(removeTypedDomainRef(removeSchemaLocation(removeAnnotation(resolved.Elem.from(document.documentElement))))) {
-      removeTypedDomainRef(removeSchemaLocation(removeAnnotation(resolved.Elem.from(outputDocument.documentElement))))
+      removeCxbrldtImport(
+        removeTypedDomainRef(
+          removeSchemaLocation(
+            removeAnnotation(resolved.Elem.from(outputDocument.documentElement)))))
     }
 
     assertResult(document.documentElement.findAllDescendantElemsOrSelf().size) {
-      outputDocument.documentElement.findAllDescendantElemsOrSelf().size + 7
+      outputDocument.documentElement.findAllDescendantElemsOrSelf().size + 6
     }
 
     assertResult(Seq.empty) {
@@ -129,7 +133,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
     }
 
     assertResult(Set(ezkDataNamespace, ezkAbstractsNamespace)) {
-      keys.map(_.textAsResolvedQName).flatMap(_.namespaceUriOption).toSet
+      keys.map(_.attrAsResolvedQName(ENames.KeyEName)).flatMap(_.namespaceUriOption).toSet
     }
   }
 
@@ -157,7 +161,7 @@ class TaxonomyTransformerTest extends AnyFunSuite {
       keys.head.name.localPart
     }
     assertResult("urn:ez:linkrole:dutch-corporate-governance-code") {
-      keys.head.text
+      keys.head.attr(ENames.KeyEName)
     }
   }
 
@@ -191,6 +195,16 @@ class TaxonomyTransformerTest extends AnyFunSuite {
   private def retainElementDeclarations(elem: resolved.Elem): resolved.Elem = {
     elem.transformChildElemsToNodeSeq { che =>
       if (che.name == ENames.XsElementEName) Seq(che) else Seq.empty
+    }
+  }
+
+  private def removeCxbrldtImport(elem: resolved.Elem): resolved.Elem = {
+    elem.transformDescendantElemsToNodeSeq { e =>
+      if (e.name == ENames.XsImportEName && e.attr(ENames.NamespaceEName) == Namespaces.CXbrldtNamespace) {
+        Seq.empty
+      } else {
+        Seq(e)
+      }
     }
   }
 }
