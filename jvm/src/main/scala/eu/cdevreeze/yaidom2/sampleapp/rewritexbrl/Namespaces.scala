@@ -77,6 +77,10 @@ object Namespaces {
       AcfNamespace,
       CrfNamespace)
 
+  // Namespace of any XLink extended link in the locator-free model.
+
+  val CxlNamespace = "http://www.locfreexbrl.org/2019/extendedlink"
+
   // Namespaces in the locator-free model. The locator-free taxonomy model is not XBRL (although very similar-looking),
   // but it does use the XLink schemas with namespaces "http://www.w3.org/1999/xlink" and "http://www.xbrl.org/2003/XLink".
   // The former schema declares XLink attributes, and the latter schema declares substitution groups for XLink elements
@@ -115,5 +119,5 @@ object Namespaces {
   // for generic links. See the following namespace. Fortunately, we can still use generic arcs and any XLink resource
   // (including tables, assertions etc.) in the locator-free taxonomies.
 
-  val CGenNamespace: String = "http://www.locfreexbrl.org/2008/generic" // prefix "cgen"
+  val CGenNamespace: String = "http://locfreexbrl.org/2008/generic" // prefix "cgen"
 }

@@ -19,6 +19,7 @@ package eu.cdevreeze.yaidom2.sampleapp.rewritexbrl.taxorewriter
 import java.net.URI
 
 import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
@@ -118,8 +119,13 @@ final class TaxonomyTransformer(val inputTaxonomy: taxo.Taxonomy) {
         .map { case (ename, typedDomain) => (ename.localPart, getTargetEName(typedDomain)) }
         .toMap
 
-    val resolvedSchemaElemWithoutSchemaLocations = resolvedSchemaElem.transformDescendantElems { che =>
+    val resolvedSchemaElemWithoutSchemaLocations = resolvedSchemaElem.transformDescendantElemsOrSelf { che =>
       che.name match {
+        case ENames.XsSchemaEName =>
+          val newImport: resolved.Elem =
+            resolved.Node.emptyElem(ENames.XsImportEName, SeqMap(ENames.NamespaceEName -> Namespaces.CXbrldtNamespace))
+
+          che.copy(children = ArraySeq(newImport) ++ che.children)
         case ENames.XsImportEName =>
           che.copy(attributes = che.attributes - ENames.SchemaLocationEName)
         case ENames.XsElementEName if che.attrOption(ENames.XbrldtTypedDomainRefEName).nonEmpty =>

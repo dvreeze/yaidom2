@@ -516,4 +516,8 @@ object ENames {
   // The "cgen" namespace.
 
   val CGenLinkEName = EName(CGenNamespace, "link")
+
+  // Key attribute name
+
+  val KeyEName = EName.fromLocalName("key")
 }

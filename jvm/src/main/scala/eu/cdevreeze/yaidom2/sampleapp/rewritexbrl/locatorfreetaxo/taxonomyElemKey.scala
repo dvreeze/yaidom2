@@ -81,10 +81,9 @@ sealed trait SchemaComponentKey extends TaxonomyElemKey {
     val ScopedQName(qname, addedScope) = simpleElemFactory.convertToQName(name, knownScope)
 
     ScopedResolvedElem(
-      resolved.Node.textElem(
+      resolved.Node.emptyElem(
         resourceElementName,
-        SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel),
-        qname.toString),
+        SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel, ENames.KeyEName -> qname.toString)),
       addedScope)
   }
 }
@@ -127,10 +126,9 @@ object TaxonomyElemKey {
 
     def convertToResolvedElem(xlinkLabel: String, knownScope: Scope): ScopedResolvedElem = {
       ScopedResolvedElem(
-        resolved.Node.textElem(
+        resolved.Node.emptyElem(
           resourceElementName,
-          SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel),
-          uri),
+          SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel, ENames.KeyEName -> uri)),
         Scope.Empty)
     }
   }
@@ -145,10 +143,9 @@ object TaxonomyElemKey {
 
     def convertToResolvedElem(xlinkLabel: String, knownScope: Scope): ScopedResolvedElem = {
       ScopedResolvedElem(
-        resolved.Node.textElem(
+        resolved.Node.emptyElem(
           resourceElementName,
-          SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel),
-          uri),
+          SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel, ENames.KeyEName -> uri)),
         Scope.Empty)
     }
   }
@@ -178,10 +175,9 @@ object TaxonomyElemKey {
 
     def convertToResolvedElem(xlinkLabel: String, knownScope: Scope): ScopedResolvedElem = {
       ScopedResolvedElem(
-        resolved.Node.textElem(
+        resolved.Node.emptyElem(
           resourceElementName,
-          SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel),
-          uri.toString),
+          SeqMap(ENames.XLinkTypeEName -> "resource", ENames.XLinkLabelEName -> xlinkLabel, ENames.KeyEName -> uri.toString)),
         Scope.Empty)
     }
 
