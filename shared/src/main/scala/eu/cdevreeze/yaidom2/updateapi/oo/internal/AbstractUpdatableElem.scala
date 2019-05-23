@@ -97,7 +97,7 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
       updateChildElems(navigationPathsByFirstStep.keySet) {
         case (che, step) =>
           // Recursive (but non-tail-recursive) call
-          che.updateDescendantElemsOrSelf(navigationPathsByFirstStep(step)) {
+          che.updateDescendantElemsOrSelf(navigationPathsByFirstStep(step).map(_.drop(1))) {
             case (e, p) =>
               f(e, p.prepended(step))
           }
@@ -112,7 +112,7 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
 
     updateChildElemsWithNodeSeq(navigationPathsByFirstStep.keySet) {
       case (che, step) =>
-        che.updateDescendantElemsOrSelfWithNodeSeq(navigationPathsByFirstStep(step)) {
+        che.updateDescendantElemsOrSelfWithNodeSeq(navigationPathsByFirstStep(step).map(_.drop(1))) {
           case (e, p) =>
             f(e, p.prepended(step))
         }
@@ -181,7 +181,7 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
       updateChildElemsWithNodeSeq(navigationPathsByFirstStep.keySet) {
         case (che, step) =>
           // Recursive (but non-tail-recursive) call
-          che.updateDescendantElemsOrSelfWithNodeSeq(navigationPathsByFirstStep(step)) {
+          che.updateDescendantElemsOrSelfWithNodeSeq(navigationPathsByFirstStep(step).map(_.drop(1))) {
             case (e, p) =>
               f(e, p.prepended(step))
           }
