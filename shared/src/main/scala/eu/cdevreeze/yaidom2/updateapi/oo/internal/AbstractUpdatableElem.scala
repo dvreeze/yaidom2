@@ -121,8 +121,8 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
 
   def updateChildElems(f: PartialFunction[(ThisElem, Int), ThisElem]): ThisElem = {
     val editsByStep: Map[Int, ThisElem] =
-      findAllChildElemsWithSteps.collect { case childElemWitStep if f.isDefinedAt(childElemWitStep) =>
-        (childElemWitStep._2, f(childElemWitStep))
+      findAllChildElemsWithSteps.collect { case childElemWithStep if f.isDefinedAt(childElemWithStep) =>
+        (childElemWithStep._2, f(childElemWithStep))
       }.toMap
 
     updateChildElems(editsByStep.keySet) { case (che, step) =>
@@ -132,8 +132,8 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
 
   def updateChildElemsWithNodeSeq(f: PartialFunction[(ThisElem, Int), Seq[ThisNode]]): ThisElem = {
     val editsByStep: Map[Int, Seq[ThisNode]] =
-      findAllChildElemsWithSteps.collect { case childElemWitStep if f.isDefinedAt(childElemWitStep) =>
-        (childElemWitStep._2, f(childElemWitStep))
+      findAllChildElemsWithSteps.collect { case childElemWithStep if f.isDefinedAt(childElemWithStep) =>
+        (childElemWithStep._2, f(childElemWithStep))
       }.toMap
 
     updateChildElemsWithNodeSeq(editsByStep.keySet) { case (che, step) =>
