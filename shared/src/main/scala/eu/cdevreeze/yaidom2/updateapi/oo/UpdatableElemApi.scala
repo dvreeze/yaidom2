@@ -28,6 +28,16 @@ trait UpdatableElemApi {
 
   type ThisElem <: ThisNode with UpdatableElemApi
 
+  /**
+   * Returns the child nodes, in document order.
+   */
+  def findAllChildNodes: Seq[ThisNode]
+
+  /**
+   * Returns a copy in which the children have been replaced by the given collection of child nodes.
+   */
+  def withChildren(newChildren: Seq[ThisNode]): ThisElem
+
   // Functional update methods taking 1 navigation path or step.
 
   /**
