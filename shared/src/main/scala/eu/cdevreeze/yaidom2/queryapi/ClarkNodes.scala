@@ -16,8 +16,6 @@
 
 package eu.cdevreeze.yaidom2.queryapi
 
-import eu.cdevreeze.yaidom2.queryapi.ElemStep
-
 /**
  * '''Core API''' for element nodes that offer the central `ClarkElemApi` query API. Each element implementation should
  * directly or indirectly implement this API.

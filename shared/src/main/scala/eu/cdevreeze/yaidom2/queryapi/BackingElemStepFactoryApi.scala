@@ -17,7 +17,6 @@
 package eu.cdevreeze.yaidom2.queryapi
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.ElemStep
 
 /**
  * ElemStep factory API for Backing elements.
