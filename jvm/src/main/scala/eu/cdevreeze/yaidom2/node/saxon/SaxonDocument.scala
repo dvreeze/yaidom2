@@ -22,7 +22,7 @@ import scala.collection.immutable.ArraySeq
 import scala.jdk.OptionConverters._
 import scala.jdk.StreamConverters._
 
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
 import net.sf.saxon.s9api.streams.Predicates.isElement

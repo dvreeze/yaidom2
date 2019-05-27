@@ -14,21 +14,35 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo
+package eu.cdevreeze.yaidom2.queryapi
+
+import java.net.URI
 
 /**
- * ElemStep factory API for Scoped elements.
+ * Common contract for documents.
  *
  * @author Chris de Vreeze
  */
-trait ScopedElemStepFactoryApi extends ClarkElemStepFactoryApi {
+trait DocumentApi {
 
-  type ElemType <: ScopedElemApi
+  type NodeType <: Nodes.Node
+
+  type CanBeDocumentChildType <: NodeType with Nodes.CanBeDocumentChild
+
+  type ElemType <: CanBeDocumentChildType with Nodes.Elem
+
+  def docUriOption: Option[URI]
+
+  def children: Seq[CanBeDocumentChildType]
+
+  def documentElement: ElemType
 }
 
-object ScopedElemStepFactoryApi {
+object DocumentApi {
 
-  type Aux[E] = ScopedElemStepFactoryApi {
+  type Aux[N, C, E] = DocumentApi {
+    type NodeType = N
+    type CanBeDocumentChildType = C
     type ElemType = E
   }
 }

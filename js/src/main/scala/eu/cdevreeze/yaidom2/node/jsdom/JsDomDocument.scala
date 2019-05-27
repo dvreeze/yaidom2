@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node.jsdom
 
 import java.net.URI
 
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
 import org.scalajs.dom
 
 /**

@@ -18,9 +18,9 @@ package eu.cdevreeze.yaidom2.queryapi.tests
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemStepFactoryApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.oo._
+import eu.cdevreeze.yaidom2.queryapi.ClarkElemStepFactoryApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi._
 import org.scalatest.funsuite.AnyFunSuite
 
 abstract class XbrlClarkElemQueryTest[E <: ClarkNodes.Elem.Aux[_, E]] extends AnyFunSuite {

@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node.saxon
 
 import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
 import eu.cdevreeze.yaidom2.jaxp.SaxEventProducers
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
 import net.sf.saxon.event.ReceivingContentHandler
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.XdmNode

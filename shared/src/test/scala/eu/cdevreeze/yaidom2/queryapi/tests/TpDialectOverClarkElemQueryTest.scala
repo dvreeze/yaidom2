@@ -26,11 +26,11 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.dialect.AbstractDialectClarkElem
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.DocumentApi
-import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ClarkElemStepFactory
-import eu.cdevreeze.yaidom2.queryapi.oo.named
+import eu.cdevreeze.yaidom2.queryapi.ClarkDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.DocumentApi
+import eu.cdevreeze.yaidom2.queryapi.elemstep.ClarkElemStepFactory
+import eu.cdevreeze.yaidom2.queryapi.named
 import org.scalatest.funsuite.AnyFunSuite
 
 /**

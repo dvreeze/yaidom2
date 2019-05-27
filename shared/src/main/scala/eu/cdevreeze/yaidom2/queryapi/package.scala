@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2
 
+import eu.cdevreeze.yaidom2.core.EName
+
 /**
  * The query API of yaidom2.
  *
@@ -23,10 +25,9 @@ package eu.cdevreeze.yaidom2
  * Still, concrete element implementations mix in these query API traits, and new element implementations can be
  * invented that do the same.
  *
- * There is an OO API offered by concrete element implementations, but also a functional API. The OO API is designed
- * in such a way that user code can mostly work with "raw" element types without having to specify the concrete type
- * parameters. This makes it easy to wrap element abstractions in "XML dialect" abstractions without needing any generics
- * in the latter, which greatly improves ease of use.
+ * The API is designed in such a way that user code can mostly work with "raw" element types without having to specify the
+ * concrete type parameters. This makes it easy to wrap element abstractions in "XML dialect" abstractions without needing
+ * any generics in the latter, which greatly improves ease of use.
  *
  * The above-mentioned design has a simple abstract API in that the member type constraints are trivial F-bounded
  * polymorphism, without using self types etc. The implementations of that abstract API are mostly only in the concrete
@@ -34,4 +35,41 @@ package eu.cdevreeze.yaidom2
  *
  * @author Chris de Vreeze
  */
-package object queryapi
+package object queryapi {
+
+  val anyElem: ElemApi => Boolean = {
+    _ => true
+  }
+
+  def named(name: EName): ClarkElemApi => Boolean = {
+    named(name.namespaceUriOption, name.localPart)
+  }
+
+  def named(namespaceOption: Option[String], localName: String): ClarkElemApi => Boolean = {
+    elem =>
+      val nsAsString = namespaceOption.getOrElse("")
+
+      elem.namespaceAsString == nsAsString && elem.localName == localName
+  }
+
+  /**
+   * Predicate returning true for elements having the given non-empty namespace and local name
+   */
+  def named(namespace: String, localName: String): ClarkElemApi => Boolean = {
+    elem => elem.namespaceAsString == namespace && elem.localName == localName
+  }
+
+  /**
+   * Predicate returning true for elements having no namespace but the given local name
+   */
+  def named(localName: String): ClarkElemApi => Boolean = {
+    elem => elem.namespaceAsString.isEmpty && elem.localName == localName
+  }
+
+  /**
+   * Predicate returning true for elements having the given local name, ignoring the namespace, if any
+   */
+  def havingLocalName(localName: String): ClarkElemApi => Boolean = {
+    _.localName == localName
+  }
+}

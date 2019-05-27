@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node
 
 import java.io.File
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkElemApi
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ElemApiSpecificationDataProvider
 import net.sf.saxon.s9api.Processor
 import org.scalacheck.Arbitrary

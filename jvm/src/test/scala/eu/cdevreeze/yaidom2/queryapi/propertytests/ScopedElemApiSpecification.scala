@@ -16,8 +16,8 @@
 
 package eu.cdevreeze.yaidom2.queryapi.propertytests
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedElemStepFactoryApi
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 

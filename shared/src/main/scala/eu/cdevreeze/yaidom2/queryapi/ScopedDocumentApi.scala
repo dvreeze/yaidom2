@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo.elemstep
-
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
+package eu.cdevreeze.yaidom2.queryapi
 
 /**
- * ElemStep factory implementation for Scoped elements.
+ * Common contract for documents containing ScopedNodes elements.
  *
  * @author Chris de Vreeze
  */
-// scalastyle:off number.of.methods
-abstract class ScopedElemStepFactory extends ClarkElemStepFactory with ScopedElemStepFactoryApi {
+trait ScopedDocumentApi extends ClarkDocumentApi {
 
-  type ElemType <: ScopedElemApi.Aux[ElemType]
+  type NodeType <: ScopedNodes.Node
+
+  type CanBeDocumentChildType <: NodeType with ScopedNodes.CanBeDocumentChild
+
+  type ElemType <: CanBeDocumentChildType with ScopedNodes.Elem
 }
 
-object ScopedElemStepFactory {
+object ScopedDocumentApi {
 
-  type Aux[E] = ScopedElemStepFactory { type ElemType = E }
+  type Aux[N, C, E] = ScopedDocumentApi {
+    type NodeType = N
+    type CanBeDocumentChildType = C
+    type ElemType = E
+  }
 }

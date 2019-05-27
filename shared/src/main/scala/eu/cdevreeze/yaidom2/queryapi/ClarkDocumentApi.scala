@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo
+package eu.cdevreeze.yaidom2.queryapi
 
 /**
- * Common contract for documents containing ScopedNodes elements.
+ * Common contract for documents containing ClarkNodes elements.
  *
  * @author Chris de Vreeze
  */
-trait ScopedDocumentApi extends ClarkDocumentApi {
+trait ClarkDocumentApi extends DocumentApi {
 
-  type NodeType <: ScopedNodes.Node
+  type NodeType <: ClarkNodes.Node
 
-  type CanBeDocumentChildType <: NodeType with ScopedNodes.CanBeDocumentChild
+  type CanBeDocumentChildType <: NodeType with ClarkNodes.CanBeDocumentChild
 
-  type ElemType <: CanBeDocumentChildType with ScopedNodes.Elem
+  type ElemType <: CanBeDocumentChildType with ClarkNodes.Elem
 }
 
-object ScopedDocumentApi {
+object ClarkDocumentApi {
 
-  type Aux[N, C, E] = ScopedDocumentApi {
-    type NodeType = N
+  type Aux[N, C, E] = ClarkDocumentApi {
+    type Nodetype = N
     type CanBeDocumentChildType = C
     type ElemType = E
   }

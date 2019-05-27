@@ -27,8 +27,8 @@ import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractBackingElem
+import eu.cdevreeze.yaidom2.queryapi.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.internal.AbstractBackingElem
 
 /**
  * Native "indexed" nodes.

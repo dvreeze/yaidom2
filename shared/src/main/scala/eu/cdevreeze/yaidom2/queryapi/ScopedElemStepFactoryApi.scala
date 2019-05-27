@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo
+package eu.cdevreeze.yaidom2.queryapi
 
 /**
- * Common contract for documents containing BackingNodes elements.
+ * ElemStep factory API for Scoped elements.
  *
  * @author Chris de Vreeze
  */
-trait BackingDocumentApi extends ScopedDocumentApi {
+trait ScopedElemStepFactoryApi extends ClarkElemStepFactoryApi {
 
-  type NodeType <: BackingNodes.Node
-
-  type CanBeDocumentChildType <: NodeType with BackingNodes.CanBeDocumentChild
-
-  type ElemType <: CanBeDocumentChildType with BackingNodes.Elem
+  type ElemType <: ScopedElemApi
 }
 
-object BackingDocumentApi {
+object ScopedElemStepFactoryApi {
 
-  type Aux[N, C, E] = BackingDocumentApi {
-    type NodeType = N
-    type CanBeDocumentChildType = C
+  type Aux[E] = ScopedElemStepFactoryApi {
     type ElemType = E
   }
 }

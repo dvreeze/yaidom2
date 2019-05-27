@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 
 /**
  * Factory API for Scoped documents.

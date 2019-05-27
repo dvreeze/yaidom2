@@ -18,8 +18,8 @@ package eu.cdevreeze.yaidom2.jaxp
 
 import eu.cdevreeze.yaidom2.core.Declarations
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import org.xml.sax.Attributes
 import org.xml.sax.ContentHandler
 import org.xml.sax.ext.LexicalHandler

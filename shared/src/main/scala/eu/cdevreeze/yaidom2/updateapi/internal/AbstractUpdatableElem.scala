@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.updateapi.oo.internal
+package eu.cdevreeze.yaidom2.updateapi.internal
 
 import scala.collection.immutable.SortedMap
 
-import eu.cdevreeze.yaidom2.queryapi.oo.Nodes
-import eu.cdevreeze.yaidom2.updateapi.oo.UpdatableElemApi
+import eu.cdevreeze.yaidom2.queryapi.Nodes
+import eu.cdevreeze.yaidom2.updateapi.UpdatableElemApi
 
 /**
  * Abstract partially implemented UpdatableElemApi, for re-usable (but overridable) partial element implementations in yaidom2.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.updateapi.oo
+package eu.cdevreeze.yaidom2.updateapi
 
 /**
  * Transformable element API.

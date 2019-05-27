@@ -20,8 +20,8 @@ import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 
 /**
  * General partly implementation of "dialect Clark elements". This makes implementing each dialect (as Clark

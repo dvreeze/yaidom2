@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 
 /**
  * Factory APIs for Backing nodes.

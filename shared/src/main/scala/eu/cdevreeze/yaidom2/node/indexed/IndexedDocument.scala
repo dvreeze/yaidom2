@@ -21,7 +21,7 @@ import java.net.URI
 import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
 import eu.cdevreeze.yaidom2.node.simple.SimpleDocument
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
 
 /**
  * Document holding a IndexedNodes.Elem.

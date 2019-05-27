@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 
 /**
  * Factory APIs for Clark nodes.

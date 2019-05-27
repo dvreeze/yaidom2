@@ -23,9 +23,9 @@ import scala.reflect.classTag
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractClarkElem
-import eu.cdevreeze.yaidom2.updateapi.oo.TransformableElemApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
+import eu.cdevreeze.yaidom2.updateapi.TransformableElemApi
 
 /**
  * "Resolved" nodes.

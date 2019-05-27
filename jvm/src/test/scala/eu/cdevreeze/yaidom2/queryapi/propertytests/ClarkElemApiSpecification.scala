@@ -17,8 +17,8 @@
 package eu.cdevreeze.yaidom2.queryapi.propertytests
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemStepFactoryApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.ClarkElemStepFactoryApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 

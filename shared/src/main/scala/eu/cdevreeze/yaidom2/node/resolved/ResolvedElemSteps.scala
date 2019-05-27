@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
-import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ClarkElemStepFactory
+import eu.cdevreeze.yaidom2.queryapi.elemstep.ClarkElemStepFactory
 
 /**
  * ElemStep factory API for resolved elements.

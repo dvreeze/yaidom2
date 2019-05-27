@@ -19,9 +19,9 @@ package eu.cdevreeze.yaidom2.node.simple
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
-import eu.cdevreeze.yaidom2.queryapi.oo.Nodes
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedDocumentApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.Nodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 
 /**
  * Document holding a SimpleNodes.Elem.

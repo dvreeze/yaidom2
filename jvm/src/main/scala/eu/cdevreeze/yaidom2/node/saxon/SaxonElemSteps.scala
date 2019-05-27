@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.node.saxon
 
-import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.BackingElemStepFactory
+import eu.cdevreeze.yaidom2.queryapi.elemstep.BackingElemStepFactory
 
 /**
  * ElemStep factory API for Saxon elements.

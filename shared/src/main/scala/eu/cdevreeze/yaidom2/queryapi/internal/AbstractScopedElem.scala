@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo.internal
+package eu.cdevreeze.yaidom2.queryapi.internal
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 
 /**
  * Abstract partially implemented ScopedNodes.Elem, for re-usable (but overridable) partial element implementations in yaidom2.

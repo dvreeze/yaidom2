@@ -19,7 +19,7 @@ package eu.cdevreeze.yaidom2.node.resolved
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.creationapi.ClarkDocumentFactory
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkDocumentApi
 
 /**
  * Document holding a ResolvedNodes.Elem.

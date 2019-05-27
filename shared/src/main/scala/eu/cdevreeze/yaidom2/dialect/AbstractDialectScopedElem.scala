@@ -23,7 +23,7 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 
 /**
  * General partly implementation of "dialect Scoped elements". This makes implementing each dialect (as Scoped

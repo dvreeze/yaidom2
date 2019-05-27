@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo
+package eu.cdevreeze.yaidom2.queryapi
 
 import scala.collection.immutable.SeqMap
 

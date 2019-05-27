@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo
+package eu.cdevreeze.yaidom2.queryapi
 
 /**
  * '''Core API''' for element nodes that offer the central `BackingElemApi` query API (and more). Each element implementation that

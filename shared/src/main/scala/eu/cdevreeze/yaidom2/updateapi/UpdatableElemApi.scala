@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.updateapi.oo
+package eu.cdevreeze.yaidom2.updateapi
 
 /**
  * Updatable element API. It is to a large extent centered around "navigation paths". For an explanation of these navigation

@@ -17,9 +17,9 @@
 package eu.cdevreeze.yaidom2.queryapi.tests
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedElemStepFactoryApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.named
+import eu.cdevreeze.yaidom2.queryapi.ScopedElemStepFactoryApi
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.named
 
 abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends XbrlClarkElemQueryTest[E] {
 

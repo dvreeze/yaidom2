@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
 
 /**
  * Factory API for Backing documents.

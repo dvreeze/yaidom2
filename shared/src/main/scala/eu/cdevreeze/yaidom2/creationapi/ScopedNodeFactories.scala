@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 
 /**
  * Factory APIs for Scoped nodes.

@@ -19,8 +19,8 @@ package eu.cdevreeze.yaidom2.queryapi.propertytests
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingElemStepFactoryApi
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.BackingElemStepFactoryApi
+import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Prop.BooleanOperators
 import org.scalacheck.Properties

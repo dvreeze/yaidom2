@@ -24,8 +24,8 @@ import scala.collection.immutable.SeqMap
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
+import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 
 /**
  * General partly implementation of "dialect Backing elements". This makes implementing each dialect (as Backing

@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkDocumentApi
 
 /**
  * Factory API for Clark documents.

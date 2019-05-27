@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo.elemstep
+package eu.cdevreeze.yaidom2.queryapi.elemstep
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemApi
-import eu.cdevreeze.yaidom2.queryapi.oo.ClarkElemStepFactoryApi
-import eu.cdevreeze.yaidom2.queryapi.oo.anyElem
-import eu.cdevreeze.yaidom2.queryapi.oo.havingLocalName
-import eu.cdevreeze.yaidom2.queryapi.oo.named
+import eu.cdevreeze.yaidom2.queryapi.ClarkElemApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkElemStepFactoryApi
+import eu.cdevreeze.yaidom2.queryapi.anyElem
+import eu.cdevreeze.yaidom2.queryapi.havingLocalName
+import eu.cdevreeze.yaidom2.queryapi.named
 
 /**
  * ElemStep factory implementation for Clark elements.

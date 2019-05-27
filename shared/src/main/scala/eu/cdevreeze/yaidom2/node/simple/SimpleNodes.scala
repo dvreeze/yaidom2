@@ -24,8 +24,8 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
-import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
-import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractScopedElem
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
 
 /**
  * "Simple" nodes.

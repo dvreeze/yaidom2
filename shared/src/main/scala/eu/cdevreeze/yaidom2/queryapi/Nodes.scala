@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.queryapi.oo
+package eu.cdevreeze.yaidom2.queryapi
 
 /**
  * Abstract node (marker) trait hierarchy. It offers a common minimal API for different kinds of nodes. It also shows

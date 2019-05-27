@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.queryapi.propertytests
 
-import eu.cdevreeze.yaidom2.queryapi.oo.ElemApi
+import eu.cdevreeze.yaidom2.queryapi.ElemApi
 import org.scalacheck.Arbitrary
 import org.scalacheck.Properties
 

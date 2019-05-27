@@ -20,7 +20,7 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.indexed
 import eu.cdevreeze.yaidom2.node.jsdom.JsDomDocument
 import eu.cdevreeze.yaidom2.node.resolved
-import eu.cdevreeze.yaidom2.queryapi.oo._
+import eu.cdevreeze.yaidom2.queryapi._
 import org.scalajs.dom.experimental.domparser.DOMParser
 import org.scalajs.dom.experimental.domparser.SupportedType
 import org.scalatest.funsuite.AnyFunSuite

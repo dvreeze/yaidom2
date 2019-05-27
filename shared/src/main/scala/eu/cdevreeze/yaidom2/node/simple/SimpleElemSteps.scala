@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.node.simple
 
-import eu.cdevreeze.yaidom2.queryapi.oo.elemstep.ScopedElemStepFactory
+import eu.cdevreeze.yaidom2.queryapi.elemstep.ScopedElemStepFactory
 
 /**
  * ElemStep factory API for simple elements.
