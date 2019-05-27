@@ -26,7 +26,6 @@ import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.oo.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractScopedElem
-import eu.cdevreeze.yaidom2.queryapi.oofun.ScopedElemFunctionWrapper
 
 /**
  * "Simple" nodes.
@@ -157,7 +156,7 @@ object SimpleNodes {
     }
   }
 
-  object Elem extends ScopedElemFunctionWrapper with ScopedNodeFactories.ElemFactory {
+  object Elem extends ScopedNodeFactories.ElemFactory {
 
     type ElemType = Elem
 

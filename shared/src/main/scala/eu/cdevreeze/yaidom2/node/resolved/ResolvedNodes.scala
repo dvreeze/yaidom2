@@ -25,8 +25,6 @@ import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.oo.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractClarkElem
-import eu.cdevreeze.yaidom2.queryapi.oofun.ClarkElemFunctionWrapper
-import eu.cdevreeze.yaidom2.updateapi.fun.ElemTransformationApi
 import eu.cdevreeze.yaidom2.updateapi.oo.TransformableElemApi
 
 /**
@@ -170,7 +168,7 @@ object ResolvedNodes {
     }
   }
 
-  object Elem extends ClarkElemFunctionWrapper with ClarkNodeFactories.ElemFactory with ElemTransformationApi {
+  object Elem extends ClarkNodeFactories.ElemFactory {
 
     type ElemType = Elem
 
@@ -188,8 +186,6 @@ object ResolvedNodes {
 
       Elem(elm.name, elm.attributes, resolvedChildren.to(ArraySeq))
     }
-
-    // ElemTransformationApi methods
 
     def transformChildElems(elem: ElemType, f: ElemType => ElemType): ElemType = {
       val children = elem.children.map {

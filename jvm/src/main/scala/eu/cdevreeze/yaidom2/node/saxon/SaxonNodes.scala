@@ -27,7 +27,6 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.fun.BackingElemFunctionsApi
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
@@ -407,7 +406,7 @@ object SaxonNodes {
   }
 
   // scalastyle:off number.of.methods
-  object Elem extends BackingElemFunctionsApi {
+  private[saxon] object Elem {
 
     type ElemType = XdmNode
 

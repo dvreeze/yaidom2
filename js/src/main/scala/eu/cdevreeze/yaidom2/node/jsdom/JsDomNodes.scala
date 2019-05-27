@@ -21,6 +21,7 @@ import java.net.URI
 import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
+import scala.collection.mutable
 import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.Declarations
@@ -29,7 +30,6 @@ import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.core.UnprefixedName
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.fun.internal.AbstractBackingElemFunctions
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import org.scalajs.dom
 import org.scalajs.dom.NamedNodeMap
@@ -460,7 +460,7 @@ object JsDomNodes {
     }
   }
 
-  object Elem extends AbstractBackingElemFunctions {
+  private[jsdom] object Elem {
 
     type ElemType = dom.Element
 
@@ -474,8 +474,58 @@ object JsDomNodes {
       children(elem).collect { case e: dom.Element if p(e) => e }
     }
 
+    def findAllChildElems(elem: ElemType): Seq[ElemType] = {
+      filterChildElems(elem, _ => true)
+    }
+
     def findChildElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
       children(elem).collectFirst { case e: dom.Element if p(e) => e }
+    }
+
+    def filterDescendantElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      findAllChildElems(elem).flatMap(e => filterDescendantElemsOrSelf(e, p))
+    }
+
+    def findAllDescendantElems(elem: ElemType): Seq[ElemType] = {
+      filterDescendantElems(elem, _ => true)
+    }
+
+    def findDescendantElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      findAllChildElems(elem).view.flatMap(e => findDescendantElemOrSelf(e, p)).headOption
+    }
+
+    def filterDescendantElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      val result = mutable.ArrayBuffer[ElemType]()
+
+      def accumulate(elm: ElemType): Unit = {
+        if (p(elm)) result += elm
+        // Recursive calls (not tail-recursive, but the depth is typically limited)
+        findAllChildElems(elm).foreach(accumulate)
+      }
+
+      accumulate(elem)
+      toImmutableSeq(result)
+    }
+
+    def findAllDescendantElemsOrSelf(elem: ElemType): Seq[ElemType] = {
+      filterDescendantElemsOrSelf(elem, _ => true)
+    }
+
+    def findDescendantElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      var result: Option[ElemType] = None
+
+      def findElem(elm: ElemType): Unit = {
+        if (result.isEmpty) {
+          if (p(elm)) result = Some(elm)
+        }
+        if (result.isEmpty) {
+          // Recursive calls (not tail-recursive, but the depth is typically limited)
+          findAllChildElems(elm).foreach(findElem)
+        }
+      }
+
+      findElem(elem)
+      result
     }
 
     def findDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): Option[ElemType] = {
@@ -492,6 +542,30 @@ object JsDomNodes {
           None
         }
       }
+    }
+
+    def findTopmostElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      findAllChildElems(elem).flatMap(e => findTopmostElemsOrSelf(e, p))
+    }
+
+    def findTopmostElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      val result = mutable.ArrayBuffer[ElemType]()
+
+      def accumulate(elm: ElemType): Unit = {
+        if (p(elm)) {
+          result += elm
+        } else {
+          // Recursive calls (not tail-recursive, but the depth is typically limited)
+          findAllChildElems(elm).foreach(accumulate)
+        }
+      }
+
+      accumulate(elem)
+      toImmutableSeq(result)
+    }
+
+    def getDescendantElemOrSelf(elem: ElemType, navigationPath: Seq[Int]): ElemType = {
+      findDescendantElemOrSelf(elem, navigationPath).getOrElse(sys.error(s"Missing element at navigation path $navigationPath"))
     }
 
     def name(elem: ElemType): EName = {
@@ -513,9 +587,61 @@ object JsDomNodes {
       }.to(SeqMap)
     }
 
+    def localName(elem: ElemType): String = {
+      name(elem).localPart
+    }
+
+    def namespaceOption(elem: ElemType): Option[String] = {
+      name(elem).namespaceUriOption
+    }
+
+    def namespaceAsString(elem: ElemType): String = {
+      namespaceOption(elem).getOrElse("")
+    }
+
+    def attrOption(elem: ElemType, attributeName: EName): Option[String] = {
+      attributes(elem).get(attributeName)
+    }
+
+    def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
+      attrOption(elem, EName(attributeNamespaceOption, attributeLocalName))
+    }
+
+    def attrOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[String] = {
+      attrOption(elem, EName(Some(attributeNamespace), attributeLocalName))
+    }
+
+    def attrOption(elem: ElemType, attributeLocalName: String): Option[String] = {
+      attrOption(elem, EName(None, attributeLocalName))
+    }
+
+    def attr(elem: ElemType, attributeName: EName): String = {
+      attrOption(elem, attributeName).get
+    }
+
+    def attr(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
+      attrOption(elem, attributeNamespaceOption, attributeLocalName).get
+    }
+
+    def attr(elem: ElemType, attributeNamespace: String, attributeLocalName: String): String = {
+      attrOption(elem, attributeNamespace, attributeLocalName).get
+    }
+
+    def attr(elem: ElemType, attributeLocalName: String): String = {
+      attrOption(elem, attributeLocalName).get
+    }
+
     def text(elem: ElemType): String = {
       val textStrings = children(elem).collect { case t: dom.Text => t }.map(_.data)
       textStrings.mkString
+    }
+
+    def normalizedText(elem: ElemType): String = {
+      normalizeString(text(elem))
+    }
+
+    def trimmedText(elem: ElemType): String = {
+      text(elem).trim
     }
 
     def children(elem: ElemType): Seq[NodeType] = {
@@ -560,8 +686,109 @@ object JsDomNodes {
       }.to(SeqMap)
     }
 
+    def textAsQName(elem: ElemType): QName = {
+      QName.parse(text(elem).trim)
+    }
+
+    def textAsResolvedQName(elem: ElemType): EName = {
+      scope(elem).resolveQNameOption(textAsQName(elem)).getOrElse(
+        sys.error(s"Could not resolve QName-valued element text ${textAsQName(elem)}, given scope [${scope(elem)}]"))
+    }
+
+    def attrAsQNameOption(elem: ElemType, attributeName: EName): Option[QName] = {
+      attrOption(elem, attributeName).map(v => QName.parse(v.trim))
+    }
+
+    def attrAsQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
+      attrOption(elem, attributeNamespaceOption, attributeLocalName).map(v => QName.parse(v.trim))
+    }
+
+    def attrAsQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[QName] = {
+      attrOption(elem, attributeNamespace, attributeLocalName).map(v => QName.parse(v.trim))
+    }
+
+    def attrAsQName(elem: ElemType, attributeName: EName): QName = {
+      attrAsQNameOption(elem, attributeName).getOrElse(
+        sys.error(s"Missing QName-valued attribute $attributeName"))
+    }
+
+    def attrAsQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
+      attrAsQNameOption(elem, attributeNamespaceOption, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
+    }
+
+    def attrAsQName(elem: ElemType, attributeNamespace: String, attributeLocalName: String): QName = {
+      attrAsQNameOption(elem, attributeNamespace, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
+    }
+
+    def attrAsResolvedQNameOption(elem: ElemType, attributeName: EName): Option[EName] = {
+      attrAsQNameOption(elem, attributeName).map { qn =>
+        scope(elem).resolveQNameOption(qn).getOrElse(
+          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+      }
+    }
+
+    def attrAsResolvedQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
+      attrAsQNameOption(elem, attributeNamespaceOption, attributeLocalName).map { qn =>
+        scope(elem).resolveQNameOption(qn).getOrElse(
+          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+      }
+    }
+
+    def attrAsResolvedQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[EName] = {
+      attrAsQNameOption(elem, attributeNamespace, attributeLocalName).map { qn =>
+        scope(elem).resolveQNameOption(qn).getOrElse(
+          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+      }
+    }
+
+    def attrAsResolvedQName(elem: ElemType, attributeName: EName): EName = {
+      attrAsResolvedQNameOption(elem, attributeName).getOrElse(
+        sys.error(s"Missing QName-valued attribute $attributeName"))
+    }
+
+    def attrAsResolvedQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
+      attrAsResolvedQNameOption(elem, attributeNamespaceOption, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(attributeNamespaceOption, attributeLocalName)}"))
+    }
+
+    def attrAsResolvedQName(elem: ElemType, attributeNamespace: String, attributeLocalName: String): EName = {
+      attrAsResolvedQNameOption(elem, attributeNamespace, attributeLocalName).getOrElse(
+        sys.error(s"Missing QName-valued attribute ${EName(Some(attributeNamespace), attributeLocalName)}"))
+    }
+
     def findParentElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
       Option(elem.parentNode).collect { case e: dom.Element if p(e) => e }
+    }
+
+    def findParentElem(elem: ElemType): Option[ElemType] = {
+      findParentElem(elem, _ => true)
+    }
+
+    def filterAncestorElems(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      toImmutableSeq(findParentElem(elem).toList).flatMap(e => filterAncestorElemsOrSelf(e, p))
+    }
+
+    def findAllAncestorElems(elem: ElemType): Seq[ElemType] = {
+      filterAncestorElems(elem, _ => true)
+    }
+
+    def findAncestorElem(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      filterAncestorElems(elem, p).headOption
+    }
+
+    def filterAncestorElemsOrSelf(elem: ElemType, p: ElemType => Boolean): Seq[ElemType] = {
+      // Recursive calls
+      toImmutableSeq(Seq(elem)).filter(p) ++ toImmutableSeq(findParentElem(elem).toList).flatMap(e => filterAncestorElemsOrSelf(e, p))
+    }
+
+    def findAllAncestorElemsOrSelf(elem: ElemType): Seq[ElemType] = {
+      filterAncestorElemsOrSelf(elem, _ => true)
+    }
+
+    def findAncestorElemOrSelf(elem: ElemType, p: ElemType => Boolean): Option[ElemType] = {
+      filterAncestorElemsOrSelf(elem, p).headOption
     }
 
     def findAllPrecedingSiblingElems(elem: ElemType): Seq[ElemType] = {
@@ -581,6 +808,25 @@ object JsDomNodes {
       doFilterPreviousSiblingElements(elem, Nil).reverse
     }
 
+    def ownNavigationPathRelativeToRootElem(elem: ElemType): Seq[Int] = {
+      def relativeNavigationPath(e: ElemType): Seq[Int] = {
+        findParentElem(e).map { pe =>
+          // Recursive call
+          relativeNavigationPath(pe).appended(findAllPrecedingSiblingElems(e).size)
+        }.getOrElse(IndexedSeq.empty)
+      }
+
+      relativeNavigationPath(elem).to(ArraySeq)
+    }
+
+    def baseUri(elem: ElemType): URI = {
+      baseUriOption(elem).getOrElse(EmptyUri)
+    }
+
+    def docUri(elem: ElemType): URI = {
+      docUriOption(elem).getOrElse(EmptyUri)
+    }
+
     def baseUriOption(elem: ElemType): Option[URI] = {
       // TODO
       docUriOption(elem)
@@ -595,6 +841,24 @@ object JsDomNodes {
 
       findParentElem(elem).map(pe => rootElem(pe)).getOrElse(elem)
     }
+
+    // Private methods
+
+    /**
+     * Normalizes the string, removing surrounding whitespace and normalizing internal whitespace to a single space.
+     * Whitespace includes #x20 (space), #x9 (tab), #xD (carriage return), #xA (line feed). If there is only whitespace,
+     * the empty string is returned. Inspired by the JDOM library.
+     */
+    private def normalizeString(s: String): String = {
+      require(s ne null) // scalastyle:off null
+
+      val separators = Array(' ', '\t', '\r', '\n')
+      val words: Seq[String] = s.split(separators).toSeq.filterNot(_.isEmpty)
+
+      words.mkString(" ") // Returns empty string if words.isEmpty
+    }
+
+    private val EmptyUri = new URI("")
   }
 
 }

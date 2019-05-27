@@ -29,7 +29,6 @@ import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.oo.internal.AbstractBackingElem
-import eu.cdevreeze.yaidom2.queryapi.oofun.BackingElemFunctionWrapper
 
 /**
  * Native "indexed" nodes.
@@ -193,7 +192,7 @@ object IndexedNodes {
     }
   }
 
-  object Elem extends BackingElemFunctionWrapper with BackingNodeFactories.ElemFactory {
+  object Elem extends BackingNodeFactories.ElemFactory {
 
     type ElemType = Elem
 
