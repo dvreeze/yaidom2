@@ -26,6 +26,7 @@ import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
 import eu.cdevreeze.yaidom2.updateapi.TransformableElemApi
+import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
 /**
  * "Resolved" nodes.
@@ -53,7 +54,7 @@ object ResolvedNodes {
     name: EName,
     attributes: SeqMap[EName, String],
     children: ArraySeq[Node]
-  ) extends CanBeDocumentChild with AbstractClarkElem with TransformableElemApi {
+  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableElem with TransformableElemApi {
 
     type ThisElem = Elem
 
@@ -92,6 +93,26 @@ object ResolvedNodes {
     }
 
     // Update API methods
+
+    def findAllChildNodes: Seq[ThisNode] = children
+
+    def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
+      Elem(name, attributes, newChildren.to(ArraySeq))
+    }
+
+    def updateTopmostElemsOrSelf(f: PartialFunction[(ThisElem, Seq[Int]), ThisElem]): ThisElem = {
+      ??? // TODO
+    }
+
+    def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
+      ??? // TODO
+    }
+
+    protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
+      findAllChildElems.zipWithIndex
+    }
+
+    // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
       Elem.transformChildElems(this, f)
