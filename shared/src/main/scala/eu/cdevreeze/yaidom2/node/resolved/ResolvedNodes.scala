@@ -100,14 +100,6 @@ object ResolvedNodes {
       Elem(name, attributes, newChildren.to(ArraySeq))
     }
 
-    def updateTopmostElemsOrSelf(f: PartialFunction[(ThisElem, Seq[Int]), ThisElem]): ThisElem = {
-      ??? // TODO
-    }
-
-    def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
-      ??? // TODO
-    }
-
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
       findAllChildElems.zipWithIndex
     }

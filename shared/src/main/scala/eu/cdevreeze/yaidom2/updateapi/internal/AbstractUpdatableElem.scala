@@ -18,7 +18,9 @@ package eu.cdevreeze.yaidom2.updateapi.internal
 
 import scala.collection.immutable.SortedMap
 
+import eu.cdevreeze.yaidom2.queryapi.ElemApi
 import eu.cdevreeze.yaidom2.queryapi.Nodes
+import eu.cdevreeze.yaidom2.queryapi.internal.ElemWithNavigationPath
 import eu.cdevreeze.yaidom2.updateapi.UpdatableElemApi
 
 /**
@@ -33,7 +35,7 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
 
   type ThisNode >: ThisElem
 
-  type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem]
+  type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem] with ElemApi.Aux[ThisElem]
 
   def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = {
     updateChildElems(Set(navigationStep)) { (elm, _) => f(elm) }
@@ -140,6 +142,46 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
       editsByStep.getOrElse(step, Seq(che))
     }
   }
+
+  def updateTopmostElemsOrSelf(f: PartialFunction[(ThisElem, Seq[Int]), ThisElem]): ThisElem = {
+    var editsByNavigationPaths: Map[Seq[Int], ThisElem] = Map.empty
+
+    ElemWithNavigationPath(self).findTopmostElemsOrSelf { elem =>
+      val elemNavigationPathPair: (ThisElem, Seq[Int]) = (elem.elem, elem.navigationPath)
+      val isDefined = f.isDefinedAt(elemNavigationPathPair)
+
+      if (isDefined) {
+        editsByNavigationPaths += (elem.navigationPath -> f(elemNavigationPathPair))
+      }
+
+      isDefined
+    }
+
+    updateDescendantElemsOrSelf(editsByNavigationPaths.keySet) { case (elem, navigationPath) =>
+      editsByNavigationPaths.getOrElse(navigationPath, elem)
+    }
+  }
+
+  def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
+    var editsByNavigationPaths: Map[Seq[Int], Seq[ThisNode]] = Map.empty
+
+    ElemWithNavigationPath(self).findTopmostElems { elem =>
+      val elemNavigationPathPair: (ThisElem, Seq[Int]) = (elem.elem, elem.navigationPath)
+      val isDefined = f.isDefinedAt(elemNavigationPathPair)
+
+      if (isDefined) {
+        editsByNavigationPaths += (elem.navigationPath -> f(elemNavigationPathPair))
+      }
+
+      isDefined
+    }
+
+    updateDescendantElemsWithNodeSeq(editsByNavigationPaths.keySet) { case (elem, navigationPath) =>
+      editsByNavigationPaths.getOrElse(navigationPath, Seq(elem))
+    }
+  }
+
+  protected def self: ThisElem
 
   /**
    * Computes a mapping from navigation steps (child element indexes) to child node indexes, sorted in reverse document order.

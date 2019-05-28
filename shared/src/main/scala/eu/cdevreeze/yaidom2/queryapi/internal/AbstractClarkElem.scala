@@ -16,8 +16,6 @@
 
 package eu.cdevreeze.yaidom2.queryapi.internal
 
-import scala.collection.mutable
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
@@ -30,89 +28,9 @@ import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
  *
  * @author Chris de Vreeze
  */
-trait AbstractClarkElem extends ClarkNodes.Elem {
+trait AbstractClarkElem extends AbstractElem with ClarkNodes.Elem {
 
   type ThisElem <: AbstractClarkElem.Aux[ThisNode, ThisElem]
-
-  protected[yaidom2] def self: ThisElem
-
-  protected[yaidom2] def toImmutableSeq(xs: collection.Seq[ThisElem]): Seq[ThisElem]
-
-  // ElemApi
-
-  def findAllChildElems(): Seq[ThisElem] = {
-    filterChildElems(_ => true)
-  }
-
-  def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-    findAllChildElems().flatMap(_.filterDescendantElemsOrSelf(p))
-  }
-
-  def findAllDescendantElems(): Seq[ThisElem] = {
-    filterDescendantElems(_ => true)
-  }
-
-  def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-    findAllChildElems().view.flatMap(_.findDescendantElemOrSelf(p)).headOption
-  }
-
-  def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-    val result = mutable.ArrayBuffer[ThisElem]()
-
-    def accumulate(elm: ThisElem): Unit = {
-      if (p(elm)) result += elm
-      // Recursive calls (not tail-recursive, but the depth is typically limited)
-      elm.findAllChildElems().foreach(accumulate)
-    }
-
-    accumulate(self)
-    toImmutableSeq(result)
-  }
-
-  def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
-    filterDescendantElemsOrSelf(_ => true)
-  }
-
-  def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
-    var result: Option[ThisElem] = None
-
-    def findElem(elm: ThisElem): Unit = {
-      if (result.isEmpty) {
-        if (p(elm)) result = Some(elm)
-      }
-      if (result.isEmpty) {
-        // Recursive calls (not tail-recursive, but the depth is typically limited)
-        elm.findAllChildElems().foreach(findElem)
-      }
-    }
-
-    findElem(self)
-    result
-  }
-
-  def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-    findAllChildElems().flatMap(_.findTopmostElemsOrSelf(p))
-  }
-
-  def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
-    val result = mutable.ArrayBuffer[ThisElem]()
-
-    def accumulate(elm: ThisElem): Unit = {
-      if (p(elm)) {
-        result += elm
-      } else {
-        // Recursive calls (not tail-recursive, but the depth is typically limited)
-        elm.findAllChildElems().foreach(accumulate)
-      }
-    }
-
-    accumulate(self)
-    toImmutableSeq(result)
-  }
-
-  def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = {
-    findDescendantElemOrSelf(navigationPath).getOrElse(sys.error(s"Missing element at navigation path $navigationPath"))
-  }
 
   // ClarkElemApi
 
