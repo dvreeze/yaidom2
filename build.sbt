@@ -9,7 +9,7 @@
 
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalaVer = "2.13.0-RC3"
+val scalaVer = "2.13.0"
 val crossScalaVer = Seq(scalaVer)
 
 lazy val commonSettings = Seq(
@@ -41,8 +41,8 @@ lazy val commonSettings = Seq(
 
   libraryDependencies ++= {
     scalaBinaryVersion.value match {
-      case "2.13.0-RC3" => Seq("org.scalatest" %%% "scalatest" % "3.1.0-SNAP12" % "test")
-      case _            => Seq("org.scalatest" %%% "scalatest" % "3.0.7" % "test")
+      case "2.13" => Seq("org.scalatest" %%% "scalatest" % "3.1.0-SNAP13" % "test")
+      case _      => Seq("org.scalatest" %%% "scalatest" % "3.0.8" % "test")
     }
   }
 )
@@ -67,7 +67,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings(
     // By all means, override this version of Saxon if needed, possibly with a Saxon-EE release!
 
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-2",
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-3",
 
     libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.0" % "test"
   )
