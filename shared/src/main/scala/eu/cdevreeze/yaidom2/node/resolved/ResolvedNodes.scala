@@ -25,7 +25,6 @@ import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
-import eu.cdevreeze.yaidom2.updateapi.TransformableElemApi
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
 /**
@@ -54,7 +53,7 @@ object ResolvedNodes {
     name: EName,
     attributes: SeqMap[EName, String],
     children: ArraySeq[Node]
-  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableElem with TransformableElemApi {
+  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableElem {
 
     type ThisElem = Elem
 
@@ -107,27 +106,21 @@ object ResolvedNodes {
     // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
-      Elem.transformChildElems(this, f)
+      val childNodes = children.map {
+        case e: Elem => f(e)
+        case n => n
+      }
+
+      Elem(name, attributes, childNodes)
     }
 
     def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
-      Elem.transformChildElemsToNodeSeq(this, f)
-    }
+      val childNodes = children.flatMap {
+        case e: Elem => f(e)
+        case n => Seq(n)
+      }
 
-    def transformDescendantElemsOrSelf(f: ThisElem => ThisElem): ThisElem = {
-      Elem.transformDescendantElemsOrSelf(this, f)
-    }
-
-    def transformDescendantElems(f: ThisElem => ThisElem): ThisElem = {
-      Elem.transformDescendantElems(this, f)
-    }
-
-    def transformDescendantElemsOrSelfToNodeSeq(f: ThisElem => Seq[ThisNode]): Seq[ThisNode] = {
-      Elem.transformDescendantElemsOrSelfToNodeSeq(this, f)
-    }
-
-    def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
-      Elem.transformDescendantElemsToNodeSeq(this, f)
+      Elem(name, attributes, childNodes)
     }
   }
 
@@ -183,10 +176,6 @@ object ResolvedNodes {
 
   object Elem extends ClarkNodeFactories.ElemFactory {
 
-    type ElemType = Elem
-
-    type NodeType = Node
-
     type TargetElemType = Elem
 
     def from(elm: ClarkNodes.Elem): Elem = {
@@ -198,40 +187,6 @@ object ResolvedNodes {
       val resolvedChildren = children.map { node => Node.from(node) }
 
       Elem(elm.name, elm.attributes, resolvedChildren.to(ArraySeq))
-    }
-
-    def transformChildElems(elem: ElemType, f: ElemType => ElemType): ElemType = {
-      val children = elem.children.map {
-        case e: Elem => f(e)
-        case n => n
-      }
-
-      Elem(elem.name, elem.attributes, children)
-    }
-
-    def transformChildElemsToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): ElemType = {
-      val children = elem.children.flatMap {
-        case e: Elem => f(e)
-        case n => Seq(n)
-      }
-
-      Elem(elem.name, elem.attributes, children)
-    }
-
-    def transformDescendantElemsOrSelf(elem: ElemType, f: ElemType => ElemType): ElemType = {
-      f(transformChildElems(elem, e => transformDescendantElemsOrSelf(e, f)))
-    }
-
-    def transformDescendantElems(elem: ElemType, f: ElemType => ElemType): ElemType = {
-      transformChildElems(elem, e => transformDescendantElemsOrSelf(e, f))
-    }
-
-    def transformDescendantElemsOrSelfToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): Seq[NodeType] = {
-      f(transformChildElemsToNodeSeq(elem, e => transformDescendantElemsOrSelfToNodeSeq(e, f)))
-    }
-
-    def transformDescendantElemsToNodeSeq(elem: ElemType, f: ElemType => Seq[NodeType]): ElemType = {
-      transformChildElemsToNodeSeq(elem, e => transformDescendantElemsOrSelfToNodeSeq(e, f))
     }
   }
 

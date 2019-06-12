@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.updateapi.internal
 
 import scala.collection.immutable.SortedMap
 
-import eu.cdevreeze.yaidom2.queryapi.ElemApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.Nodes
 import eu.cdevreeze.yaidom2.queryapi.internal.ElemWithNavigationPath
 import eu.cdevreeze.yaidom2.updateapi.UpdatableElemApi
@@ -31,11 +31,11 @@ import eu.cdevreeze.yaidom2.updateapi.UpdatableElemApi
  *
  * @author Chris de Vreeze
  */
-trait AbstractUpdatableElem extends UpdatableElemApi {
+trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElemApi {
 
-  type ThisNode >: ThisElem
+  type ThisNode >: ThisElem <: ClarkNodes.Node
 
-  type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem] with ElemApi.Aux[ThisElem]
+  type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem]
 
   def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = {
     updateChildElems(Set(navigationStep)) { (elm, _) => f(elm) }
@@ -181,7 +181,7 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
     }
   }
 
-  protected def self: ThisElem
+  protected[yaidom2] def self: ThisElem
 
   /**
    * Computes a mapping from navigation steps (child element indexes) to child node indexes, sorted in reverse document order.
@@ -197,6 +197,7 @@ trait AbstractUpdatableElem extends UpdatableElemApi {
             result = (step, nodeIndex) :: result
           }
           step += 1
+        case ch: Nodes.Node =>
       }
     }
 

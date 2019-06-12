@@ -22,11 +22,11 @@ package eu.cdevreeze.yaidom2.updateapi
  *
  * @author Chris de Vreeze
  */
-trait UpdatableElemApi {
+trait UpdatableElemApi extends TransformableElemApi {
 
-  type ThisNode
+  type ThisNode >: ThisElem
 
-  type ThisElem <: ThisNode with UpdatableElemApi
+  type ThisElem <: UpdatableElemApi
 
   /**
    * Returns the child nodes, in document order.

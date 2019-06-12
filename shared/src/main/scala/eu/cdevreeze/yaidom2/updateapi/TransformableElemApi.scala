@@ -16,16 +16,18 @@
 
 package eu.cdevreeze.yaidom2.updateapi
 
+import eu.cdevreeze.yaidom2.queryapi.ClarkElemApi
+
 /**
  * Transformable element API.
  *
  * @author Chris de Vreeze
  */
-trait TransformableElemApi {
+trait TransformableElemApi extends ClarkElemApi {
 
-  type ThisNode
+  type ThisNode >: ThisElem
 
-  type ThisElem <: ThisNode with TransformableElemApi
+  type ThisElem <: TransformableElemApi
 
   /**
    * Returns the same element, except that child elements have been replaced by applying the given function. Non-element
