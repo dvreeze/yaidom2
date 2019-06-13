@@ -106,21 +106,25 @@ object ResolvedNodes {
     // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
-      val childNodes = children.map {
-        case e: Elem => f(e)
-        case n => n
+      var resultChildNodes: List[ThisNode] = Nil
+
+      children.reverse.foreach {
+        case e: Elem => resultChildNodes = f(e) :: resultChildNodes
+        case n => resultChildNodes = n :: resultChildNodes
       }
 
-      Elem(name, attributes, childNodes)
+      Elem(name, attributes, resultChildNodes.to(ArraySeq))
     }
 
     def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
-      val childNodes = children.flatMap {
-        case e: Elem => f(e)
-        case n => Seq(n)
+      var resultChildNodes: List[ThisNode] = Nil
+
+      children.reverse.foreach {
+        case e: Elem => resultChildNodes = f(e).toList ::: resultChildNodes
+        case n => resultChildNodes = n :: resultChildNodes
       }
 
-      Elem(name, attributes, childNodes)
+      Elem(name, attributes, resultChildNodes.to(ArraySeq))
     }
   }
 

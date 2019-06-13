@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.updateapi.internal
 
-import scala.collection.immutable.SortedMap
+import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.Nodes
@@ -70,9 +70,13 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def updateChildElems(navigationSteps: Set[Int])(f: (ThisElem, Int) => ThisElem): ThisElem = {
-    val stepToNodeIndex: SortedMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
+    val stepToNodeIndex: SeqMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
 
     val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(findAllChildNodes) { case (accChildren, (step, nodeIndex)) =>
+      require(
+        accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem],
+        s"Expected element but got ${accChildren(nodeIndex)}")
+
       val childElem = accChildren(nodeIndex).asInstanceOf[ThisElem]
       accChildren.updated(nodeIndex, f(childElem, step))
     }
@@ -81,9 +85,13 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def updateChildElemsWithNodeSeq(navigationSteps: Set[Int])(f: (ThisElem, Int) => Seq[ThisNode]): ThisElem = {
-    val stepToNodeIndex: SortedMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
+    val stepToNodeIndex: SeqMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
 
     val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(findAllChildNodes) { case (accChildren, (step, nodeIndex)) =>
+      require(
+        accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem],
+        s"Expected element but got ${accChildren(nodeIndex)}")
+
       val childElem = accChildren(nodeIndex).asInstanceOf[ThisElem]
       accChildren.patch(nodeIndex, f(childElem, step), 1)
     }
@@ -186,7 +194,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   /**
    * Computes a mapping from navigation steps (child element indexes) to child node indexes, sorted in reverse document order.
    */
-  protected def getStepToChildNodeIndexMapReversed(navigationSteps: Set[Int]): SortedMap[Int, Int] = {
+  protected def getStepToChildNodeIndexMapReversed(navigationSteps: Set[Int]): SeqMap[Int, Int] = {
     var result = List.empty[(Int, Int)]
     var step = 0
 
@@ -201,7 +209,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
       }
     }
 
-    result.to(SortedMap)
+    result.to(SeqMap)
   }
 
   /**
