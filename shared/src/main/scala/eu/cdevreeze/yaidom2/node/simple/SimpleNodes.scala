@@ -26,6 +26,7 @@ import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
+import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
 /**
  * "Simple" nodes.
@@ -54,7 +55,7 @@ object SimpleNodes {
     val attributesByQName: SeqMap[QName, String],
     val scope: Scope,
     val children: ArraySeq[Node]
-  ) extends CanBeDocumentChild with AbstractScopedElem {
+  ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
 
     // TODO Requirements on constructor parameters
 
@@ -110,9 +111,47 @@ object SimpleNodes {
       }
     }
 
+    // Update API methods
+
+    def findAllChildNodes: Seq[ThisNode] = children
+
+    def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
+      new Elem(qname, attributesByQName, scope, newChildren.to(ArraySeq))
+    }
+
+    protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
+      findAllChildElems.zipWithIndex
+    }
+
+    // Transformation API methods
+
+    def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
+      val resultChildNodes: ArraySeq[ThisNode] =
+        children.map {
+          case e: Elem => f(e)
+          case n => n
+        }
+
+      withChildren(resultChildNodes)
+    }
+
+    def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
+      val resultChildNodes: ArraySeq[ThisNode] =
+        children.flatMap {
+          case e: Elem => f(e)
+          case n => ArraySeq(n)
+        }
+
+      withChildren(resultChildNodes)
+    }
+
     // Other public methods
 
     def attributeScope: Scope = scope.withoutDefaultNamespace
+
+    def withAttributesByQName(newAttributesByQName: SeqMap[QName, String]): ThisElem = {
+      new Elem(qname, newAttributesByQName, scope, children)
+    }
   }
 
   /**

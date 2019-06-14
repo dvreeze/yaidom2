@@ -112,7 +112,7 @@ object ResolvedNodes {
           case n => n
         }
 
-      Elem(name, attributes, resultChildNodes)
+      withChildren(resultChildNodes)
     }
 
     def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
@@ -122,7 +122,7 @@ object ResolvedNodes {
           case n => ArraySeq(n)
         }
 
-      Elem(name, attributes, resultChildNodes)
+      withChildren(resultChildNodes)
     }
   }
 

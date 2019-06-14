@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.updateapi.propertytests
 
+import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.queryapi.Nodes
 import eu.cdevreeze.yaidom2.queryapi.internal.ElemWithNavigationPath
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 import org.scalacheck.Prop.forAll
@@ -39,52 +41,77 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
   // Correspondences between TransformableElemApi and UpdatableElemApi methods
 
   property("transformChildElems-as-update") = forAll { elem: E =>
-    elem.transformChildElems(updateElem) == {
+    toResolvedElem(
+      elem.transformChildElems(updateElem)) == {
       val steps: Set[Int] = ElemWithNavigationPath(elem).findAllChildElems().map(_.navigationPath.head).toSet
 
-      elem.updateChildElems(steps)(updateElem)
+      toResolvedElem(
+        elem.updateChildElems(steps)(updateElem))
     }
   }
 
   property("transformChildElemsToNodeSeq-as-update") = forAll { elem: E =>
-    elem.transformChildElemsToNodeSeq(updateElemToNodeSeq) == {
+    toResolvedElem(
+      elem.transformChildElemsToNodeSeq(updateElemToNodeSeq)) == {
       val steps: Set[Int] = ElemWithNavigationPath(elem).findAllChildElems().map(_.navigationPath.head).toSet
 
-      elem.updateChildElemsWithNodeSeq(steps)(updateElemToNodeSeq)
+      toResolvedElem(
+        elem.updateChildElemsWithNodeSeq(steps)(updateElemToNodeSeq))
     }
   }
 
   property("transformDescendantElemsOrSelf-as-update") = forAll { elem: E =>
-    elem.transformDescendantElemsOrSelf(updateElem) == {
+    toResolvedElem(
+      elem.transformDescendantElemsOrSelf(updateElem)) == {
       val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElemsOrSelf().map(_.navigationPath).toSet
 
-      elem.updateDescendantElemsOrSelf(paths)(updateElem)
+      toResolvedElem(
+        elem.updateDescendantElemsOrSelf(paths)(updateElem))
     }
   }
 
   property("transformDescendantElemsOrSelfToNodeSeq-as-update") = forAll { elem: E =>
-    elem.transformDescendantElemsOrSelfToNodeSeq(updateElemToNodeSeq) == {
+    toResolvedNodes(
+      elem.transformDescendantElemsOrSelfToNodeSeq(updateElemToNodeSeq)) == {
       val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElemsOrSelf().map(_.navigationPath).toSet
 
       val descendantResult = elem.updateDescendantElemsWithNodeSeq(paths)(updateElemToNodeSeq)
-      if (paths.contains(Nil)) updateElemToNodeSeq(descendantResult) else descendantResult
+      val result: Seq[N] =
+        if (paths.contains(Nil)) updateElemToNodeSeq(descendantResult) else Seq(descendantResult.asInstanceOf[N])
+
+      toResolvedNodes(result)
     }
   }
 
   property("transformDescendantElems-as-update") = forAll { elem: E =>
-    elem.transformDescendantElems(updateElem) == {
+    toResolvedElem(
+      elem.transformDescendantElems(updateElem)) == {
       val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems().map(_.navigationPath).toSet
 
-      elem.updateDescendantElemsOrSelf(paths)(updateElem)
+      toResolvedElem(
+        elem.updateDescendantElemsOrSelf(paths)(updateElem))
     }
   }
 
   property("transformDescendantElemsToNodeSeq-as-update") = forAll { elem: E =>
-    elem.transformDescendantElemsToNodeSeq(updateElemToNodeSeq) == {
+    toResolvedElem(
+      elem.transformDescendantElemsToNodeSeq(updateElemToNodeSeq)) == {
       val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems().map(_.navigationPath).toSet
 
       val descendantResult = elem.updateDescendantElemsWithNodeSeq(paths)(updateElemToNodeSeq)
-      descendantResult
+      toResolvedElem(descendantResult)
+    }
+  }
+
+  private def toResolvedElem(e: E): resolved.Elem = {
+    resolved.Elem.from(e)
+  }
+
+  private def toResolvedNodes(nodes: Seq[N]): Seq[resolved.Node] = {
+    nodes.flatMap {
+      case e: Nodes.Elem => Some(toResolvedElem(e.asInstanceOf[E]))
+      case t: Nodes.Text => Some(resolved.Text(t.text))
+      case _ => None
     }
   }
 }
