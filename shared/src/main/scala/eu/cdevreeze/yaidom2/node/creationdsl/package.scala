@@ -26,6 +26,8 @@ package eu.cdevreeze.yaidom2.node
  */
 package object creationdsl {
 
+  type Document = CreationDslDocument
+
   type Node = CreationDslNodes.Node
 
   type CanBeDocumentChild = CreationDslNodes.CanBeDocumentChild
@@ -33,6 +35,8 @@ package object creationdsl {
   type Elem = CreationDslNodes.Elem
 
   type Text = CreationDslNodes.Text
+
+  val Document = CreationDslDocument
 
   val Node = CreationDslNodes.Node
 
