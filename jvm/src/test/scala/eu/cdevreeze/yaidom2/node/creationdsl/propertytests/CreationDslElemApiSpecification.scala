@@ -36,7 +36,8 @@ class CreationDslElemApiSpecification
     Seq(
       "/test-xml/taxonomyPackage.xml",
       "/test-xml/miniXmlBaseTestFile.xml",
-      "/test-xml/cars.xml"
+      "/test-xml/cars.xml",
+      "/test-xml/sample-xbrl-instance-2.xml"
     )
   }
 }
