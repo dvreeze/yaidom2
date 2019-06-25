@@ -25,7 +25,7 @@ import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 
 /**
- * Element creation API for simple elements.
+ * Element creation API for simple elements. This class is still experimental.
  *
  * @author Chris de Vreeze
  */

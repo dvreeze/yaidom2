@@ -37,6 +37,30 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
 
   type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem]
 
+  def plusChild(child: ThisNode): ThisElem = {
+    withChildren(findAllChildNodes.appended(child))
+  }
+
+  def plusChildOption(childOption: Option[ThisNode]): ThisElem = {
+    plusChildren(childOption.toSeq)
+  }
+
+  def plusChild(index: Int, child: ThisNode): ThisElem = {
+    withChildren(findAllChildNodes.patch(index, Seq(child), 0))
+  }
+
+  def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem = {
+    withChildren(findAllChildNodes.patch(index, childOption.toSeq, 0))
+  }
+
+  def plusChildren(childSeq: Seq[ThisNode]): ThisElem = {
+    withChildren(findAllChildNodes.appendedAll(childSeq))
+  }
+
+  def minusChild(index: Int): ThisElem = {
+    withChildren(findAllChildNodes.patch(index, Seq.empty, 1))
+  }
+
   def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = {
     updateChildElems(Set(navigationStep)) { (elm, _) => f(elm) }
   }

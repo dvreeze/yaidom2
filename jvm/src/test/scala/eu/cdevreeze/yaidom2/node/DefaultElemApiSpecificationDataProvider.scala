@@ -28,12 +28,11 @@ import org.scalacheck.Properties
 abstract class DefaultElemApiSpecificationDataProvider[E <: ClarkElemApi.Aux[E]](name: String)
   extends Properties(name) with ElemApiSpecificationDataProvider[E] {
 
-  import DefaultElemApiSpecificationDataProvider._
-
   implicit val arbitraryElem: Arbitrary[E] = {
-    val rootElems: Seq[E] = rootElemPaths.map(path => getRootElemAsSaxonElem(path)).map(convertSaxonElemToElem)
+    val rootElems: Seq[E] =
+      rootElemPaths.map(path => DefaultElemApiSpecificationDataProvider.getRootElemAsSaxonElem(path)).map(convertSaxonElemToElem)
     val allElems: Seq[E] = rootElems.flatMap(_.findAllDescendantElemsOrSelf())
-    require(allElems.size >= 1000, s"Expected at least 1000 elements")
+    require(allElems.size >= 100, s"Expected at least 100 elements")
 
     Arbitrary(Gen.oneOf(Gen.oneOf(allElems), Gen.oneOf(rootElems)))
   }
@@ -42,6 +41,8 @@ abstract class DefaultElemApiSpecificationDataProvider[E <: ClarkElemApi.Aux[E]]
     Arbitrary(
       Gen.oneOf(Seq(predLocalNameIsNameLocalPart, predLocalNameSizeGt7, predLocalNameContainsCapital, predLocalNameContainsNoCapital)))
   }
+
+  protected def rootElemPaths: Seq[String] = DefaultElemApiSpecificationDataProvider.rootElemPaths
 
   protected def convertSaxonElemToElem(e: saxon.Elem): E
 

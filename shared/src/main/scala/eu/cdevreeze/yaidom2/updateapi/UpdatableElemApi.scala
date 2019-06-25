@@ -38,6 +38,36 @@ trait UpdatableElemApi extends TransformableElemApi {
    */
   def withChildren(newChildren: Seq[ThisNode]): ThisElem
 
+  /**
+   * Returns `withChildren(findAllChildNodes.appended(child))`.
+   */
+  def plusChild(child: ThisNode): ThisElem
+
+  /**
+   * Returns `plusChildren(childOption.toSeq)`.
+   */
+  def plusChildOption(childOption: Option[ThisNode]): ThisElem
+
+  /**
+   * Returns `withChildren(findAllChildNodes.patch(index, Seq(child), 0))`.
+   */
+  def plusChild(index: Int, child: ThisNode): ThisElem
+
+  /**
+   * Returns `withChildren(findAllChildNodes.patch(index, childOption.toSeq, 0))`.
+   */
+  def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem
+
+  /**
+   * Returns `withChildren(findAllChildNodes.appendedAll(childSeq))`.
+   */
+  def plusChildren(childSeq: Seq[ThisNode]): ThisElem
+
+  /**
+   * Returns `withChildren(findAllChildNodes.patch(index, Seq.empty, 1))`.
+   */
+  def minusChild(index: Int): ThisElem
+
   // Functional update methods taking 1 navigation path or step.
 
   /**
