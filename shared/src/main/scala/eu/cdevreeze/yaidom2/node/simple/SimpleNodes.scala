@@ -113,8 +113,6 @@ object SimpleNodes {
 
     // Update API methods
 
-    def findAllChildNodes: Seq[ThisNode] = children
-
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
       new Elem(qname, attributesByQName, scope, newChildren.to(ArraySeq))
     }

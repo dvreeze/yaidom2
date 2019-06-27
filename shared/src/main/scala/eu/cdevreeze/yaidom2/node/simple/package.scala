@@ -53,7 +53,7 @@ package object simple {
 
   val ProcessingInstruction = SimpleNodes.ProcessingInstruction
 
-  def strictElemCreator(scope: Scope): SimpleElemCreator = SimpleElemCreator.strict(scope)
+  private[yaidom2] def strictElemCreator(scope: Scope): SimpleElemCreator = SimpleElemCreator.strict(scope)
 
-  def lenientElemCreator(scope: Scope): SimpleElemCreator = SimpleElemCreator.lenient(scope)
+  private[yaidom2] def lenientElemCreator(scope: Scope): SimpleElemCreator = SimpleElemCreator.lenient(scope)
 }

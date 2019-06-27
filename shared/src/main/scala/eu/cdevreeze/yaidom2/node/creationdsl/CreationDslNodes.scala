@@ -23,10 +23,11 @@ import scala.reflect.classTag
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
+import eu.cdevreeze.yaidom2.core.SimpleScope
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
-import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
+import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableAttributeCarryingElem
 
 /**
  * "Creation DSL" nodes.
@@ -50,15 +51,17 @@ object CreationDslNodes {
   /**
    * "Creation DSL" element node, offering the `ScopedNodes.Elem` element query API.
    */
-  final class Elem private(
+  final class Elem private[creationdsl](
     val name: EName,
     val attributes: SeqMap[EName, String],
     val children: ArraySeq[Node],
-    val scope: Scope
-  ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
+    val simpleScope: SimpleScope
+  ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableAttributeCarryingElem {
 
-    assert(scope.isInvertible)
-    assert(scope.defaultNamespaceOption.isEmpty)
+    assert(simpleScope.findQName(name).nonEmpty)
+    assert(attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty))
+
+    assert(children.collect { case che: Elem => che }.forall(che => scope.subScopeOf(che.scope)))
 
     type ThisElem = Elem
 
@@ -72,9 +75,11 @@ object CreationDslNodes {
       ArraySeq.from(xs)(classTag[Elem])
     }
 
+    def scope: Scope = simpleScope.scope
+
     def qname: QName = {
       val prefixOption: Option[String] =
-        if (name.namespaceUriOption.isEmpty) None else findPrefixForNamespace(name.namespaceUriOption.get)
+        if (name.namespaceUriOption.isEmpty) None else simpleScope.findPrefixForNamespace(name.namespaceUriOption.get)
 
       QName(prefixOption, name.localPart)
     }
@@ -82,7 +87,7 @@ object CreationDslNodes {
     def attributesByQName: SeqMap[QName, String] = {
       attributes.map { case (attrName, attrValue) =>
         val prefixOption: Option[String] =
-          if (attrName.namespaceUriOption.isEmpty) None else findPrefixForNamespace(attrName.namespaceUriOption.get)
+          if (attrName.namespaceUriOption.isEmpty) None else simpleScope.findPrefixForNamespace(attrName.namespaceUriOption.get)
 
         QName(prefixOption, attrName.localPart) -> attrValue
       }
@@ -114,14 +119,20 @@ object CreationDslNodes {
 
     // Update API methods
 
-    def findAllChildNodes: Seq[ThisNode] = children
-
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
       require(
         newChildren.collect { case e: Elem => e }.forall(e => scope.subScopeOf(e.scope)),
         s"Not all child elements have a strict super-scope of $scope")
 
-      new Elem(name, attributes, newChildren.to(ArraySeq), scope)
+      new Elem(name, attributes, newChildren.to(ArraySeq), simpleScope)
+    }
+
+    def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
+      require(
+        newAttributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        s"Not all attribute names can be converted to QNames given scope $scope")
+
+      new Elem(name, newAttributes, children, simpleScope)
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
@@ -152,25 +163,14 @@ object CreationDslNodes {
 
     // Other methods
 
-    def deeplyEnhancingScopeWith(extraScope: Scope): Elem = {
-      require(extraScope.isInvertible, s"Not an invertible scope $extraScope")
-      require(extraScope.defaultNamespaceOption.isEmpty, s"Not a scope having no default namespace $extraScope")
-
+    def deeplyEnhancingScopeWith(extraScope: SimpleScope): Elem = {
       transformDescendantElemsOrSelf { e =>
-        require(e.scope.append(extraScope).isInvertible, s"Not an invertible result scope ${e.scope.append(extraScope)}")
-        require(e.scope.subScopeOf(e.scope.append(extraScope)), s"Not a subscope. Scope 1: ${e.scope}. Scope 2: ${e.scope.append(extraScope)}")
+        require(e.scope.append(extraScope.scope).isInvertible, s"Not an invertible result scope ${e.scope.append(extraScope.scope)}")
+        require(
+          e.scope.subScopeOf(e.scope.append(extraScope.scope)),
+          s"Not a subscope. Scope 1: ${e.scope}. Scope 2: ${e.scope.append(extraScope.scope)}")
 
-        new Elem(e.name, e.attributes, e.children, e.scope.append(extraScope))
-      }
-    }
-
-    // Private methods
-
-    private def findPrefixForNamespace(namespace: String): Option[String] = {
-      if (namespace == Scope.XmlNamespace) {
-        Some("xml")
-      } else {
-        scope.prefixesForNamespace(namespace).headOption
+        new Elem(e.name, e.attributes, e.children, SimpleScope.from(e.scope.append(extraScope.scope)))
       }
     }
   }
@@ -185,6 +185,12 @@ object CreationDslNodes {
   object Node extends ScopedNodeFactories.NodeFactory {
 
     type TargetNodeType = Node
+
+    def optionallyFrom(node: ScopedNodes.Node): Option[Node] = node match {
+      case e: ScopedNodes.Elem => Elem.optionallyFrom(e)
+      case t: ScopedNodes.Text => Some(Text(t.text))
+      case n => None
+    }
 
     def from(node: ScopedNodes.Node): Node = node match {
       case e: ScopedNodes.Elem => Elem.from(e)
@@ -201,11 +207,30 @@ object CreationDslNodes {
 
     type TargetElemType = Elem
 
-    // TODO Unapply
+    def unapply(elem: Elem): Option[(EName, SeqMap[EName, String], Seq[Node], SimpleScope)] = {
+      val v = (elem.name, elem.attributes, elem.children, elem.simpleScope)
+      Some(v)
+    }
+
+    def optionallyFrom(elm: ScopedNodes.Elem): Option[Elem] = {
+      val allElemsOrSelf = elm.findAllDescendantElemsOrSelf()
+
+      def isItselfValid(e: ScopedNodes.Elem): Boolean = {
+        SimpleScope.optionallyFrom(e.scope).nonEmpty &&
+          e.findAllChildElems().forall(_.scope.superScopeOf(e.scope))
+      }
+
+      if (allElemsOrSelf.forall(isItselfValid)) {
+        Some(from(elm))
+      } else {
+        None
+      }
+    }
 
     def from(elm: ScopedNodes.Elem): Elem = {
       require(elm.scope.isInvertible, s"Not an invertible scope: ${elm.scope}")
       require(elm.scope.defaultNamespaceOption.isEmpty, s"Not a scope without default namespace: ${elm.scope}")
+      val simpleScope = SimpleScope.from(elm.scope)
 
       val children = elm.children.collect {
         case childElm: ScopedNodes.Elem =>
@@ -219,7 +244,7 @@ object CreationDslNodes {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val creationDslChildren = children.map { node => Node.from(node) }
 
-      new Elem(elm.name, elm.attributes, creationDslChildren.to(ArraySeq), elm.scope)
+      new Elem(elm.name, elm.attributes, creationDslChildren.to(ArraySeq), simpleScope)
     }
   }
 

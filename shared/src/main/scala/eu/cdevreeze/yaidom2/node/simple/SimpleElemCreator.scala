@@ -29,7 +29,7 @@ import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
  *
  * @author Chris de Vreeze
  */
-final case class SimpleElemCreator(scope: Scope, mayDropDefaultNamespace: Boolean) extends ElemCreationApi {
+private[yaidom2] final case class SimpleElemCreator(scope: Scope, mayDropDefaultNamespace: Boolean) extends ElemCreationApi {
 
   import SimpleElemCreator._
 
@@ -82,7 +82,7 @@ final case class SimpleElemCreator(scope: Scope, mayDropDefaultNamespace: Boolea
 
   private def getScopedElementQName(ename: EName): ScopedQName = {
     findScopedQName(ename, scope)
-      .getOrElse(sys.error(s"Could not turn element name $ename into a QName (scope $scope, possibly leaving out the default namespace, if any"))
+      .getOrElse(sys.error(s"Could not turn element name $ename into a QName (scope $scope, possibly leaving out the default namespace, if any)"))
   }
 
   private def getAttributeQName(ename: EName): QName = {
@@ -129,7 +129,7 @@ final case class SimpleElemCreator(scope: Scope, mayDropDefaultNamespace: Boolea
   }
 }
 
-object SimpleElemCreator {
+private[yaidom2] object SimpleElemCreator {
 
   private case class ScopedQName(qname: QName, scope: Scope)
 

@@ -25,7 +25,7 @@ import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
-import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
+import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableAttributeCarryingElem
 
 /**
  * "Resolved" nodes.
@@ -53,7 +53,7 @@ object ResolvedNodes {
     name: EName,
     attributes: SeqMap[EName, String],
     children: ArraySeq[Node]
-  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableElem {
+  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableAttributeCarryingElem {
 
     type ThisElem = Elem
 
@@ -93,10 +93,12 @@ object ResolvedNodes {
 
     // Update API methods
 
-    def findAllChildNodes: Seq[ThisNode] = children
-
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
       Elem(name, attributes, newChildren.to(ArraySeq))
+    }
+
+    def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
+      Elem(name, newAttributes, children)
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {

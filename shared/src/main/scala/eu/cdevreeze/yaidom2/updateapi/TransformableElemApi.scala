@@ -16,16 +16,16 @@
 
 package eu.cdevreeze.yaidom2.updateapi
 
-import eu.cdevreeze.yaidom2.queryapi.ClarkElemApi
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 
 /**
  * Transformable element API.
  *
  * @author Chris de Vreeze
  */
-trait TransformableElemApi extends ClarkElemApi {
+trait TransformableElemApi extends ClarkNodes.Elem {
 
-  type ThisNode >: ThisElem
+  type ThisNode >: ThisElem <: ClarkNodes.Node
 
   type ThisElem <: TransformableElemApi
 

@@ -38,7 +38,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem]
 
   def plusChild(child: ThisNode): ThisElem = {
-    withChildren(findAllChildNodes.appended(child))
+    withChildren(children.appended(child))
   }
 
   def plusChildOption(childOption: Option[ThisNode]): ThisElem = {
@@ -46,19 +46,19 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def plusChild(index: Int, child: ThisNode): ThisElem = {
-    withChildren(findAllChildNodes.patch(index, Seq(child), 0))
+    withChildren(children.patch(index, Seq(child), 0))
   }
 
   def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem = {
-    withChildren(findAllChildNodes.patch(index, childOption.toSeq, 0))
+    withChildren(children.patch(index, childOption.toSeq, 0))
   }
 
   def plusChildren(childSeq: Seq[ThisNode]): ThisElem = {
-    withChildren(findAllChildNodes.appendedAll(childSeq))
+    withChildren(children.appendedAll(childSeq))
   }
 
   def minusChild(index: Int): ThisElem = {
-    withChildren(findAllChildNodes.patch(index, Seq.empty, 1))
+    withChildren(children.patch(index, Seq.empty, 1))
   }
 
   def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = {
@@ -96,7 +96,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   def updateChildElems(navigationSteps: Set[Int])(f: (ThisElem, Int) => ThisElem): ThisElem = {
     val stepToNodeIndex: SeqMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
 
-    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(findAllChildNodes) { case (accChildren, (step, nodeIndex)) =>
+    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(children) { case (accChildren, (step, nodeIndex)) =>
       require(
         accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem],
         s"Expected element but got ${accChildren(nodeIndex)}")
@@ -111,7 +111,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   def updateChildElemsWithNodeSeq(navigationSteps: Set[Int])(f: (ThisElem, Int) => Seq[ThisNode]): ThisElem = {
     val stepToNodeIndex: SeqMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
 
-    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(findAllChildNodes) { case (accChildren, (step, nodeIndex)) =>
+    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(children) { case (accChildren, (step, nodeIndex)) =>
       require(
         accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem],
         s"Expected element but got ${accChildren(nodeIndex)}")
@@ -222,7 +222,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
     var result = List.empty[(Int, Int)]
     var step = 0
 
-    findAllChildNodes.zipWithIndex.foreach { case (ch, nodeIndex) =>
+    children.zipWithIndex.foreach { case (ch, nodeIndex) =>
       ch match {
         case che: Nodes.Elem =>
           if (navigationSteps.contains(step)) {

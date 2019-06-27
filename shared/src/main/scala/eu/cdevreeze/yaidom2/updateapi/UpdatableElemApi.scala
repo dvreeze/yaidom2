@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.updateapi
 
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
+
 /**
  * Updatable element API. It is to a large extent centered around "navigation paths". For an explanation of these navigation
  * paths, see for example method `ElemApi.findDescendantElemOrSelf`.
@@ -24,14 +26,9 @@ package eu.cdevreeze.yaidom2.updateapi
  */
 trait UpdatableElemApi extends TransformableElemApi {
 
-  type ThisNode >: ThisElem
+  type ThisNode >: ThisElem <: ClarkNodes.Node
 
   type ThisElem <: UpdatableElemApi
-
-  /**
-   * Returns the child nodes, in document order.
-   */
-  def findAllChildNodes: Seq[ThisNode]
 
   /**
    * Returns a copy in which the children have been replaced by the given collection of child nodes.
@@ -39,7 +36,7 @@ trait UpdatableElemApi extends TransformableElemApi {
   def withChildren(newChildren: Seq[ThisNode]): ThisElem
 
   /**
-   * Returns `withChildren(findAllChildNodes.appended(child))`.
+   * Returns `withChildren(children.appended(child))`.
    */
   def plusChild(child: ThisNode): ThisElem
 
@@ -49,22 +46,22 @@ trait UpdatableElemApi extends TransformableElemApi {
   def plusChildOption(childOption: Option[ThisNode]): ThisElem
 
   /**
-   * Returns `withChildren(findAllChildNodes.patch(index, Seq(child), 0))`.
+   * Returns `withChildren(children.patch(index, Seq(child), 0))`.
    */
   def plusChild(index: Int, child: ThisNode): ThisElem
 
   /**
-   * Returns `withChildren(findAllChildNodes.patch(index, childOption.toSeq, 0))`.
+   * Returns `withChildren(children.patch(index, childOption.toSeq, 0))`.
    */
   def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem
 
   /**
-   * Returns `withChildren(findAllChildNodes.appendedAll(childSeq))`.
+   * Returns `withChildren(children.appendedAll(childSeq))`.
    */
   def plusChildren(childSeq: Seq[ThisNode]): ThisElem
 
   /**
-   * Returns `withChildren(findAllChildNodes.patch(index, Seq.empty, 1))`.
+   * Returns `withChildren(children.patch(index, Seq.empty, 1))`.
    */
   def minusChild(index: Int): ThisElem
 
