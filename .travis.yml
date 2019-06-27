@@ -1,5 +1,6 @@
 
 language: scala
+dist: xenial
 
 install:
   - . $HOME/.nvm/nvm.sh
@@ -12,7 +13,7 @@ matrix:
   include:
   - jdk: oraclejdk8
     scala: 2.13.0
-  - jdk: oraclejdk11
+  - jdk: openjdk11
     scala: 2.13.0
 
 script:
