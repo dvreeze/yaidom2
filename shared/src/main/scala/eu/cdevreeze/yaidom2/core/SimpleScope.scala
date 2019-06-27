@@ -73,7 +73,7 @@ final case class SimpleScope private (scope: Scope) {
    */
   def findQName(ename: EName): Option[QName] = {
     if (ename.namespaceUriOption.isEmpty) {
-      None
+      Some(QName.fromLocalName(ename.localPart))
     } else {
       if (ename.namespaceUriOption.contains(Scope.XmlNamespace)) {
         Some(QName("xml", ename.localPart))
