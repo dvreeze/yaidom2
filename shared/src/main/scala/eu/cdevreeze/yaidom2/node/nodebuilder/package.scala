@@ -18,9 +18,8 @@ package eu.cdevreeze.yaidom2.node
 
 /**
  * This package contains an element builder DSL, offering the ScopedNodes.Elem query API. The DSL is as friendly
- * to create as resolved elements, but it retains a Scope. The ease of use comes at the price that this Scope must be
- * invertible and contain no default namespace. Also, all elements must have the same Scope, or, at least each descendant
- * element must have at least the same Scope or a super-set.
+ * to use as creation of resolved elements, but it retains a Scope. The ease of use comes at the price that this Scope must be
+ * invertible and contain no default namespace. That is, the Scope must be a simple scope (SimpleScope).
  *
  * @author Chris de Vreeze
  */

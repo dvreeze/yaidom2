@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.simple.tests
+package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 
 import java.io.File
 
@@ -23,32 +23,31 @@ import scala.jdk.StreamConverters._
 
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.node.simple
-import eu.cdevreeze.yaidom2.node.simple.SimpleElemSteps
+import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.queryapi.tests.XbrlScopedElemQueryTest
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.streams.Steps.child
 import net.sf.saxon.s9api.streams.Steps.descendant
 
-class XbrlSimpleElemQueryTest extends XbrlScopedElemQueryTest[simple.Elem] {
+class XbrlNodeBuildersElemQueryTest extends XbrlScopedElemQueryTest[nodebuilder.Elem] {
 
-  protected def rootElem: simple.Elem = {
-    simple.Document.from(saxonDocument).documentElement
+  protected def rootElem: nodebuilder.Elem = {
+    nodebuilder.Document.from(saxonDocument).documentElement
   }
 
-  protected val elemStepFactory: SimpleElemSteps.type = SimpleElemSteps
+  protected val elemStepFactory: nodebuilder.NodeBuilders.ElemSteps.type = nodebuilder.NodeBuilders.ElemSteps
 
   private val processor = new Processor(false)
 
   import elemStepFactory._
 
-  protected def inputXmlFileOnClasspath: String = "/test-xml/sample-xbrl-instance.xml"
+  protected def inputXmlFileOnClasspath: String = "/test-xml/sample-xbrl-instance-2.xml"
 
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[XbrlSimpleElemQueryTest].getResource(inputXmlFileOnClasspath).toURI)
+    val file = new File(classOf[XbrlNodeBuildersElemQueryTest].getResource(inputXmlFileOnClasspath).toURI)
     val doc = docBuilder.build(file)
 
     saxon.Document(doc)

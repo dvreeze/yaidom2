@@ -73,7 +73,7 @@ object NodeBuilders {
 
       val targetDocChildren =
         docChildren.filter(n => Set[Nodes.NodeKind](Nodes.ElementKind).contains(n.nodeKind))
-          .map(n => Elem.from(n.asInstanceOf[ScopedNodes.Elem]))
+          .map(n => Elem.from(n.asInstanceOf[ScopedNodes.Elem])) // TODO Replace this expensive conversion
 
       Document(document.docUriOption, targetDocChildren)
     }
@@ -101,10 +101,8 @@ object NodeBuilders {
     val simpleScope: SimpleScope
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableAttributeCarryingElem {
 
-    assert(simpleScope.findQName(name).nonEmpty)
-    assert(attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty))
-
-    assert(children.collect { case che: Elem => che }.forall(che => scope.subScopeOf(che.scope)))
+    assert(Elem.hasValidQNamesCorrespondingToENames(name, attributes, simpleScope))
+    assert(this.hasNoPrefixedNamespaceUndeclarations)
 
     type ThisElem = Elem
 
@@ -209,9 +207,6 @@ object NodeBuilders {
     def deeplyEnhancingScopeWith(extraScope: SimpleScope): Elem = {
       transformDescendantElemsOrSelf { e =>
         require(e.scope.append(extraScope.scope).isInvertible, s"Not an invertible result scope ${e.scope.append(extraScope.scope)}")
-        require(
-          e.scope.subScopeOf(e.scope.append(extraScope.scope)),
-          s"Not a subscope. Scope 1: ${e.scope}. Scope 2: ${e.scope.append(extraScope.scope)}")
 
         new Elem(e.name, e.attributes, e.children, SimpleScope.from(e.scope.append(extraScope.scope)))
       }
@@ -260,7 +255,8 @@ object NodeBuilders {
 
       def isItselfValid(e: ScopedNodes.Elem): Boolean = {
         SimpleScope.optionallyFrom(e.scope).nonEmpty &&
-          e.findAllChildElems().forall(_.scope.superScopeOf(e.scope))
+          hasValidQNamesCorrespondingToENames(e.name, e.attributes, SimpleScope.from(e.scope)) &&
+          e.hasNoPrefixedNamespaceUndeclarations
       }
 
       if (allElemsOrSelf.forall(isItselfValid)) {
@@ -275,10 +271,14 @@ object NodeBuilders {
       require(elm.scope.defaultNamespaceOption.isEmpty, s"Not a scope without default namespace: ${elm.scope}")
       val simpleScope = SimpleScope.from(elm.scope)
 
+      require(
+        hasValidQNamesCorrespondingToENames(elm.name, elm.attributes, simpleScope),
+        s"Element ${elm.name} with scope ${elm.scope} is corrupt with respect to naming (the correspondence between QNames and ENames)")
+
+      require(elm.hasNoPrefixedNamespaceUndeclarations, s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
+
       val children = elm.children.collect {
         case childElm: ScopedNodes.Elem =>
-          require(elm.scope.subScopeOf(childElm.scope), s"Scope ${elm.scope} is not a subscope of ${childElm.scope}")
-
           childElm
         case childText: ScopedNodes.Text =>
           childText
@@ -288,6 +288,43 @@ object NodeBuilders {
       val creationDslChildren = children.map { node => Node.from(node) }
 
       new Elem(elm.name, elm.attributes, creationDslChildren.to(ArraySeq), simpleScope)
+    }
+
+    // Constraints on element builders (besides the use of SimpleScopes only)
+
+    // Property ScopedNodes.Elem.hasNoPrefixedNamespaceUndeclarations is required too
+
+    /**
+     * Returns true if both element name (as EName) and attribute names (as ENames) uniquely determine a corresponding
+     * QName, given the passed simple scope. This is a requirement that has to be fulfilled in order to create an
+     * element builder containing this data, and it must hold for all descendant elements as well.
+     */
+    def hasValidQNamesCorrespondingToENames(elementName: EName, attributes: SeqMap[EName, String], simpleScope: SimpleScope): Boolean = {
+      hasValidElementQNamesCorrespondingToEName(elementName, simpleScope) &&
+        hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope)
+    }
+
+    /**
+     * Returns true if the element name (as EName) uniquely determines a corresponding QName, given the passed simple scope.
+     */
+    def hasValidElementQNamesCorrespondingToEName(elementName: EName, simpleScope: SimpleScope): Boolean = {
+      hasValidQNameCorrespondingToEName(elementName, simpleScope)
+    }
+
+    /**
+     * Returns true if the attribute names (as ENames) uniquely determine a corresponding QName, given the passed simple scope.
+     */
+    def hasValidAttributeQNamesCorrespondingToENames(attributes: SeqMap[EName, String], simpleScope: SimpleScope): Boolean = {
+      attributes.forall { case (attrName, _) =>
+        hasValidQNameCorrespondingToEName(attrName, simpleScope)
+      }
+    }
+
+    /**
+     * Returns true if the given EName uniquely determines a corresponding QName, given the passed simple scope.
+     */
+    def hasValidQNameCorrespondingToEName(ename: EName, simpleScope: SimpleScope): Boolean = {
+      simpleScope.findQName(ename).nonEmpty
     }
   }
 
@@ -314,6 +351,8 @@ object NodeBuilders {
 
     type ElemType = Elem
 
+    // TODO Checks on prefixed namespace undeclarations
+
     /**
      * Returns `ElemCreator(simpleScope.append(otherSimpleScope))`.
      */
@@ -322,51 +361,57 @@ object NodeBuilders {
     }
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {
-      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
       require(
-        children.collect { case e: Elem => e }.forall(e => simpleScope.subScopeOf(e.simpleScope)),
-        s"Scope $simpleScope is not a subscope of all child elements scopes")
+        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
+        s"Could not turn element name $name into a QName (scope $simpleScope)")
 
       new Elem(name, SeqMap.empty, children.to(ArraySeq), simpleScope)
     }
 
     def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
-      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
       require(
-        attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
+        s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
         s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
-      require(
-        children.collect { case e: Elem => e }.forall(e => simpleScope.subScopeOf(e.simpleScope)),
-        s"Scope $simpleScope is not a subscope of all child elements scopes")
 
       new Elem(name, attributes, children.to(ArraySeq), simpleScope)
     }
 
     def textElem(name: EName, txt: String): ElemType = {
-      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
+        s"Could not turn element name $name into a QName (scope $simpleScope)")
 
       new Elem(name, SeqMap.empty, ArraySeq(Text(txt)), simpleScope)
     }
 
     def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
-      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
       require(
-        attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
+        s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
         s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
 
       new Elem(name, attributes, ArraySeq(Text(txt)), simpleScope)
     }
 
     def emptyElem(name: EName): ElemType = {
-      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
+        s"Could not turn element name $name into a QName (scope $simpleScope)")
 
       new Elem(name, SeqMap.empty, ArraySeq.empty, simpleScope)
     }
 
     def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
-      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
       require(
-        attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
+        s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
         s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
 
       new Elem(name, attributes, ArraySeq.empty, simpleScope)
