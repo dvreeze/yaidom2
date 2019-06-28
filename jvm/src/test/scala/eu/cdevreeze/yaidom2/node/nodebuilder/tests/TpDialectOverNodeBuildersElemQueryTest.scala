@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.creationdsl.tests
+package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 
 import java.io.File
 
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.node.creationdsl
+import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.queryapi.tests.TpDialectOverScopedElemQueryTest
 import net.sf.saxon.s9api.Processor
 
-class TpDialectOverCreationDslElemQueryTest extends TpDialectOverScopedElemQueryTest {
+class TpDialectOverNodeBuildersElemQueryTest extends TpDialectOverScopedElemQueryTest {
 
   private val processor = new Processor(false)
 
-  protected def document: creationdsl.Document = {
-    creationdsl.Document.from(saxonDocument)
+  protected def document: nodebuilder.Document = {
+    nodebuilder.Document.from(saxonDocument)
   }
 
   protected def saxonDocument: saxon.Document = {
     val docBuilder = processor.newDocumentBuilder()
 
-    val file = new File(classOf[TpDialectOverCreationDslElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
+    val file = new File(classOf[TpDialectOverNodeBuildersElemQueryTest].getResource("/test-xml/taxonomyPackage.xml").toURI)
     val doc = docBuilder.build(file)
 
     saxon.Document(doc)

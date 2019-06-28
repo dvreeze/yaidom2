@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.creationdsl.propertytests
+package eu.cdevreeze.yaidom2.node.nodebuilder.propertytests
 
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.node.creationdsl
-import eu.cdevreeze.yaidom2.node.creationdsl.CreationDslElemSteps
+import eu.cdevreeze.yaidom2.node.nodebuilder
+import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ScopedElemApiSpecification
 
-class CreationDslElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[creationdsl.Elem]("CreationDsl-ScopedElemApi")
-    with ScopedElemApiSpecification[creationdsl.Node, creationdsl.Elem] {
+class NodeBuildersElemApiSpecification
+  extends DefaultElemApiSpecificationDataProvider[nodebuilder.Elem]("NodeBuilders-ScopedElemApi")
+    with ScopedElemApiSpecification[nodebuilder.Node, nodebuilder.Elem] {
 
-  protected def convertSaxonElemToElem(e: saxon.Elem): creationdsl.Elem = {
-    creationdsl.Elem.from(e)
+  protected def convertSaxonElemToElem(e: saxon.Elem): nodebuilder.Elem = {
+    nodebuilder.Elem.from(e)
   }
 
-  protected val elemStepFactory: CreationDslElemSteps.type = CreationDslElemSteps
+  protected val elemStepFactory: NodeBuilders.ElemSteps.type = NodeBuilders.ElemSteps
 
   protected override def rootElemPaths: Seq[String] = {
     Seq(

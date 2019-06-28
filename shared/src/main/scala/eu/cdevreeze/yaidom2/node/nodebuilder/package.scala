@@ -17,28 +17,28 @@
 package eu.cdevreeze.yaidom2.node
 
 /**
- * This package contains an element creation DSL, offering the ScopedNodes.Elem query API. The DSL is as friendly
+ * This package contains an element builder DSL, offering the ScopedNodes.Elem query API. The DSL is as friendly
  * to create as resolved elements, but it retains a Scope. The ease of use comes at the price that this Scope must be
  * invertible and contain no default namespace. Also, all elements must have the same Scope, or, at least each descendant
  * element must have at least the same Scope or a super-set.
  *
  * @author Chris de Vreeze
  */
-package object creationdsl {
+package object nodebuilder {
 
-  type Document = CreationDslDocument
+  type Document = NodeBuilders.Document
 
-  type Node = CreationDslNodes.Node
+  type Node = NodeBuilders.Node
 
-  type CanBeDocumentChild = CreationDslNodes.CanBeDocumentChild
+  type CanBeDocumentChild = NodeBuilders.CanBeDocumentChild
 
-  type Elem = CreationDslNodes.Elem
+  type Elem = NodeBuilders.Elem
 
-  type Text = CreationDslNodes.Text
+  type Text = NodeBuilders.Text
 
-  val Document = CreationDslDocument
+  val Document = NodeBuilders.Document
 
-  val Node = CreationDslNodes.Node
+  val Node = NodeBuilders.Node
 
-  val Elem = CreationDslNodes.Elem
+  val Elem = NodeBuilders.Elem
 }

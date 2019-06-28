@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.node.creationdsl
+package eu.cdevreeze.yaidom2.node.nodebuilder
+
+import java.net.URI
 
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
@@ -24,17 +26,58 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.core.SimpleScope
+import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
+import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
+import eu.cdevreeze.yaidom2.queryapi.Nodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.elemstep.ScopedElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableAttributeCarryingElem
 
 /**
- * "Creation DSL" nodes.
+ * "Creation DSL" nodes and documents.
  *
  * @author Chris de Vreeze
  */
-object CreationDslNodes {
+object NodeBuilders {
+
+  /**
+   * Document holding a NodeBuilders.Elem.
+   */
+  final case class Document(docUriOption: Option[URI], children: Seq[CanBeDocumentChild]) extends ScopedDocumentApi {
+    require(
+      children.collect { case e: Elem => e }.size == 1,
+      s"A document must have precisely 1 document element but found ${children.collect { case e: Elem => e }.size} ones")
+
+    type NodeType = Node
+
+    type CanBeDocumentChildType = CanBeDocumentChild
+
+    type ElemType = Elem
+
+    def documentElement: ElemType = children.collectFirst { case e: Elem => e }.get
+  }
+
+  object Document extends ScopedDocumentFactory {
+
+    type TargetDocumentType = Document
+
+    def apply(docUriOption: Option[URI], documentElement: Elem): Document = {
+      apply(docUriOption, Seq(documentElement))
+    }
+
+    def from(document: ScopedDocumentApi): Document = {
+      val docChildren = document.children.collect { case ch: ScopedNodes.CanBeDocumentChild => ch }
+
+      val targetDocChildren =
+        docChildren.filter(n => Set[Nodes.NodeKind](Nodes.ElementKind).contains(n.nodeKind))
+          .map(n => Elem.from(n.asInstanceOf[ScopedNodes.Elem]))
+
+      Document(document.docUriOption, targetDocChildren)
+    }
+  }
 
   // First the OO query API
 
@@ -51,7 +94,7 @@ object CreationDslNodes {
   /**
    * "Creation DSL" element node, offering the `ScopedNodes.Elem` element query API.
    */
-  final class Elem private[creationdsl](
+  final class Elem private[nodebuilder](
     val name: EName,
     val attributes: SeqMap[EName, String],
     val children: ArraySeq[Node],
@@ -245,6 +288,88 @@ object CreationDslNodes {
       val creationDslChildren = children.map { node => Node.from(node) }
 
       new Elem(elm.name, elm.attributes, creationDslChildren.to(ArraySeq), simpleScope)
+    }
+  }
+
+  // The element step factory class
+
+  /**
+   * ElemStep factory API for creation DSL elements.
+   */
+  object ElemSteps extends ScopedElemStepFactory {
+
+    type ElemType = Elem
+  }
+
+  // The element creation API implementation
+
+  /**
+   * Element creation API for "creation DSL" elements.
+   *
+   * @author Chris de Vreeze
+   */
+  final case class ElemCreator(simpleScope: SimpleScope) extends ElemCreationApi {
+
+    type NodeType = Node
+
+    type ElemType = Elem
+
+    /**
+     * Returns `ElemCreator(simpleScope.append(otherSimpleScope))`.
+     */
+    def append(otherSimpleScope: SimpleScope): ElemCreator = {
+      ElemCreator(simpleScope.append(otherSimpleScope))
+    }
+
+    def elem(name: EName, children: Seq[NodeType]): ElemType = {
+      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        children.collect { case e: Elem => e }.forall(e => simpleScope.subScopeOf(e.simpleScope)),
+        s"Scope $simpleScope is not a subscope of all child elements scopes")
+
+      new Elem(name, SeqMap.empty, children.to(ArraySeq), simpleScope)
+    }
+
+    def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
+      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
+      require(
+        children.collect { case e: Elem => e }.forall(e => simpleScope.subScopeOf(e.simpleScope)),
+        s"Scope $simpleScope is not a subscope of all child elements scopes")
+
+      new Elem(name, attributes, children.to(ArraySeq), simpleScope)
+    }
+
+    def textElem(name: EName, txt: String): ElemType = {
+      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+
+      new Elem(name, SeqMap.empty, ArraySeq(Text(txt)), simpleScope)
+    }
+
+    def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
+      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
+
+      new Elem(name, attributes, ArraySeq(Text(txt)), simpleScope)
+    }
+
+    def emptyElem(name: EName): ElemType = {
+      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+
+      new Elem(name, SeqMap.empty, ArraySeq.empty, simpleScope)
+    }
+
+    def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
+      require(simpleScope.findQName(name).nonEmpty, s"Could not turn element name $name into a QName (scope $simpleScope)")
+      require(
+        attributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
+
+      new Elem(name, attributes, ArraySeq.empty, simpleScope)
     }
   }
 
