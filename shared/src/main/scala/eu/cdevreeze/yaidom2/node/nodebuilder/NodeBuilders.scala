@@ -206,9 +206,7 @@ object NodeBuilders {
 
     def deeplyEnhancingScopeWith(extraScope: SimpleScope): Elem = {
       transformDescendantElemsOrSelf { e =>
-        require(e.scope.append(extraScope.scope).isInvertible, s"Not an invertible result scope ${e.scope.append(extraScope.scope)}")
-
-        new Elem(e.name, e.attributes, e.children, SimpleScope.from(e.scope.append(extraScope.scope)))
+        new Elem(e.name, e.attributes, e.children, e.simpleScope.appendAggressivelyOrThrow(extraScope))
       }
     }
   }
@@ -354,10 +352,31 @@ object NodeBuilders {
     // TODO Checks on prefixed namespace undeclarations
 
     /**
-     * Returns `ElemCreator(simpleScope.append(otherSimpleScope))`.
+     * Returns `ElemCreator(simpleScope.appendDefensively(otherSimpleScope))`.
      */
-    def append(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.append(otherSimpleScope))
+    def appendDefensively(otherSimpleScope: SimpleScope): ElemCreator = {
+      ElemCreator(simpleScope.appendDefensively(otherSimpleScope))
+    }
+
+    /**
+     * Returns `ElemCreator(simpleScope.appendAggressively(otherSimpleScope))`.
+     */
+    def appendAggressively(otherSimpleScope: SimpleScope): ElemCreator = {
+      ElemCreator(simpleScope.appendAggressively(otherSimpleScope))
+    }
+
+    /**
+     * Returns `ElemCreator(simpleScope.appendDefensivelyOrThrow(otherSimpleScope))`.
+     */
+    def appendDefensivelyOrThrow(otherSimpleScope: SimpleScope): ElemCreator = {
+      ElemCreator(simpleScope.appendDefensivelyOrThrow(otherSimpleScope))
+    }
+
+    /**
+     * Returns `ElemCreator(simpleScope.appendAggressivelyOrThrow(otherSimpleScope))`.
+     */
+    def appendAggressivelyOrThrow(otherSimpleScope: SimpleScope): ElemCreator = {
+      ElemCreator(simpleScope.appendAggressivelyOrThrow(otherSimpleScope))
     }
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {

@@ -2226,11 +2226,11 @@
     </xbrli:unit>
     <xbrli:unit id="U-Shares">
         <!-- Shares -->
-        <xbrli:measure>shares</xbrli:measure>
+        <xbrli:measure>xbrli:shares</xbrli:measure>
     </xbrli:unit>
     <xbrli:unit id="U-Pure">
         <!-- Pure; no measure, pure number -->
-        <xbrli:measure>pure</xbrli:measure>
+        <xbrli:measure>xbrli:pure</xbrli:measure>
     </xbrli:unit>
 
 

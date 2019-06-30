@@ -18,6 +18,7 @@ package eu.cdevreeze.yaidom2.node.resolved
 
 import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
+import scala.collection.mutable
 import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -125,6 +126,120 @@ object ResolvedNodes {
         }
 
       withChildren(resultChildNodes)
+    }
+
+    // Other methods
+
+    /**
+     * Returns a copy where inter-element whitespace has been removed, throughout the node tree.
+     *
+     * That is, for each descendant-or-self element determines if it has at least one child element and no non-whitespace
+     * text child nodes, and if so, removes all (whitespace) text children.
+     *
+     * This method is useful if it is known that whitespace around element nodes is used for formatting purposes, and (in
+     * the absence of an XML Schema or DTD) can therefore be treated as "ignorable whitespace". In the case of "mixed content"
+     * (if text around element nodes is not all whitespace), this method will not remove any text children of the parent element.
+     *
+     * XML space attributes (xml:space) are not respected by this method. If such whitespace preservation functionality is needed,
+     * it can be written as a transformation where for specific elements this method is not called.
+     */
+    def removeAllInterElementWhitespace: Elem = {
+      def isWhitespaceText(n: Node): Boolean = n match {
+        case t: Text if t.text.trim.isEmpty => true
+        case _ => false
+      }
+
+      def isNonTextNode(n: Node): Boolean = n match {
+        case t: Text => false
+        case n => true
+      }
+
+      val doStripWhitespace = (findChildElem(_ => true).nonEmpty) && (children.forall(n => isWhitespaceText(n) || isNonTextNode(n)))
+
+      // Recursive, but not tail-recursive
+
+      val newChildren = {
+        val remainder = if (doStripWhitespace) children.filter(n => isNonTextNode(n)) else children
+
+        remainder.map {
+          case e: Elem =>
+            // Recursive call
+            e.removeAllInterElementWhitespace
+          case n =>
+            n
+        }
+      }
+
+      withChildren(newChildren)
+    }
+
+    /**
+     * Returns a copy where adjacent text nodes have been combined into one text node, throughout the node tree.
+     * After combining the adjacent text nodes, all text nodes are transformed by calling the passed function.
+     */
+    def coalesceAllAdjacentTextAndPostprocess(f: Text => Text): Elem = {
+      // Recursive, but not tail-recursive
+
+      def accumulate(childNodes: Seq[Node], newChildrenBuffer: mutable.ArrayBuffer[Node]): Unit = {
+        if (childNodes.nonEmpty) {
+          val head = childNodes.head
+
+          head match {
+            case t: Text =>
+              val (textNodes, remainder) = childNodes.span {
+                case t: Text => true
+                case _ => false
+              }
+
+              val combinedText: String = textNodes.collect { case t: Text => t.text }.mkString("")
+
+              newChildrenBuffer += f(Text(combinedText))
+
+              // Recursive call
+              accumulate(remainder, newChildrenBuffer)
+            case n: Node =>
+              newChildrenBuffer += n
+
+              // Recursive call
+              accumulate(childNodes.tail, newChildrenBuffer)
+          }
+        }
+      }
+
+      transformDescendantElemsOrSelf { elm =>
+        val newChildrenBuffer = mutable.ArrayBuffer[Node]()
+
+        accumulate(elm.children, newChildrenBuffer)
+
+        elm.withChildren(newChildrenBuffer.toIndexedSeq)
+      }
+    }
+
+    /** Returns a copy where adjacent text nodes have been combined into one text node, throughout the node tree */
+    def coalesceAllAdjacentText: Elem = {
+      coalesceAllAdjacentTextAndPostprocess(t => t)
+    }
+
+    /**
+     * Returns a copy where adjacent text nodes have been combined into one text node, and where all
+     * text is normalized, throughout the node tree.
+     */
+    def coalesceAndNormalizeAllText: Elem = {
+      coalesceAllAdjacentTextAndPostprocess(t => Text(normalizeString(t.text)))
+    }
+
+    /**
+     * Normalizes the string, removing surrounding whitespace and normalizing internal whitespace to a single space.
+     * Whitespace includes #x20 (space), #x9 (tab), #xD (carriage return), #xA (line feed). If there is only whitespace,
+     * the empty string is returned. Inspired by the JDOM library.
+     */
+    private def normalizeString(s: String): String = {
+      require(s ne null) // scalastyle:off null
+
+      val separators = Array(' ', '\t', '\r', '\n')
+      val words: Seq[String] = s.split(separators).toSeq.filterNot(_.isEmpty)
+
+      words.mkString(" ") // Returns empty string if words.isEmpty
     }
   }
 

@@ -19,9 +19,16 @@ package eu.cdevreeze.yaidom2.core
 /**
  * A holder of a Scope that is invertible and has no default namespace. It is useful for element creation DSLs, for example.
  *
+ * Simple scopes are far more predictable than scopes in general. For example, by being invertible they support a one-to-one
+ * correspondence between ENames and QNames, which is an attractive property when building element trees without worrying
+ * too much about QNames (while those QNames must still be generated at some point). By not containing any default namespace
+ * unprefixed QNames always have no namespace, and cannot suddenly and silently get a namespace by the appearance of a
+ * default namespace anywhere in the element ancestry. Hence, simple scopes are preferable to scopes in general when used
+ * in element creation DSLs.
+ *
  * @author Chris de Vreeze
  */
-final case class SimpleScope private (scope: Scope) {
+final case class SimpleScope private(scope: Scope) {
   assert(scope.isInvertible)
   assert(scope.defaultNamespaceOption.isEmpty)
 
@@ -98,15 +105,67 @@ final case class SimpleScope private (scope: Scope) {
   }
 
   /**
-   * Appends the parameter simple scope to this one, but throws an exception if they are conflicting in certain prefixes.
+   * Appends the parameter simple scope to this one, but leaves out the prefixes and namespaces in the parameter simple scope
+   * that occur in this simple scope. In other words, this simple scope takes precedence over the parameter simple scope.
+   * As a consequence, it is possible that not all namespaces in the parameter simple scope end up in the result.
+   * The result is always a super-scope of this simple scope.
    */
-  def append(otherSimpleScope: SimpleScope): SimpleScope = {
-    val commonPrefixes = this.keySet.intersect(otherSimpleScope.keySet)
-    require(
-      this.filterKeys(commonPrefixes) == otherSimpleScope.filterKeys(commonPrefixes),
-      s"Simple scope $otherSimpleScope cannot be appended to simple scope $this")
+  def appendDefensively(otherSimpleScope: SimpleScope): SimpleScope = {
+    val prefixesToKeep: Set[String] = this.keySet
+    val namespacesToKeep: Set[String] = this.namespaces
 
-    SimpleScope.from(scope.append(otherSimpleScope.scope))
+    val scopeToAdd: Scope = otherSimpleScope.scope
+      .filterKeys(pref => !prefixesToKeep.contains(pref))
+      .filterNamespaces(ns => !namespacesToKeep.contains(ns))
+
+    SimpleScope.from(this.scope.append(scopeToAdd))
+      .ensuring(sc => this.subScopeOf(sc))
+  }
+
+  /**
+   * Appends the parameter simple scope to this one, but leaves out the prefixes and namespaces in this (!) simple scope
+   * that occur in the parameter simple scope. In other words, the parameter simple scope takes precedence over this one.
+   * As a consequence, it is possible that not all namespaces in this simple scope end up in the result.
+   * The result is always a super-scope of the parameter simple scope.
+   */
+  def appendAggressively(otherSimpleScope: SimpleScope): SimpleScope = {
+    val prefixesToKeep: Set[String] = otherSimpleScope.keySet
+    val namespacesToKeep: Set[String] = otherSimpleScope.namespaces
+
+    val scopeToRetain: Scope = this.scope
+      .filterKeys(pref => !prefixesToKeep.contains(pref))
+      .filterNamespaces(ns => !namespacesToKeep.contains(ns))
+
+    SimpleScope.from(scopeToRetain.append(otherSimpleScope.scope))
+      .ensuring(sc => otherSimpleScope.subScopeOf(sc))
+  }
+
+  /**
+   * Like `appendDefensively`, but throws an exception if namespaces get lost.
+   */
+  def appendDefensivelyOrThrow(otherSimpleScope: SimpleScope): SimpleScope = {
+    val result = appendDefensively(otherSimpleScope)
+
+    val lostNamespaces: Set[String] = (this.namespaces.union(otherSimpleScope.namespaces)).diff(result.namespaces)
+
+    if (lostNamespaces.nonEmpty) {
+      sys.error(s"Losing namespaces ${lostNamespaces.mkString(", ")} when adding $otherSimpleScope to $this (defensively)")
+    }
+    result
+  }
+
+  /**
+   * Like `appendAggressively`, but throws an exception if namespaces get lost.
+   */
+  def appendAggressivelyOrThrow(otherSimpleScope: SimpleScope): SimpleScope = {
+    val result = appendAggressively(otherSimpleScope)
+
+    val lostNamespaces: Set[String] = (this.namespaces.union(otherSimpleScope.namespaces)).diff(result.namespaces)
+
+    if (lostNamespaces.nonEmpty) {
+      sys.error(s"Losing namespaces ${lostNamespaces.mkString(", ")} when adding $otherSimpleScope to $this (aggressively)")
+    }
+    result
   }
 }
 
@@ -122,4 +181,17 @@ object SimpleScope {
   def optionallyFrom(scope: Scope): Option[SimpleScope] = {
     if (scope.isInvertible && scope.defaultNamespaceOption.isEmpty) Some(SimpleScope.from(scope)) else None
   }
+
+  /** The "empty" `SimpleScope` */
+  val Empty = SimpleScope(Scope.Empty)
+
+  /**
+   * Same as `SimpleScope.from(Scope.from(m))`.
+   */
+  def from(m: Map[String, String]): SimpleScope = {
+    SimpleScope.from(Scope.from(m))
+  }
+
+  /** Returns `from(Map[String, String](m: _*))` */
+  def from(m: (String, String)*): SimpleScope = from(Map[String, String](m: _*))
 }
