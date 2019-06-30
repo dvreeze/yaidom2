@@ -79,25 +79,25 @@ for the buck":
 
 * Yaidom2 is more consistent, with more consistent naming (for instance for document factory methods)
 * Yaidom2 has a query API that is heavily inspired by the streaming API in Saxon 9.9
-* Yaidom2 leverages the upcoming Scala 2.13 overhauled Collections API, for better performance
+* Yaidom2 leverages the Scala 2.13 overhauled Collections API, for better performance
 * Usability is also very important, and yaidom2 should feel less "clunky" than its predecessor
 
 Usage
 =====
 
-Yaidom2 versions can be found in the Maven central repository. Assuming version 0.5.0, yaidom2 can be added as dependency
+Yaidom2 versions can be found in the Maven central repository. Assuming version 0.6.0, yaidom2 can be added as dependency
 as follows (in an SBT or Maven build):
 
 **SBT**::
 
-    libraryDependencies += "eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.5.0"
+    libraryDependencies += "eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.6.0"
 
 **Maven2**::
 
     <dependency>
       <groupId>eu.cdevreeze.yaidom2</groupId>
-      <artifactId>yaidom2_2.13.0-RC2</artifactId>
-      <version>0.5.0</version>
+      <artifactId>yaidom2_2.13</artifactId>
+      <version>0.6.0</version>
     </dependency>
 
 Note that yaidom2 itself has a few dependencies, which will be transitive dependencies in projects that use yaidom2.
