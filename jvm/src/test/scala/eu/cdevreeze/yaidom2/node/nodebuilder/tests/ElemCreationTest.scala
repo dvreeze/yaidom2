@@ -99,7 +99,9 @@ class ElemCreationTest extends AnyFunSuite {
     val originalContext: SaxonNodes.Elem =
       saxonDocument.documentElement.findChildElem { e =>
         e.name == EName(XbrliNs, "context") && e.attr("id") == "I-2005"
-      }.get
+      }.get.ensuring(_.qname.prefixOption.isEmpty)
+
+    // The original context may use the default namespace for the xbrli namespace, but equality is not affected
 
     assertResult(resolved.Elem.from(originalContext).removeAllInterElementWhitespace.coalesceAndNormalizeAllText) {
       resolved.Elem.from(xbrliContext).removeAllInterElementWhitespace.coalesceAndNormalizeAllText
@@ -195,6 +197,49 @@ class ElemCreationTest extends AnyFunSuite {
 
     assertResult(resolvedOriginalRootElem) {
       resolvedCreatedRootElem
+    }
+  }
+
+  test("testCopyingAndEquivalenceOfXbrlInstance") {
+    val originalScope = saxonDocument.documentElement.scope.ensuring(_.defaultNamespaceOption.contains(XbrliNs))
+    require(saxonDocument.documentElement.findAllDescendantElems().forall(_.scope == originalScope))
+
+    val targetSimpleScope = SimpleScope.from(originalScope.withoutDefaultNamespace)
+      .appendAggressively(SimpleScope.from("xbrli" -> XbrliNs))
+
+    val originalRootElemWithoutDefaultNamespace: SimpleNodes.Elem =
+      SimpleNodes.Elem.from(saxonDocument.documentElement)
+      .transformDescendantElemsOrSelf {
+        case e if e.name == EName(XbrliNs, "measure") =>
+          val text = targetSimpleScope.findQName(e.textAsResolvedQName).get.toString
+          val textNode = SimpleNodes.Text(text, false)
+          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetSimpleScope.scope, ArraySeq(textNode))
+        case e if e.name.namespaceUriOption.contains(XbrliNs) =>
+          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetSimpleScope.scope, e.children)
+        case e =>
+          new SimpleNodes.Elem(e.qname, e.attributesByQName, targetSimpleScope.scope, e.children)
+      }
+
+    require(originalRootElemWithoutDefaultNamespace.findAllDescendantElemsOrSelf().forall(_.scope == targetSimpleScope.scope))
+
+    val rootElemWithENameContent: SimpleNodes.Elem =
+      originalRootElemWithoutDefaultNamespace.transformDescendantElemsOrSelf {
+        case e if e.name == EName(XbrldiNs, "explicitMember") =>
+          val dimension: EName = e.attrAsResolvedQName(EName.fromLocalName("dimension"))
+
+          e.withAttributesByQName(e.attributesByQName + (QName.fromLocalName("dimension") -> dimension.toString))
+            .withChildren(ArraySeq(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
+        case e if e.name == EName(XbrliNs, "measure") =>
+          e.withChildren(ArraySeq(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
+        case e => e
+      }
+
+    require(rootElemWithENameContent.findAllDescendantElemsOrSelf().forall(_.scope == targetSimpleScope.scope))
+
+    val copiedRootElemWithENameContent: nodebuilder.Elem = nodebuilder.Elem.from(rootElemWithENameContent)
+
+    assertResult(resolved.Elem.from(rootElemWithENameContent).removeAllInterElementWhitespace.coalesceAndNormalizeAllText) {
+      resolved.Elem.from(copiedRootElemWithENameContent).removeAllInterElementWhitespace.coalesceAndNormalizeAllText
     }
   }
 
