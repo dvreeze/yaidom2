@@ -58,7 +58,6 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
   .in(file("."))
   .settings(commonSettings: _*)
-  .jsConfigure(_.enablePlugins(JSDependenciesPlugin))
   .jvmSettings(
     // By all means, override this version of Saxon if needed, possibly with a Saxon-EE release!
 
