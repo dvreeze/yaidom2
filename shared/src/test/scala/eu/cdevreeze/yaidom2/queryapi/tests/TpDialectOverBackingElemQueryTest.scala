@@ -32,7 +32,7 @@ import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.DocumentApi
 import eu.cdevreeze.yaidom2.queryapi.elemstep.BackingElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.named
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 
 /**
  * Query test using a "yaidom dialect" (for so-called XBRL Taxonomy Packages).
@@ -42,7 +42,7 @@ import org.scalatest.funsuite.AnyFunSuite
  *
  * @author Chris de Vreeze
  */
-abstract class TpDialectOverBackingElemQueryTest extends AnyFunSuite {
+abstract class TpDialectOverBackingElemQueryTest extends FunSuite {
 
   import TpDialectOverBackingElemQueryTest._
 

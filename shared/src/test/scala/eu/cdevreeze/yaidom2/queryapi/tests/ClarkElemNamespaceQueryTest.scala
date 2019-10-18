@@ -20,7 +20,7 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi._
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 
 /**
  * Test case testing the use of namespaces in Documents.
@@ -31,7 +31,7 @@ import org.scalatest.funsuite.AnyFunSuite
  *
  * @author Chris de Vreeze
  */
-abstract class ClarkElemNamespaceQueryTest extends AnyFunSuite {
+abstract class ClarkElemNamespaceQueryTest extends FunSuite {
 
   private val nsAtom = "http://www.w3.org/2005/Atom"
   private val nsXhtml = "http://www.w3.org/1999/xhtml"

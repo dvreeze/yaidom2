@@ -21,9 +21,9 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.queryapi.ClarkElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi._
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 
-abstract class XbrlClarkElemQueryTest[E <: ClarkNodes.Elem.Aux[_, E]] extends AnyFunSuite {
+abstract class XbrlClarkElemQueryTest[E <: ClarkNodes.Elem.Aux[_, E]] extends FunSuite {
 
   protected def rootElem: E
 

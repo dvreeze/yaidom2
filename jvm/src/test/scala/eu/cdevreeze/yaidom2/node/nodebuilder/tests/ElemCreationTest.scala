@@ -34,9 +34,9 @@ import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.named
 import net.sf.saxon.s9api.Processor
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 
-class ElemCreationTest extends AnyFunSuite {
+class ElemCreationTest extends FunSuite {
 
   private val processor = new Processor(false)
 

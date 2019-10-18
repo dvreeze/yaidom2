@@ -9,7 +9,7 @@
 
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalaVer = "2.13.0"
+val scalaVer = "2.13.1"
 val crossScalaVer = Seq(scalaVer)
 
 lazy val commonSettings = Seq(
@@ -39,12 +39,7 @@ lazy val commonSettings = Seq(
 
   libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "1.2.0",
 
-  libraryDependencies ++= {
-    scalaBinaryVersion.value match {
-      case "2.13" => Seq("org.scalatest" %%% "scalatest" % "3.1.0-SNAP13" % "test")
-      case _      => Seq("org.scalatest" %%% "scalatest" % "3.0.8" % "test")
-    }
-  }
+  libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.8" % "test"
 )
 
 lazy val root = project.in(file("."))
@@ -67,9 +62,9 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings(
     // By all means, override this version of Saxon if needed, possibly with a Saxon-EE release!
 
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-3",
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-5",
 
-    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.0" % "test"
+    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.2" % "test"
   )
   .jsSettings(
     // Do we need this jsEnv?

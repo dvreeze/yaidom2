@@ -39,7 +39,7 @@ abstract class DefaultElemApiSpecificationDataProvider[E <: ClarkElemApi.Aux[E]]
 
   implicit val arbitraryPred: Arbitrary[E => Boolean] = {
     Arbitrary(
-      Gen.oneOf(Seq(predLocalNameIsNameLocalPart, predLocalNameSizeGt7, predLocalNameContainsCapital, predLocalNameContainsNoCapital)))
+      Gen.oneOf(Seq(predLocalNameIsNameLocalPart(_), predLocalNameSizeGt7(_), predLocalNameContainsCapital(_), predLocalNameContainsNoCapital(_))))
   }
 
   protected def rootElemPaths: Seq[String] = DefaultElemApiSpecificationDataProvider.rootElemPaths

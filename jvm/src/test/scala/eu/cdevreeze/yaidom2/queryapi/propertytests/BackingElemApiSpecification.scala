@@ -22,7 +22,7 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.BackingElemStepFactoryApi
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import org.scalacheck.Prop.forAll
-import org.scalacheck.Prop.BooleanOperators
+import org.scalacheck.Prop.propBoolean
 import org.scalacheck.Properties
 
 trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends ScopedElemApiSpecification[N, E] {

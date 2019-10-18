@@ -32,7 +32,7 @@ import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.elemstep.ScopedElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.named
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.FunSuite
 
 /**
  * Query test using a "yaidom dialect" (for so-called XBRL Taxonomy Packages).
@@ -42,7 +42,7 @@ import org.scalatest.funsuite.AnyFunSuite
  *
  * @author Chris de Vreeze
  */
-abstract class TpDialectOverScopedElemQueryTest extends AnyFunSuite {
+abstract class TpDialectOverScopedElemQueryTest extends FunSuite {
 
   import TpDialectOverScopedElemQueryTest._
 
