@@ -30,7 +30,7 @@ import eu.cdevreeze.yaidom2.queryapi.named
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
-abstract class ClarkElemStepFactory extends ClarkElemStepFactoryApi {
+trait ClarkElemStepFactory extends ClarkElemStepFactoryApi {
 
   type ElemType <: ClarkElemApi.Aux[ElemType]
 

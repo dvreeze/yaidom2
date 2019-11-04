@@ -33,8 +33,12 @@ import eu.cdevreeze.yaidom2.queryapi.ElemStep
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
-abstract class AbstractDialectClarkElem(
-  val underlyingElem: ClarkNodes.Elem) extends ClarkNodes.Elem {
+trait AbstractDialectClarkElem extends ClarkNodes.Elem {
+
+  /**
+   * Returns the underlying element. This method must be very fast.
+   */
+  def underlyingElem: ClarkNodes.Elem
 
   /**
    * Wraps un underlying element. This method must be very fast.

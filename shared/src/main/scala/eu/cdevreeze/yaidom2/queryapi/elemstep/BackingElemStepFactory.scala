@@ -30,7 +30,7 @@ import eu.cdevreeze.yaidom2.queryapi.named
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
-abstract class BackingElemStepFactory extends ScopedElemStepFactory with BackingElemStepFactoryApi {
+trait BackingElemStepFactory extends ScopedElemStepFactory with BackingElemStepFactoryApi {
 
   type ElemType <: BackingElemApi.Aux[ElemType]
 

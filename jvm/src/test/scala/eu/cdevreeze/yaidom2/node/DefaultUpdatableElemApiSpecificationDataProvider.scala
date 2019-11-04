@@ -28,6 +28,9 @@ import org.scalacheck.Properties
 abstract class DefaultUpdatableElemApiSpecificationDataProvider[N, E <: AbstractUpdatableElem.Aux[N, E]](name: String)
   extends Properties(name) with UpdatableElemApiSpecificationDataProvider[N, E] {
 
+  // Using an abstract class instead of trait, because of the val fields. That's no problem here, since concrete subclasses
+  // are unlikely to define value equality.
+
   import DefaultUpdatableElemApiSpecificationDataProvider._
 
   implicit val arbitraryElem: Arbitrary[E] = {

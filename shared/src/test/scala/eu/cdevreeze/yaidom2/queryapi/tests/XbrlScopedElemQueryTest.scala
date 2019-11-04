@@ -23,6 +23,10 @@ import eu.cdevreeze.yaidom2.queryapi.named
 
 abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends XbrlClarkElemQueryTest[E] {
 
+  // Stable identifier, needed for the import below. Because of this val, an abstract class is used rather than a trait.
+  // Given that concrete subclasses of this abstract class typically have no value equality defined, this is no problem.
+  // In this case, this abstract class does not even introduce any new "state", so this is even less of a problem here.
+
   protected val elemStepFactory: ScopedElemStepFactoryApi.Aux[E]
 
   import elemStepFactory._

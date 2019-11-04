@@ -30,7 +30,7 @@ sealed trait QName extends Serializable {
   def prefixOption: Option[String]
 }
 
-final case class UnprefixedName(override val localPart: String) extends QName {
+final case class UnprefixedName(localPart: String) extends QName {
   require(localPart ne null) // scalastyle:off null
 
   override def prefixOption: Option[String] = None
@@ -39,7 +39,7 @@ final case class UnprefixedName(override val localPart: String) extends QName {
   override def toString: String = localPart
 }
 
-final case class PrefixedName(prefix: String, override val localPart: String) extends QName {
+final case class PrefixedName(prefix: String, localPart: String) extends QName {
   require(prefix ne null) // scalastyle:off null
   require(localPart ne null) // scalastyle:off null
 

@@ -36,7 +36,7 @@ class JsDomElemNamespaceQueryTest extends ClarkElemNamespaceQueryTest {
 
   // JS-DOM does not see 2 attributes with the same local name, but one prefixed and the other without prefix
 
-  protected override val circumventBugInXmlStack = true
+  protected override def circumventBugInXmlStack = true
 
   private val xmlFiles: Map[String, String] =
     Map("feed1.xml" -> Feed1.xmlString, "feed2.xml" -> Feed2.xmlString, "feed3.xml" -> Feed3.xmlString)

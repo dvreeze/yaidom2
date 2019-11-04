@@ -38,8 +38,12 @@ import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
-abstract class AbstractDialectScopedElem(
-  val underlyingElem: ScopedNodes.Elem) extends ScopedNodes.Elem {
+trait AbstractDialectScopedElem extends ScopedNodes.Elem {
+
+  /**
+   * Returns the underlying element. This method must be very fast.
+   */
+  def underlyingElem: ScopedNodes.Elem
 
   /**
    * Wraps un underlying element. This method must be very fast.

@@ -24,8 +24,7 @@ import eu.cdevreeze.yaidom2.queryapi.ScopedElemStepFactoryApi
  *
  * @author Chris de Vreeze
  */
-// scalastyle:off number.of.methods
-abstract class ScopedElemStepFactory extends ClarkElemStepFactory with ScopedElemStepFactoryApi {
+trait ScopedElemStepFactory extends ClarkElemStepFactory with ScopedElemStepFactoryApi {
 
   type ElemType <: ScopedElemApi.Aux[ElemType]
 }

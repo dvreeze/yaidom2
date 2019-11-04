@@ -31,7 +31,7 @@ import org.scalatest.FunSuite
  *
  * @author Chris de Vreeze
  */
-abstract class ClarkElemNamespaceQueryTest extends FunSuite {
+trait ClarkElemNamespaceQueryTest extends FunSuite {
 
   private val nsAtom = "http://www.w3.org/2005/Atom"
   private val nsXhtml = "http://www.w3.org/1999/xhtml"
@@ -39,7 +39,7 @@ abstract class ClarkElemNamespaceQueryTest extends FunSuite {
 
   protected def getRootElem(fileName: String): ClarkNodes.Elem
 
-  protected val circumventBugInXmlStack = false
+  protected def circumventBugInXmlStack = false
 
   test("feed1") {
     testFeed("feed1.xml")

@@ -42,7 +42,7 @@ import org.scalatest.FunSuite
  *
  * @author Chris de Vreeze
  */
-abstract class TpDialectOverScopedElemQueryTest extends FunSuite {
+trait TpDialectOverScopedElemQueryTest extends FunSuite {
 
   import TpDialectOverScopedElemQueryTest._
 
@@ -210,13 +210,13 @@ object TpDialectOverScopedElemQueryTest {
    * Note that this TP element can work with any underlying `ScopedNodes.Elem` element,
    * using its "raw" type, thus making the API easy to use.
    */
-  sealed abstract class TpElem(
-    underlyingElem: ScopedNodes.Elem
-  ) extends AbstractDialectScopedElem(underlyingElem) with TpCanBeDocumentChild {
+  sealed trait TpElem extends AbstractDialectScopedElem with TpCanBeDocumentChild {
 
     type ThisElem = TpElem
 
     type ThisNode = TpNode
+
+    def underlyingElem: ScopedNodes.Elem
 
     final def wrapElem(underlyingElem: ScopedNodes.Elem): ThisElem = TpElem(underlyingElem)
 
@@ -231,7 +231,7 @@ object TpDialectOverScopedElemQueryTest {
     }
   }
 
-  final case class TaxonomyPackage(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class TaxonomyPackage(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def findAllEntryPoints(): Seq[EntryPoint] = {
       filterDescendantElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
@@ -305,7 +305,7 @@ object TpDialectOverScopedElemQueryTest {
     }
   }
 
-  final case class Identifier(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Identifier(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def value: URI = URI.create(text)
   }
@@ -315,22 +315,22 @@ object TpDialectOverScopedElemQueryTest {
     def value: String
   }
 
-  final case class Name(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) with DocumentationGroup {
+  final case class Name(underlyingElem: ScopedNodes.Elem) extends TpElem with DocumentationGroup {
 
     def value: String = text
   }
 
-  final case class Description(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) with DocumentationGroup {
+  final case class Description(underlyingElem: ScopedNodes.Elem) extends TpElem with DocumentationGroup {
 
     def value: String = text
   }
 
-  final case class Version(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Version(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def value: String = text
   }
 
-  final case class License(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class License(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def href: URI = URI.create(attr(HrefEName))
 
@@ -339,49 +339,49 @@ object TpDialectOverScopedElemQueryTest {
     def value: String = text
   }
 
-  final case class Publisher(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Publisher(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def value: String = text
   }
 
-  final case class PublisherUrl(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class PublisherUrl(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def value: URI = URI.create(text)
   }
 
-  final case class PublisherCountry(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class PublisherCountry(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def value: String = text
   }
 
-  final case class PublicationDate(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class PublicationDate(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     // Ignoring time zones, because dates without times are unlikely to contain time zones.
     def value: LocalDate = LocalDate.parse(text)
   }
 
-  final case class EntryPointsElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class EntryPointsElem(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def findAllEntryPoints: Seq[EntryPoint] = {
       filterChildElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
     }
   }
 
-  final case class SupersededTaxonomyPackagesElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class SupersededTaxonomyPackagesElem(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def findAllTaxonomyPackageRefs: Seq[TaxonomyPackageRef] = {
       filterChildElems(havingType[TaxonomyPackageRef]).collect { case e: TaxonomyPackageRef => e }
     }
   }
 
-  final case class VersioningReportsElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class VersioningReportsElem(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def findAllVersioningReports: Seq[VersioningReport] = {
       filterChildElems(havingType[VersioningReport]).collect { case e: VersioningReport => e }
     }
   }
 
-  final case class EntryPoint(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class EntryPoint(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def findAllEntryPointHrefs: Seq[URI] = {
       findAllEntryPointDocuments.map(_.href)
@@ -412,32 +412,32 @@ object TpDialectOverScopedElemQueryTest {
     }
   }
 
-  final case class EntryPointDocument(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class EntryPointDocument(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def href: URI = URI.create(attr(HrefEName))
   }
 
-  final case class VersioningReport(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class VersioningReport(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def href: URI = URI.create(attr(HrefEName))
   }
 
-  final case class LanguagesElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class LanguagesElem(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def findAllLanguages: Seq[Language] = filterChildElems(havingType[Language]).collect { case e: Language => e }
   }
 
-  final case class Language(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class Language(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def value: String = text
   }
 
-  final case class TaxonomyPackageRef(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem) {
+  final case class TaxonomyPackageRef(underlyingElem: ScopedNodes.Elem) extends TpElem {
 
     def value: URI = URI.create(text)
   }
 
-  final case class OtherTpElem(override val underlyingElem: ScopedNodes.Elem) extends TpElem(underlyingElem)
+  final case class OtherTpElem(underlyingElem: ScopedNodes.Elem) extends TpElem
 
   /**
    * TP text node

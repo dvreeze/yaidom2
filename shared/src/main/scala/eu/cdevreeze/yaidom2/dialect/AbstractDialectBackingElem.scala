@@ -40,8 +40,12 @@ import eu.cdevreeze.yaidom2.queryapi.ElemStep
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
-abstract class AbstractDialectBackingElem(
-  val underlyingElem: BackingNodes.Elem) extends BackingNodes.Elem {
+trait AbstractDialectBackingElem extends BackingNodes.Elem {
+
+  /**
+   * Returns the underlying element. This method must be very fast.
+   */
+  def underlyingElem: BackingNodes.Elem
 
   /**
    * Wraps un underlying element. This method must be very fast.

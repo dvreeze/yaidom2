@@ -28,6 +28,9 @@ import org.scalacheck.Properties
 abstract class DefaultElemApiSpecificationDataProvider[E <: ClarkElemApi.Aux[E]](name: String)
   extends Properties(name) with ElemApiSpecificationDataProvider[E] {
 
+  // Using an abstract class instead of trait, because of the val fields. That's no problem here, since concrete subclasses
+  // are unlikely to define value equality.
+
   implicit val arbitraryElem: Arbitrary[E] = {
     val rootElems: Seq[E] =
       rootElemPaths.map(path => DefaultElemApiSpecificationDataProvider.getRootElemAsSaxonElem(path)).map(convertSaxonElemToElem)
