@@ -37,91 +37,91 @@ trait BackingElemStepFactory extends ScopedElemStepFactory with BackingElemStepF
   // Parent axis, for element nodes only
 
   final def parentElem(p: ElemType => Boolean): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(p).toList.toIndexedSeq }
+    { elem: ElemType => elem.findParentElem(p).toList.toIndexedSeq }
   }
 
   final def parentElem(): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(anyElem).toList.toIndexedSeq }
+    { elem: ElemType => elem.findParentElem(anyElem).toList.toIndexedSeq }
   }
 
   final def parentElem(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(localName)).toList.toIndexedSeq }
+    { elem: ElemType => elem.findParentElem(named(localName)).toList.toIndexedSeq }
   }
 
   final def parentElem(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(namespace, localName)).toList.toIndexedSeq }
+    { elem: ElemType => elem.findParentElem(named(namespace, localName)).toList.toIndexedSeq }
   }
 
   final def parentElem(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(namespaceOption, localName)).toList.toIndexedSeq }
+    { elem: ElemType => elem.findParentElem(named(namespaceOption, localName)).toList.toIndexedSeq }
   }
 
   final def parentElem(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(named(ename)).toList.toIndexedSeq }
+    { elem: ElemType => elem.findParentElem(named(ename)).toList.toIndexedSeq }
   }
 
   final def parentElemIgnoringNamespace(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.findParentElem(havingLocalName(localName)).toList.toIndexedSeq }
+    { elem: ElemType => elem.findParentElem(havingLocalName(localName)).toList.toIndexedSeq }
   }
 
   // Ancestor axis, for element nodes only
 
   final def ancestorElems(p: ElemType => Boolean): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(p) }
+    { elem: ElemType => elem.filterAncestorElems(p) }
   }
 
   final def ancestorElems(): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(anyElem) }
+    { elem: ElemType => elem.filterAncestorElems(anyElem) }
   }
 
   final def ancestorElems(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(named(localName)) }
+    { elem: ElemType => elem.filterAncestorElems(named(localName)) }
   }
 
   final def ancestorElems(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(named(namespace, localName)) }
+    { elem: ElemType => elem.filterAncestorElems(named(namespace, localName)) }
   }
 
   final def ancestorElems(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(named(namespaceOption, localName)) }
+    { elem: ElemType => elem.filterAncestorElems(named(namespaceOption, localName)) }
   }
 
   final def ancestorElems(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(named(ename)) }
+    { elem: ElemType => elem.filterAncestorElems(named(ename)) }
   }
 
   final def ancestorElemsIgnoringNamespace(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElems(havingLocalName(localName)) }
+    { elem: ElemType => elem.filterAncestorElems(havingLocalName(localName)) }
   }
 
   // Ancestor-or-self axis, for element nodes only
 
   final def ancestorElemsOrSelf(p: ElemType => Boolean): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(p) }
+    { elem: ElemType => elem.filterAncestorElemsOrSelf(p) }
   }
 
   final def ancestorElemsOrSelf(): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(anyElem) }
+    { elem: ElemType => elem.filterAncestorElemsOrSelf(anyElem) }
   }
 
   final def ancestorElemsOrSelf(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(localName)) }
+    { elem: ElemType => elem.filterAncestorElemsOrSelf(named(localName)) }
   }
 
   final def ancestorElemsOrSelf(namespace: String, localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(namespace, localName)) }
+    { elem: ElemType => elem.filterAncestorElemsOrSelf(named(namespace, localName)) }
   }
 
   final def ancestorElemsOrSelf(namespaceOption: Option[String], localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(namespaceOption, localName)) }
+    { elem: ElemType => elem.filterAncestorElemsOrSelf(named(namespaceOption, localName)) }
   }
 
   final def ancestorElemsOrSelf(ename: EName): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(named(ename)) }
+    { elem: ElemType => elem.filterAncestorElemsOrSelf(named(ename)) }
   }
 
   final def ancestorElemsOrSelfIgnoringNamespace(localName: String): ElemStep[ElemType] = {
-    { (elem: ElemType) => elem.filterAncestorElemsOrSelf(havingLocalName(localName)) }
+    { elem: ElemType => elem.filterAncestorElemsOrSelf(havingLocalName(localName)) }
   }
 }
 

@@ -23,7 +23,7 @@ package eu.cdevreeze.yaidom2.core
  *
  * @author Chris de Vreeze
  */
-sealed trait QName extends Serializable {
+sealed trait QName {
 
   def localPart: String
 
@@ -46,7 +46,7 @@ final case class PrefixedName(prefix: String, localPart: String) extends QName {
   override def prefixOption: Option[String] = Some(prefix)
 
   /** The `String` representation as it appears in XML. For example, <code>xs:schema</code> */
-  override def toString: String = s"${prefix}:${localPart}"
+  override def toString: String = s"$prefix:$localPart"
 }
 
 object QName {
@@ -70,12 +70,12 @@ object QName {
     val st = s.trim
 
     val arr = st.split(':')
-    require(arr.size <= 2, s"Expected at most 1 colon in QName '${st}'")
+    require(arr.length <= 2, s"Expected at most 1 colon in QName '$st'")
 
-    arr.size match {
+    arr.length match {
       case 1 => UnprefixedName(st)
       case 2 => PrefixedName(arr(0), arr(1))
-      case _ => sys.error(s"Did not expect more than 1 colon in QName '${st}'")
+      case _ => sys.error(s"Did not expect more than 1 colon in QName '$st'")
     }
   }
 

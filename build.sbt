@@ -28,11 +28,12 @@ lazy val commonSettings = Seq(
 
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value)
+    if (isSnapshot.value) {
       Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-    },
+    } else {
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    }
+  },
 
   pomExtra := pomData,
   pomIncludeRepository := { _ => false },

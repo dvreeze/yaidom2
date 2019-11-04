@@ -209,8 +209,6 @@ object TpDialectOverClarkElemQueryTest {
 
     type ThisNode = TpNode
 
-    def underlyingElem: ClarkNodes.Elem
-
     final def wrapElem(underlyingElem: ClarkNodes.Elem): ThisElem = TpElem(underlyingElem)
 
     // ClarkNodes.Elem
@@ -458,24 +456,24 @@ object TpDialectOverClarkElemQueryTest {
 
     private val constructors: Map[EName, ClarkNodes.Elem => TpElem] = Map(
       TpTaxonomyPackageEName -> { e => new TaxonomyPackage(e) },
-      TpIdentifierEName -> { e => new Identifier(e) },
-      TpVersionEName -> { e => new Version(e) },
-      TpLicenseEName -> { e => new License(e) },
-      TpPublisherEName -> { e => new Publisher(e) },
-      TpPublisherURLEName -> { e => new PublisherUrl(e) },
-      TpPublisherCountryEName -> { e => new PublisherCountry(e) },
-      TpPublicationDateEName -> { e => new PublicationDate(e) },
-      TpEntryPointsEName -> { e => new EntryPointsElem(e) },
-      TpEntryPointEName -> { e => new EntryPoint(e) },
-      TpSupersededTaxonomyPackagesEName -> { e => new SupersededTaxonomyPackagesElem(e) },
-      TpVersioningReportsEName -> { e => new VersioningReportsElem(e) },
-      TpEntryPointDocumentEName -> { e => new EntryPointDocument(e) },
-      TpLanguagesEName -> { e => new LanguagesElem(e) },
-      TpTaxonomyPackageRefEName -> { e => new TaxonomyPackageRef(e) },
-      TpVersioningReportEName -> { e => new VersioningReport(e) },
-      TpNameEName -> { e => new Name(e) },
-      TpDescriptionEName -> { e => new Description(e) },
-      TpLanguageEName -> { e => new Language(e) },
+      TpIdentifierEName -> { e => Identifier(e) },
+      TpVersionEName -> { e => Version(e) },
+      TpLicenseEName -> { e => License(e) },
+      TpPublisherEName -> { e => Publisher(e) },
+      TpPublisherURLEName -> { e => PublisherUrl(e) },
+      TpPublisherCountryEName -> { e => PublisherCountry(e) },
+      TpPublicationDateEName -> { e => PublicationDate(e) },
+      TpEntryPointsEName -> { e => EntryPointsElem(e) },
+      TpEntryPointEName -> { e => EntryPoint(e) },
+      TpSupersededTaxonomyPackagesEName -> { e => SupersededTaxonomyPackagesElem(e) },
+      TpVersioningReportsEName -> { e => VersioningReportsElem(e) },
+      TpEntryPointDocumentEName -> { e => EntryPointDocument(e) },
+      TpLanguagesEName -> { e => LanguagesElem(e) },
+      TpTaxonomyPackageRefEName -> { e => TaxonomyPackageRef(e) },
+      TpVersioningReportEName -> { e => VersioningReport(e) },
+      TpNameEName -> { e => Name(e) },
+      TpDescriptionEName -> { e => Description(e) },
+      TpLanguageEName -> { e => Language(e) },
     )
   }
 

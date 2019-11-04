@@ -33,9 +33,9 @@ import org.scalatest.FunSuite
  */
 trait ClarkElemNamespaceQueryTest extends FunSuite {
 
-  private val nsAtom = "http://www.w3.org/2005/Atom"
-  private val nsXhtml = "http://www.w3.org/1999/xhtml"
-  private val nsExamples = "http://xmlportfolio.com/xmlguild-examples"
+  private def nsAtom = "http://www.w3.org/2005/Atom"
+  private def nsXhtml = "http://www.w3.org/1999/xhtml"
+  private def nsExamples = "http://xmlportfolio.com/xmlguild-examples"
 
   protected def getRootElem(fileName: String): ClarkNodes.Elem
 
