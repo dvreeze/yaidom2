@@ -241,6 +241,18 @@ object SimpleNodes {
       withChildren(resultChildNodes)
     }
 
+    override def transformDescendantElemsOrSelf(f: ThisElem => ThisElem): ThisElem = super.transformDescendantElemsOrSelf(f)
+
+    override def transformDescendantElems(f: ThisElem => ThisElem): ThisElem = super.transformDescendantElems(f)
+
+    override def transformDescendantElemsOrSelfToNodeSeq(f: ThisElem => Seq[ThisNode]): Seq[ThisNode] = {
+      super.transformDescendantElemsOrSelfToNodeSeq(f)
+    }
+
+    override def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
+      super.transformDescendantElemsToNodeSeq(f)
+    }
+
     // Other public methods
 
     def attributeScope: Scope = scope.withoutDefaultNamespace
