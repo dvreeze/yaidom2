@@ -29,6 +29,7 @@ import eu.cdevreeze.yaidom2.core.SimpleScope
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
+import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.Nodes
 import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
@@ -97,7 +98,7 @@ object NodeBuilders {
   final class Elem private[nodebuilder](
     val name: EName,
     val attributes: SeqMap[EName, String],
-    val children: ArraySeq[Node],
+    val children: ArraySeq[Node], // TODO ArraySeq? For updatable elements?
     val simpleScope: SimpleScope
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableAttributeCarryingElem {
 
@@ -158,6 +159,30 @@ object NodeBuilders {
       }
     }
 
+    // Overriding methods that have type member ThisElem in the method signature, to "correct" the method signature now that ThisElem is known
+
+    override def findAllChildElems(): Seq[ThisElem] = super.findAllChildElems()
+
+    override def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElems(p)
+
+    override def findAllDescendantElems(): Seq[ThisElem] = super.findAllDescendantElems()
+
+    override def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElem(p)
+
+    override def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElemsOrSelf(p)
+
+    override def findAllDescendantElemsOrSelf(): Seq[ThisElem] = super.findAllDescendantElemsOrSelf()
+
+    override def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElemOrSelf(p)
+
+    override def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElems(p)
+
+    override def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElemsOrSelf(p)
+
+    override def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = super.getDescendantElemOrSelf(navigationPath)
+
+    override def select(step: ElemStep[ThisElem]): Seq[ThisElem] = super.select(step)
+
     // Update API methods
 
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
@@ -180,6 +205,84 @@ object NodeBuilders {
       findAllChildElems.zipWithIndex
     }
 
+    override def plusChild(child: ThisNode): ThisElem = super.plusChild(child)
+
+    override def plusChildOption(childOption: Option[ThisNode]): ThisElem = super.plusChildOption(childOption)
+
+    override def plusChild(index: Int, child: ThisNode): ThisElem = super.plusChild(index, child)
+
+    override def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem = super.plusChildOption(index, childOption)
+
+    override def plusChildren(childSeq: Seq[ThisNode]): ThisElem = super.plusChildren(childSeq)
+
+    override def minusChild(index: Int): ThisElem = super.minusChild(index)
+
+    override def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = super.updateChildElem(navigationStep)(f)
+
+    override def updateChildElem(navigationStep: Int, newElem: ThisElem): ThisElem = super.updateChildElem(navigationStep, newElem)
+
+    override def updateChildElemWithNodeSeq(navigationStep: Int)(f: ThisElem => Seq[ThisNode]): ThisElem = {
+      super.updateChildElemWithNodeSeq(navigationStep)(f)
+    }
+
+    override def updateChildElemWithNodeSeq(navigationStep: Int, newNodes: Seq[ThisNode]): ThisElem = {
+      super.updateChildElemWithNodeSeq(navigationStep)(_ => newNodes)
+    }
+
+    override def updateDescendantElemOrSelf(navigationPath: Seq[Int])(f: ThisElem => ThisElem): ThisElem = {
+      super.updateDescendantElemOrSelf(navigationPath)(f)
+    }
+
+    override def updateDescendantElemOrSelf(navigationPath: Seq[Int], newElem: ThisElem): ThisElem = {
+      super.updateDescendantElemOrSelf(navigationPath, newElem)
+    }
+
+    override def updateDescendantElemWithNodeSeq(navigationPath: Seq[Int])(f: ThisElem => Seq[ThisNode]): ThisElem = {
+      super.updateDescendantElemWithNodeSeq(navigationPath)(f)
+    }
+
+    override def updateDescendantElemWithNodeSeq(navigationPath: Seq[Int], newNodes: Seq[ThisNode]): ThisElem = {
+      super.updateDescendantElemWithNodeSeq(navigationPath, newNodes)
+    }
+
+    override def updateChildElems(navigationSteps: Set[Int])(f: (ThisElem, Int) => ThisElem): ThisElem = {
+      super.updateChildElems(navigationSteps)(f)
+    }
+
+    override def updateChildElemsWithNodeSeq(navigationSteps: Set[Int])(f: (ThisElem, Int) => Seq[ThisNode]): ThisElem = {
+      super.updateChildElemsWithNodeSeq(navigationSteps)(f)
+    }
+
+    override def updateDescendantElemsOrSelf(navigationPaths: Set[Seq[Int]])(f: (ThisElem, Seq[Int]) => ThisElem): ThisElem = {
+      super.updateDescendantElemsOrSelf(navigationPaths)(f)
+    }
+
+    override def updateDescendantElemsWithNodeSeq(navigationPaths: Set[Seq[Int]])(f: (ThisElem, Seq[Int]) => Seq[ThisNode]): ThisElem = {
+      super.updateDescendantElemsWithNodeSeq(navigationPaths)(f)
+    }
+
+    override def updateChildElems(f: PartialFunction[(ThisElem, Int), ThisElem]): ThisElem = super.updateChildElems(f)
+
+    override def updateChildElemsWithNodeSeq(f: PartialFunction[(ThisElem, Int), Seq[ThisNode]]): ThisElem = super.updateChildElemsWithNodeSeq(f)
+
+    override def updateTopmostElemsOrSelf(f: PartialFunction[(ThisElem, Seq[Int]), ThisElem]): ThisElem = {
+      super.updateTopmostElemsOrSelf(f)
+    }
+
+    override def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
+      super.updateTopmostElemsWithNodeSeq(f)
+    }
+
+    override def plusAttribute(attrName: EName, attrValue: String): ThisElem = super.plusAttribute(attrName, attrValue)
+
+    override def plusAttributeOption(attrName: EName, attrValueOption: Option[String]): ThisElem = {
+      super.plusAttributeOption(attrName, attrValueOption)
+    }
+
+    override def plusAttributes(newAttributes: SeqMap[EName, String]): ThisElem = super.plusAttributes(newAttributes)
+
+    override def minusAttribute(attrName: EName): ThisElem = super.minusAttribute(attrName)
+
     // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
@@ -200,6 +303,18 @@ object NodeBuilders {
         }
 
       withChildren(resultChildNodes)
+    }
+
+    override def transformDescendantElemsOrSelf(f: ThisElem => ThisElem): ThisElem = super.transformDescendantElemsOrSelf(f)
+
+    override def transformDescendantElems(f: ThisElem => ThisElem): ThisElem = super.transformDescendantElems(f)
+
+    override def transformDescendantElemsOrSelfToNodeSeq(f: ThisElem => Seq[ThisNode]): Seq[ThisNode] = {
+      super.transformDescendantElemsOrSelfToNodeSeq(f)
+    }
+
+    override def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
+      super.transformDescendantElemsToNodeSeq(f)
     }
 
     // Other methods

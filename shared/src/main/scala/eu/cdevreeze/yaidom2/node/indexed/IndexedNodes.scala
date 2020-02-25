@@ -28,6 +28,7 @@ import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractBackingElem
 
 /**
@@ -108,6 +109,56 @@ object IndexedNodes {
         }
       }
     }
+
+    override def localName: String = {
+      underlyingElem.localName
+    }
+
+    override def attrOption(attributeName: EName): Option[String] = {
+      underlyingElem.attrOption(attributeName)
+    }
+
+    // Overriding methods that have type member ThisElem in the method signature, to "correct" the method signature now that ThisElem is known
+
+    override def findAllChildElems(): Seq[ThisElem] = super.findAllChildElems()
+
+    override def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElems(p)
+
+    override def findAllDescendantElems(): Seq[ThisElem] = super.findAllDescendantElems()
+
+    override def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElem(p)
+
+    override def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElemsOrSelf(p)
+
+    override def findAllDescendantElemsOrSelf(): Seq[ThisElem] = super.findAllDescendantElemsOrSelf()
+
+    override def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElemOrSelf(p)
+
+    override def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElems(p)
+
+    override def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElemsOrSelf(p)
+
+    override def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = super.getDescendantElemOrSelf(navigationPath)
+
+    override def select(step: ElemStep[ThisElem]): Seq[ThisElem] = super.select(step)
+
+    override def findParentElem(): Option[ThisElem] = super.findParentElem()
+
+    override def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterAncestorElems(p)
+
+    override def findAllAncestorElems(): Seq[ThisElem] = super.findAllAncestorElems()
+
+    override def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = super.findAncestorElem(p)
+
+    override def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterAncestorElemsOrSelf(p)
+
+    override def findAllAncestorElemsOrSelf(): Seq[ThisElem] = super.findAllAncestorElemsOrSelf()
+
+    override def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findAncestorElemOrSelf(p)
+
+    override def findAllPrecedingSiblingElems(): Seq[ThisElem] = super.findAllPrecedingSiblingElems()
+
+    override def ownNavigationPathRelativeToRootElem: Seq[Int] = super.ownNavigationPathRelativeToRootElem
 
     def name: EName = {
       underlyingElem.name

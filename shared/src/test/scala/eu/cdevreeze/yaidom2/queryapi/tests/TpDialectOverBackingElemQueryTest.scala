@@ -249,7 +249,7 @@ object TpDialectOverBackingElemQueryTest {
       underlyingElem.children.flatMap(TpNode.opt).to(ArraySeq)
     }
 
-    final def select(step: ElemStep[TpElem]): Seq[TpElem] = {
+    final override def select(step: ElemStep[TpElem]): Seq[TpElem] = {
       step(this)
     }
 
@@ -258,6 +258,46 @@ object TpDialectOverBackingElemQueryTest {
     final def taxonomyPackage: TaxonomyPackage = {
       findAncestorElemOrSelf(havingType[TaxonomyPackage]).collect { case e: TaxonomyPackage => e }.get
     }
+
+    // Overriding methods that have type member ThisElem in the method signature, to "correct" the method signature now that ThisElem is known
+
+    override def findAllChildElems(): Seq[ThisElem] = super.findAllChildElems()
+
+    override def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElems(p)
+
+    override def findAllDescendantElems(): Seq[ThisElem] = super.findAllDescendantElems()
+
+    override def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElem(p)
+
+    override def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElemsOrSelf(p)
+
+    override def findAllDescendantElemsOrSelf(): Seq[ThisElem] = super.findAllDescendantElemsOrSelf()
+
+    override def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElemOrSelf(p)
+
+    override def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElems(p)
+
+    override def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElemsOrSelf(p)
+
+    override def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = super.getDescendantElemOrSelf(navigationPath)
+
+    override def findParentElem(): Option[ThisElem] = super.findParentElem()
+
+    override def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterAncestorElems(p)
+
+    override def findAllAncestorElems(): Seq[ThisElem] = super.findAllAncestorElems()
+
+    override def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = super.findAncestorElem(p)
+
+    override def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterAncestorElemsOrSelf(p)
+
+    override def findAllAncestorElemsOrSelf(): Seq[ThisElem] = super.findAllAncestorElemsOrSelf()
+
+    override def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findAncestorElemOrSelf(p)
+
+    override def findAllPrecedingSiblingElems(): Seq[ThisElem] = super.findAllPrecedingSiblingElems()
+
+    override def ownNavigationPathRelativeToRootElem: Seq[Int] = super.ownNavigationPathRelativeToRootElem
   }
 
   final case class TaxonomyPackage(underlyingElem: BackingNodes.Elem) extends TpElem {

@@ -37,6 +37,10 @@ import eu.cdevreeze.yaidom2.queryapi.ElemStep
  * In order for this type to be useful in dialect element implementations, wrapping an underlying element must be a very
  * fast and non-recursive operation.
  *
+ * In concrete element classes extending this trait (directly or indirectly), strongly consider overriding all methods
+ * that contain type member ThisElem anywhere in the method signature, by just calling the super-trait version of the method.
+ * That would ensure that in those method signatures type member ThisElem has the correct concrete element type.
+ *
  * @author Chris de Vreeze
  */
 // scalastyle:off number.of.methods
@@ -60,253 +64,253 @@ trait AbstractDialectBackingElem extends BackingNodes.Elem {
 
   // ElemApi
 
-  final def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
+  def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.filterChildElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findAllChildElems(): Seq[ThisElem] = {
+  def findAllChildElems(): Seq[ThisElem] = {
     underlyingElem.findAllChildElems().map(e => wrapElem(e))
   }
 
-  final def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
+  def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
     underlyingElem.findChildElem(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
+  def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.filterDescendantElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findAllDescendantElems(): Seq[ThisElem] = {
+  def findAllDescendantElems(): Seq[ThisElem] = {
     underlyingElem.findAllDescendantElems().map(e => wrapElem(e))
   }
 
-  final def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
+  def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
     underlyingElem.findDescendantElem(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
+  def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.filterDescendantElemsOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
+  def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
     underlyingElem.findAllDescendantElemsOrSelf().map(e => wrapElem(e))
   }
 
-  final def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
+  def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
     underlyingElem.findDescendantElemOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
+  def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.findTopmostElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
+  def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.findTopmostElemsOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
+  def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
     underlyingElem.findDescendantElemOrSelf(navigationPath).map(e => wrapElem(e))
   }
 
-  final def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = {
+  def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = {
     wrapElem(underlyingElem.getDescendantElemOrSelf(navigationPath))
   }
 
   // ClarkElemApi
 
-  final def name: EName = {
+  def name: EName = {
     underlyingElem.name
   }
 
-  final def localName: String = {
+  def localName: String = {
     underlyingElem.localName
   }
 
-  final def namespaceOption: Option[String] = {
+  def namespaceOption: Option[String] = {
     underlyingElem.namespaceOption
   }
 
-  final def namespaceAsString: String = {
+  def namespaceAsString: String = {
     underlyingElem.namespaceAsString
   }
 
-  final def attributes: SeqMap[EName, String] = {
+  def attributes: SeqMap[EName, String] = {
     underlyingElem.attributes
   }
 
-  final def attrOption(attributeName: EName): Option[String] = {
+  def attrOption(attributeName: EName): Option[String] = {
     underlyingElem.attrOption(attributeName)
   }
 
-  final def attrOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
+  def attrOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
     underlyingElem.attrOption(attributeNamespaceOption, attributeLocalName)
   }
 
-  final def attrOption(attributeNamespace: String, attributeLocalName: String): Option[String] = {
+  def attrOption(attributeNamespace: String, attributeLocalName: String): Option[String] = {
     underlyingElem.attrOption(attributeNamespace, attributeLocalName)
   }
 
-  final def attrOption(attributeLocalName: String): Option[String] = {
+  def attrOption(attributeLocalName: String): Option[String] = {
     underlyingElem.attrOption(attributeLocalName)
   }
 
-  final def attr(attributeName: EName): String = {
+  def attr(attributeName: EName): String = {
     underlyingElem.attr(attributeName)
   }
 
-  final def attr(attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
+  def attr(attributeNamespaceOption: Option[String], attributeLocalName: String): String = {
     underlyingElem.attr(attributeNamespaceOption, attributeLocalName)
   }
 
-  final def attr(attributeNamespace: String, attributeLocalName: String): String = {
+  def attr(attributeNamespace: String, attributeLocalName: String): String = {
     underlyingElem.attr(attributeNamespace, attributeLocalName)
   }
 
-  final def attr(attributeLocalName: String): String = {
+  def attr(attributeLocalName: String): String = {
     underlyingElem.attr(attributeLocalName)
   }
 
-  final def text: String = {
+  def text: String = {
     underlyingElem.text
   }
 
-  final def normalizedText: String = {
+  def normalizedText: String = {
     underlyingElem.normalizedText
   }
 
-  final def trimmedText: String = {
+  def trimmedText: String = {
     underlyingElem.trimmedText
   }
 
   // ScopedElemApi
 
-  final def scope: Scope = {
+  def scope: Scope = {
     underlyingElem.scope
   }
 
-  final def qname: QName = {
+  def qname: QName = {
     underlyingElem.qname
   }
 
-  final def attributesByQName: SeqMap[QName, String] = {
+  def attributesByQName: SeqMap[QName, String] = {
     underlyingElem.attributesByQName
   }
 
-  final def textAsQName: QName = {
+  def textAsQName: QName = {
     underlyingElem.textAsQName
   }
 
-  final def textAsResolvedQName: EName = {
+  def textAsResolvedQName: EName = {
     underlyingElem.textAsResolvedQName
   }
 
-  final def attrAsQNameOption(attributeName: EName): Option[QName] = {
+  def attrAsQNameOption(attributeName: EName): Option[QName] = {
     underlyingElem.attrAsQNameOption(attributeName)
   }
 
-  final def attrAsQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
+  def attrAsQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[QName] = {
     underlyingElem.attrAsQNameOption(attributeNamespaceOption, attributeLocalName)
   }
 
-  final def attrAsQNameOption(attributeNamespace: String, attributeLocalName: String): Option[QName] = {
+  def attrAsQNameOption(attributeNamespace: String, attributeLocalName: String): Option[QName] = {
     underlyingElem.attrAsQNameOption(attributeNamespace, attributeLocalName)
   }
 
-  final def attrAsQName(attributeName: EName): QName = {
+  def attrAsQName(attributeName: EName): QName = {
     underlyingElem.attrAsQName(attributeName)
   }
 
-  final def attrAsQName(attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
+  def attrAsQName(attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
     underlyingElem.attrAsQName(attributeNamespaceOption, attributeLocalName)
   }
 
-  final def attrAsQName(attributeNamespace: String, attributeLocalName: String): QName = {
+  def attrAsQName(attributeNamespace: String, attributeLocalName: String): QName = {
     underlyingElem.attrAsQName(attributeNamespace, attributeLocalName)
   }
 
-  final def attrAsResolvedQNameOption(attributeName: EName): Option[EName] = {
+  def attrAsResolvedQNameOption(attributeName: EName): Option[EName] = {
     underlyingElem.attrAsResolvedQNameOption(attributeName)
   }
 
-  final def attrAsResolvedQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
+  def attrAsResolvedQNameOption(attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
     underlyingElem.attrAsResolvedQNameOption(attributeNamespaceOption, attributeLocalName)
   }
 
-  final def attrAsResolvedQNameOption(attributeNamespace: String, attributeLocalName: String): Option[EName] = {
+  def attrAsResolvedQNameOption(attributeNamespace: String, attributeLocalName: String): Option[EName] = {
     underlyingElem.attrAsResolvedQNameOption(attributeNamespace, attributeLocalName)
   }
 
-  final def attrAsResolvedQName(attributeName: EName): EName = {
+  def attrAsResolvedQName(attributeName: EName): EName = {
     underlyingElem.attrAsResolvedQName(attributeName)
   }
 
-  final def attrAsResolvedQName(attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
+  def attrAsResolvedQName(attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
     underlyingElem.attrAsResolvedQName(attributeNamespaceOption, attributeLocalName)
   }
 
-  final def attrAsResolvedQName(attributeNamespace: String, attributeLocalName: String): EName = {
+  def attrAsResolvedQName(attributeNamespace: String, attributeLocalName: String): EName = {
     underlyingElem.attrAsResolvedQName(attributeNamespace, attributeLocalName)
   }
 
   // BackingElemApi
 
-  final def findParentElem(p: ThisElem => Boolean): Option[ThisElem] = {
+  def findParentElem(p: ThisElem => Boolean): Option[ThisElem] = {
     underlyingElem.findParentElem(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findParentElem(): Option[ThisElem] = {
+  def findParentElem(): Option[ThisElem] = {
     underlyingElem.findParentElem().map(e => wrapElem(e))
   }
 
-  final def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
+  def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.filterAncestorElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findAllAncestorElems(): Seq[ThisElem] = {
+  def findAllAncestorElems(): Seq[ThisElem] = {
     underlyingElem.findAllAncestorElems().map(e => wrapElem(e))
   }
 
-  final def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
+  def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
     underlyingElem.findAncestorElem(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
+  def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.filterAncestorElemsOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
+  def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
     underlyingElem.findAllAncestorElemsOrSelf().map(e => wrapElem(e))
   }
 
-  final def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
+  def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
     underlyingElem.findAncestorElemOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  final def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
+  def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
     underlyingElem.findAllPrecedingSiblingElems().map(e => wrapElem(e))
   }
 
-  final def ownNavigationPathRelativeToRootElem: Seq[Int] = {
+  def ownNavigationPathRelativeToRootElem: Seq[Int] = {
     underlyingElem.ownNavigationPathRelativeToRootElem
   }
 
-  final def baseUriOption: Option[URI] = {
+  def baseUriOption: Option[URI] = {
     underlyingElem.baseUriOption
   }
 
-  final def baseUri: URI = {
+  def baseUri: URI = {
     underlyingElem.baseUri
   }
 
-  final def docUriOption: Option[URI] = {
+  def docUriOption: Option[URI] = {
     underlyingElem.docUriOption
   }
 
-  final def docUri: URI = {
+  def docUri: URI = {
     underlyingElem.docUri
   }
 
-  final def rootElem: ThisElem = {
+  def rootElem: ThisElem = {
     wrapElem(underlyingElem.rootElem)
   }
 }

@@ -588,11 +588,11 @@ object JsDomNodes {
     }
 
     def localName(elem: ElemType): String = {
-      name(elem).localPart
+      elem.localName
     }
 
     def namespaceOption(elem: ElemType): Option[String] = {
-      name(elem).namespaceUriOption
+      Option(elem.namespaceURI)
     }
 
     def namespaceAsString(elem: ElemType): String = {
@@ -600,7 +600,7 @@ object JsDomNodes {
     }
 
     def attrOption(elem: ElemType, attributeName: EName): Option[String] = {
-      attributes(elem).get(attributeName)
+      attributes(elem).get(attributeName) // Inefficient, but whats' the alternative?
     }
 
     def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {

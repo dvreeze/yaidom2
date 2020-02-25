@@ -26,7 +26,11 @@ import eu.cdevreeze.yaidom2.updateapi.UpdatableAttributeCarryingElemApi
  * Abstract partially implemented UpdatableAttributeCarryingElemApi, for re-usable (but overridable) partial element implementations in yaidom2.
  *
  * This is an internal API, although it is visible from the outside. When using this API, keep in mind that the API
- * is not a stable as the purely abstract API.
+ * is not as stable as the purely abstract API.
+ *
+ * In concrete element classes extending this trait (directly or indirectly), strongly consider overriding all methods
+ * that contain type member ThisElem anywhere in the method signature, by just calling the super-trait version of the method.
+ * That would ensure that in those method signatures type member ThisElem has the correct concrete element type.
  *
  * @author Chris de Vreeze
  */

@@ -56,6 +56,8 @@ object SaxonNodes {
 
   /**
    * Saxon element node, offering the `BackingNodes.Elem` element query API.
+   *
+   * Creation of this element is cheap, because the only state is the underlying Saxon XdmNode.
    */
   // scalastyle:off number.of.methods
   final case class Elem(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.Elem {
