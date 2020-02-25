@@ -171,10 +171,13 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     qname match {
       case unprefixedName: UnprefixedName if defaultNamespaceOption.isEmpty => Some(EName(None, unprefixedName.localPart))
       case unprefixedName: UnprefixedName => Some(EName(defaultNamespaceOption, unprefixedName.localPart))
-      case prefixedName: PrefixedName =>
-        // The prefix scope (as Map), with the implicit "xml" namespace added
-        val completePrefixScopeMap: Map[String, String] = (prefixNamespaceMap - DefaultNsPrefix) + ("xml" -> XmlNamespace)
-        completePrefixScopeMap.get(prefixedName.prefix).map { nsUri => EName(Some(nsUri), prefixedName.localPart) }
+      case PrefixedName(prefix, localPart) =>
+        // Thanks to Johan Walters for pointing to a performance bottleneck in previous versions of this code (in yaidom)
+        prefix match {
+          case "xml" => Some(EName(Some(XmlNamespace), localPart))
+          case "" => None // Quirk to keep old behavior of "allowing" empty prefixes and ignoring them when resolving the name
+          case _ => prefixNamespaceMap.get(prefix).map(nsUri => EName(Some(nsUri), localPart))
+        }
     }
   }
 
