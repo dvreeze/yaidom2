@@ -600,7 +600,7 @@ object JsDomNodes {
     }
 
     def attrOption(elem: ElemType, attributeName: EName): Option[String] = {
-      attributes(elem).get(attributeName) // Inefficient, but whats' the alternative?
+      attributes(elem).get(attributeName) // Inefficient, but what is the alternative?
     }
 
     def attrOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[String] = {
