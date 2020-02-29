@@ -37,7 +37,7 @@ abstract class XbrlClarkElemQueryTest[E <: ClarkNodes.Elem.Aux[_, E]] extends Fu
 
   test("testParseAndQueryClarkXml") {
     assertResult(true) {
-      rootElem.findAllDescendantElemsOrSelf().size >= 100
+      rootElem.findAllDescendantElemsOrSelf.size >= 100
     }
 
     val knownXbrliLocalNames =

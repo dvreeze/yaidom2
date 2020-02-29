@@ -55,7 +55,7 @@ trait TpDialectOverClarkElemQueryTest extends FunSuite {
     assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
       .flatMap(_.filterChildElems(named(TpNameEName))).map(_.text).toSet) {
 
-      taxoPackage.findAllEntryPoints().flatMap(_.findAllNames).map(_.value).toSet
+      taxoPackage.findAllEntryPoints.flatMap(_.findAllNames).map(_.value).toSet
     }
   }
 
@@ -65,7 +65,7 @@ trait TpDialectOverClarkElemQueryTest extends FunSuite {
     assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
       .map(e => resolved.Elem.from(e))) {
 
-      taxoPackage.findAllEntryPoints().map(e => resolved.Elem.from(e))
+      taxoPackage.findAllEntryPoints.map(e => resolved.Elem.from(e))
     }
   }
 
@@ -99,7 +99,7 @@ trait TpDialectOverClarkElemQueryTest extends FunSuite {
   test("testQueryEntrypointDocuments") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    val docs = taxoPackage.findAllEntryPoints().flatMap(_.findAllEntryPointDocuments)
+    val docs = taxoPackage.findAllEntryPoints.flatMap(_.findAllEntryPointDocuments)
 
     assertResult(true) {
       docs.size > 10
@@ -112,16 +112,16 @@ trait TpDialectOverClarkElemQueryTest extends FunSuite {
   test("testResolvedElemProperty") {
     val taxonomyPackage = TaxonomyPackage(rootElem)
 
-    assertResult(resolved.Elem.from(taxonomyPackage).findAllDescendantElemsOrSelf()) {
-      taxonomyPackage.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    assertResult(resolved.Elem.from(taxonomyPackage).findAllDescendantElemsOrSelf) {
+      taxonomyPackage.findAllDescendantElemsOrSelf.map(e => resolved.Elem.from(e))
     }
   }
 
   test("testResolvedElemPropertyViaDocument") {
     val taxonomyPackageDoc = TpDocument(document)
 
-    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf()) {
-      taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf) {
+      taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf.map(e => resolved.Elem.from(e))
     }
   }
 }
@@ -223,17 +223,17 @@ object TpDialectOverClarkElemQueryTest {
 
     // Overriding methods that have type member ThisElem in the method signature, to "correct" the method signature now that ThisElem is known
 
-    override def findAllChildElems(): Seq[ThisElem] = super.findAllChildElems()
+    override def findAllChildElems: Seq[ThisElem] = super.findAllChildElems
 
     override def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElems(p)
 
-    override def findAllDescendantElems(): Seq[ThisElem] = super.findAllDescendantElems()
+    override def findAllDescendantElems: Seq[ThisElem] = super.findAllDescendantElems
 
     override def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElem(p)
 
     override def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElemsOrSelf(p)
 
-    override def findAllDescendantElemsOrSelf(): Seq[ThisElem] = super.findAllDescendantElemsOrSelf()
+    override def findAllDescendantElemsOrSelf: Seq[ThisElem] = super.findAllDescendantElemsOrSelf
 
     override def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElemOrSelf(p)
 
@@ -246,7 +246,7 @@ object TpDialectOverClarkElemQueryTest {
 
   final case class TaxonomyPackage(underlyingElem: ClarkNodes.Elem) extends TpElem {
 
-    def findAllEntryPoints(): Seq[EntryPoint] = {
+    def findAllEntryPoints: Seq[EntryPoint] = {
       filterDescendantElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
     }
 

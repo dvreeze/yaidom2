@@ -42,17 +42,17 @@ class JsDomElemQueryTest extends FunSuite {
       docElem.findAllChildElems.size > 20
     }
     assertResult(Set(XsNamespace)) {
-      docElem.findAllChildElems().map(_.namespaceAsString).toSet
+      docElem.findAllChildElems.map(_.namespaceAsString).toSet
     }
 
-    assertResult(docElem.findAllChildElems()) {
+    assertResult(docElem.findAllChildElems) {
       docElem.filterChildElems(_ => true)
     }
 
     val indexedDoc = indexed.Document.from(axesSchemaDoc)
 
-    assertResult(resolved.Elem.from(docElem).findAllChildElems()) {
-      resolved.Elem.from(indexedDoc.documentElement).findAllChildElems()
+    assertResult(resolved.Elem.from(docElem).findAllChildElems) {
+      resolved.Elem.from(indexedDoc.documentElement).findAllChildElems
     }
   }
 
@@ -63,17 +63,17 @@ class JsDomElemQueryTest extends FunSuite {
       docElem.findAllDescendantElems.size > 20
     }
     assertResult(Set(XsNamespace, LinkNamespace)) {
-      docElem.findAllDescendantElems().map(_.namespaceAsString).toSet
+      docElem.findAllDescendantElems.map(_.namespaceAsString).toSet
     }
 
-    assertResult(docElem.findAllDescendantElems()) {
+    assertResult(docElem.findAllDescendantElems) {
       docElem.filterDescendantElems(_ => true)
     }
 
     val indexedDoc = indexed.Document.from(axesSchemaDoc)
 
-    assertResult(resolved.Elem.from(docElem).findAllDescendantElems()) {
-      resolved.Elem.from(indexedDoc.documentElement).findAllDescendantElems()
+    assertResult(resolved.Elem.from(docElem).findAllDescendantElems) {
+      resolved.Elem.from(indexedDoc.documentElement).findAllDescendantElems
     }
   }
 
@@ -84,21 +84,21 @@ class JsDomElemQueryTest extends FunSuite {
       docElem.findAllDescendantElemsOrSelf.size > 20
     }
     assertResult(Set(XsNamespace, LinkNamespace)) {
-      docElem.findAllDescendantElemsOrSelf().map(_.namespaceAsString).toSet
+      docElem.findAllDescendantElemsOrSelf.map(_.namespaceAsString).toSet
     }
 
-    assertResult(docElem.findAllDescendantElemsOrSelf()) {
+    assertResult(docElem.findAllDescendantElemsOrSelf) {
       docElem.filterDescendantElemsOrSelf(_ => true)
     }
 
-    assertResult(docElem.findAllDescendantElems().toSet.union(Set(docElem))) {
-      docElem.findAllDescendantElemsOrSelf().toSet
+    assertResult(docElem.findAllDescendantElems.toSet.union(Set(docElem))) {
+      docElem.findAllDescendantElemsOrSelf.toSet
     }
 
     val indexedDoc = indexed.Document.from(axesSchemaDoc)
 
-    assertResult(resolved.Elem.from(docElem).findAllDescendantElemsOrSelf()) {
-      resolved.Elem.from(indexedDoc.documentElement).findAllDescendantElemsOrSelf()
+    assertResult(resolved.Elem.from(docElem).findAllDescendantElemsOrSelf) {
+      resolved.Elem.from(indexedDoc.documentElement).findAllDescendantElemsOrSelf
     }
   }
 
@@ -134,12 +134,12 @@ class JsDomElemQueryTest extends FunSuite {
     val docElem = axesSchemaDoc.documentElement
 
     assertResult(Set("http://www.nltaxonomie.nl/nt13/jenv/20181212/dictionary/jenv-bw2-axes")) {
-      docElem.findAllDescendantElemsOrSelf().flatMap(_.findAncestorElem(_.attrOption("targetNamespace").nonEmpty))
+      docElem.findAllDescendantElemsOrSelf.flatMap(_.findAncestorElem(_.attrOption("targetNamespace").nonEmpty))
         .map(_.attr("targetNamespace")).toSet
     }
 
     assertResult(Set(Some(docElem))) {
-      docElem.findAllDescendantElems().map(_.findAncestorElem(_.attrOption("targetNamespace").nonEmpty)).toSet
+      docElem.findAllDescendantElems.map(_.findAncestorElem(_.attrOption("targetNamespace").nonEmpty)).toSet
     }
   }
 
@@ -148,7 +148,7 @@ class JsDomElemQueryTest extends FunSuite {
 
     val lastLinkbaseRef = docElem.filterDescendantElems(named(LinkNamespace, "linkbaseRef")).ensuring(_.nonEmpty).last
 
-    val precedingLinkbaseRefs = lastLinkbaseRef.findAllPrecedingSiblingElems()
+    val precedingLinkbaseRefs = lastLinkbaseRef.findAllPrecedingSiblingElems
 
     assertResult(Seq.fill(4)(EName(LinkNamespace, "linkbaseRef"))) {
       precedingLinkbaseRefs.map(_.name)
@@ -159,10 +159,10 @@ class JsDomElemQueryTest extends FunSuite {
     }
 
     assertResult(docElem.findDescendantElem(named(XsNamespace, "appinfo")).toList) {
-      precedingLinkbaseRefs.flatMap(_.findParentElem()).distinct
+      precedingLinkbaseRefs.flatMap(_.findParentElem).distinct
     }
 
-    assertResult(indexed.Elem.from(lastLinkbaseRef).findAllPrecedingSiblingElems().map(e => resolved.Elem.from(e))) {
+    assertResult(indexed.Elem.from(lastLinkbaseRef).findAllPrecedingSiblingElems.map(e => resolved.Elem.from(e))) {
       precedingLinkbaseRefs.map(e => resolved.Elem.from(e))
     }
   }

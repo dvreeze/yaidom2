@@ -35,7 +35,7 @@ final class ElemWithNavigationPath[E <: ElemApi.Aux[E]](val elem: E, val navigat
   protected[yaidom2] def toImmutableSeq(xs: collection.Seq[ThisElem]): Seq[ThisElem] = xs.to(ArraySeq)
 
   def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-    elem.findAllChildElems().zipWithIndex.map { case (che, idx) =>
+    elem.findAllChildElems.zipWithIndex.map { case (che, idx) =>
       new ElemWithNavigationPath[E](che, navigationPath.appended(idx))
     }.filter(p)
   }
@@ -49,7 +49,7 @@ final class ElemWithNavigationPath[E <: ElemApi.Aux[E]](val elem: E, val navigat
       Some(self)
     } else {
       val childElemIdx: Int = navigationPath(0)
-      val childElems: Seq[ThisElem] = findAllChildElems()
+      val childElems: Seq[ThisElem] = findAllChildElems
 
       if (childElemIdx >= 0 && childElemIdx < childElems.size) {
         // Recursive call
@@ -59,6 +59,28 @@ final class ElemWithNavigationPath[E <: ElemApi.Aux[E]](val elem: E, val navigat
       }
     }
   }
+
+  // Overriding methods that have type member ThisElem in the method signature, to "correct" the method signature now that ThisElem is known
+
+  override def findAllChildElems: Seq[ThisElem] = super.findAllChildElems
+
+  override def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElems(p)
+
+  override def findAllDescendantElems: Seq[ThisElem] = super.findAllDescendantElems
+
+  override def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElem(p)
+
+  override def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElemsOrSelf(p)
+
+  override def findAllDescendantElemsOrSelf: Seq[ThisElem] = super.findAllDescendantElemsOrSelf
+
+  override def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElemOrSelf(p)
+
+  override def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElems(p)
+
+  override def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElemsOrSelf(p)
+
+  override def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = super.getDescendantElemOrSelf(navigationPath)
 }
 
 object ElemWithNavigationPath {

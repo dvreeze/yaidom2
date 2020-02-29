@@ -35,7 +35,7 @@ abstract class DefaultUpdatableElemApiSpecificationDataProvider[N, E <: Abstract
 
   implicit val arbitraryElem: Arbitrary[E] = {
     val rootElems: Seq[E] = rootElemPaths.map(path => getRootElemAsSaxonElem(path)).map(convertSaxonElemToElem)
-    val allElems: Seq[E] = rootElems.flatMap(_.findAllDescendantElemsOrSelf())
+    val allElems: Seq[E] = rootElems.flatMap(_.findAllDescendantElemsOrSelf)
     require(allElems.size >= 1000, s"Expected at least 1000 elements")
 
     Arbitrary(Gen.oneOf(Gen.oneOf(allElems), Gen.oneOf(rootElems)))

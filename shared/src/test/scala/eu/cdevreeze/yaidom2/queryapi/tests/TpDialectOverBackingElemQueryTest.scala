@@ -56,7 +56,7 @@ trait TpDialectOverBackingElemQueryTest extends FunSuite {
     assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
       .flatMap(_.filterChildElems(named(TpNameEName))).map(_.text).toSet) {
 
-      taxoPackage.findAllEntryPoints().flatMap(_.findAllNames).map(_.value).toSet
+      taxoPackage.findAllEntryPoints.flatMap(_.findAllNames).map(_.value).toSet
     }
   }
 
@@ -66,7 +66,7 @@ trait TpDialectOverBackingElemQueryTest extends FunSuite {
     assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
       .map(e => resolved.Elem.from(e))) {
 
-      taxoPackage.findAllEntryPoints().map(e => resolved.Elem.from(e))
+      taxoPackage.findAllEntryPoints.map(e => resolved.Elem.from(e))
     }
   }
 
@@ -100,7 +100,7 @@ trait TpDialectOverBackingElemQueryTest extends FunSuite {
   test("testQueryEntrypointDocuments") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    val docs = taxoPackage.findAllEntryPoints().flatMap(_.findAllEntryPointDocuments)
+    val docs = taxoPackage.findAllEntryPoints.flatMap(_.findAllEntryPointDocuments)
 
     assertResult(true) {
       docs.size > 10
@@ -113,15 +113,15 @@ trait TpDialectOverBackingElemQueryTest extends FunSuite {
   test("testResolvedElemProperty") {
     val taxonomyPackage = TaxonomyPackage(rootElem)
 
-    assertResult(resolved.Elem.from(taxonomyPackage).findAllDescendantElemsOrSelf()) {
-      taxonomyPackage.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    assertResult(resolved.Elem.from(taxonomyPackage).findAllDescendantElemsOrSelf) {
+      taxonomyPackage.findAllDescendantElemsOrSelf.map(e => resolved.Elem.from(e))
     }
   }
 
   test("testQueryEntrypointOfEntrypointDocuments") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    val docs = taxoPackage.findAllEntryPoints().flatMap(_.findAllEntryPointDocuments)
+    val docs = taxoPackage.findAllEntryPoints.flatMap(_.findAllEntryPointDocuments)
 
     assertResult(true) {
       docs.size > 10
@@ -130,7 +130,7 @@ trait TpDialectOverBackingElemQueryTest extends FunSuite {
       docs
     }
 
-    assertResult(taxoPackage.findAllEntryPoints()) {
+    assertResult(taxoPackage.findAllEntryPoints) {
       docs.map(_.entryPoint).distinct
     }
   }
@@ -139,15 +139,15 @@ trait TpDialectOverBackingElemQueryTest extends FunSuite {
     val taxoPackage = TaxonomyPackage(rootElem)
 
     assertResult(Seq(taxoPackage)) {
-      taxoPackage.findAllDescendantElemsOrSelf().map(_.taxonomyPackage).distinct
+      taxoPackage.findAllDescendantElemsOrSelf.map(_.taxonomyPackage).distinct
     }
   }
 
   test("testResolvedElemPropertyViaDocument") {
     val taxonomyPackageDoc = TpDocument(document)
 
-    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf()) {
-      taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf().map(e => resolved.Elem.from(e))
+    assertResult(resolved.Elem.from(taxonomyPackageDoc.documentElement).findAllDescendantElemsOrSelf) {
+      taxonomyPackageDoc.documentElement.findAllDescendantElemsOrSelf.map(e => resolved.Elem.from(e))
     }
   }
 }
@@ -261,17 +261,17 @@ object TpDialectOverBackingElemQueryTest {
 
     // Overriding methods that have type member ThisElem in the method signature, to "correct" the method signature now that ThisElem is known
 
-    override def findAllChildElems(): Seq[ThisElem] = super.findAllChildElems()
+    override def findAllChildElems: Seq[ThisElem] = super.findAllChildElems
 
     override def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElems(p)
 
-    override def findAllDescendantElems(): Seq[ThisElem] = super.findAllDescendantElems()
+    override def findAllDescendantElems: Seq[ThisElem] = super.findAllDescendantElems
 
     override def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElem(p)
 
     override def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElemsOrSelf(p)
 
-    override def findAllDescendantElemsOrSelf(): Seq[ThisElem] = super.findAllDescendantElemsOrSelf()
+    override def findAllDescendantElemsOrSelf: Seq[ThisElem] = super.findAllDescendantElemsOrSelf
 
     override def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElemOrSelf(p)
 
@@ -281,28 +281,28 @@ object TpDialectOverBackingElemQueryTest {
 
     override def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = super.getDescendantElemOrSelf(navigationPath)
 
-    override def findParentElem(): Option[ThisElem] = super.findParentElem()
+    override def findParentElem: Option[ThisElem] = super.findParentElem
 
     override def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterAncestorElems(p)
 
-    override def findAllAncestorElems(): Seq[ThisElem] = super.findAllAncestorElems()
+    override def findAllAncestorElems: Seq[ThisElem] = super.findAllAncestorElems
 
     override def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = super.findAncestorElem(p)
 
     override def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterAncestorElemsOrSelf(p)
 
-    override def findAllAncestorElemsOrSelf(): Seq[ThisElem] = super.findAllAncestorElemsOrSelf()
+    override def findAllAncestorElemsOrSelf: Seq[ThisElem] = super.findAllAncestorElemsOrSelf
 
     override def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findAncestorElemOrSelf(p)
 
-    override def findAllPrecedingSiblingElems(): Seq[ThisElem] = super.findAllPrecedingSiblingElems()
+    override def findAllPrecedingSiblingElems: Seq[ThisElem] = super.findAllPrecedingSiblingElems
 
     override def ownNavigationPathRelativeToRootElem: Seq[Int] = super.ownNavigationPathRelativeToRootElem
   }
 
   final case class TaxonomyPackage(underlyingElem: BackingNodes.Elem) extends TpElem {
 
-    def findAllEntryPoints(): Seq[EntryPoint] = {
+    def findAllEntryPoints: Seq[EntryPoint] = {
       filterDescendantElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
     }
 

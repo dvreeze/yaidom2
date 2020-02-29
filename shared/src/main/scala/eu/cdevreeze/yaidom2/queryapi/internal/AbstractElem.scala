@@ -42,20 +42,20 @@ trait AbstractElem extends ElemApi {
 
   // ElemApi
 
-  def findAllChildElems(): Seq[ThisElem] = {
+  def findAllChildElems: Seq[ThisElem] = {
     filterChildElems(_ => true)
   }
 
   def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-    findAllChildElems().flatMap(_.filterDescendantElemsOrSelf(p))
+    findAllChildElems.flatMap(_.filterDescendantElemsOrSelf(p))
   }
 
-  def findAllDescendantElems(): Seq[ThisElem] = {
+  def findAllDescendantElems: Seq[ThisElem] = {
     filterDescendantElems(_ => true)
   }
 
   def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
-    findAllChildElems().view.flatMap(_.findDescendantElemOrSelf(p)).headOption
+    findAllChildElems.view.flatMap(_.findDescendantElemOrSelf(p)).headOption
   }
 
   def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -64,14 +64,14 @@ trait AbstractElem extends ElemApi {
     def accumulate(elm: ThisElem): Unit = {
       if (p(elm)) result += elm
       // Recursive calls (not tail-recursive, but the depth is typically limited)
-      elm.findAllChildElems().foreach(accumulate)
+      elm.findAllChildElems.foreach(accumulate)
     }
 
     accumulate(self)
     toImmutableSeq(result)
   }
 
-  def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
+  def findAllDescendantElemsOrSelf: Seq[ThisElem] = {
     filterDescendantElemsOrSelf(_ => true)
   }
 
@@ -84,7 +84,7 @@ trait AbstractElem extends ElemApi {
       }
       if (result.isEmpty) {
         // Recursive calls (not tail-recursive, but the depth is typically limited)
-        elm.findAllChildElems().foreach(findElem)
+        elm.findAllChildElems.foreach(findElem)
       }
     }
 
@@ -93,7 +93,7 @@ trait AbstractElem extends ElemApi {
   }
 
   def findTopmostElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-    findAllChildElems().flatMap(_.findTopmostElemsOrSelf(p))
+    findAllChildElems.flatMap(_.findTopmostElemsOrSelf(p))
   }
 
   def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -104,7 +104,7 @@ trait AbstractElem extends ElemApi {
         result += elm
       } else {
         // Recursive calls (not tail-recursive, but the depth is typically limited)
-        elm.findAllChildElems().foreach(accumulate)
+        elm.findAllChildElems.foreach(accumulate)
       }
     }
 

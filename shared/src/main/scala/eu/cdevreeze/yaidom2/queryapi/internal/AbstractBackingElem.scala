@@ -44,15 +44,15 @@ trait AbstractBackingElem extends AbstractScopedElem with BackingNodes.Elem {
 
   // BackingElemApi
 
-  def findParentElem(): Option[ThisElem] = {
+  def findParentElem: Option[ThisElem] = {
     findParentElem(_ => true)
   }
 
   def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-    toImmutableSeq(findParentElem().toList).flatMap(_.filterAncestorElemsOrSelf(p))
+    toImmutableSeq(findParentElem.toList).flatMap(_.filterAncestorElemsOrSelf(p))
   }
 
-  def findAllAncestorElems(): Seq[ThisElem] = {
+  def findAllAncestorElems: Seq[ThisElem] = {
     filterAncestorElems(_ => true)
   }
 
@@ -62,10 +62,10 @@ trait AbstractBackingElem extends AbstractScopedElem with BackingNodes.Elem {
 
   def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = {
     // Recursive calls
-    toImmutableSeq(Seq(self)).filter(p) ++ toImmutableSeq(findParentElem().toList).flatMap(_.filterAncestorElemsOrSelf(p))
+    toImmutableSeq(Seq(self)).filter(p) ++ toImmutableSeq(findParentElem.toList).flatMap(_.filterAncestorElemsOrSelf(p))
   }
 
-  def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
+  def findAllAncestorElemsOrSelf: Seq[ThisElem] = {
     filterAncestorElemsOrSelf(_ => true)
   }
 
@@ -73,21 +73,21 @@ trait AbstractBackingElem extends AbstractScopedElem with BackingNodes.Elem {
     filterAncestorElemsOrSelf(p).headOption // TODO Improve performance!
   }
 
-  def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
-    val parentElemOption = findParentElem()
+  def findAllPrecedingSiblingElems: Seq[ThisElem] = {
+    val parentElemOption = findParentElem
 
     if (parentElemOption.isEmpty) {
       ArraySeq.empty
     } else {
-      parentElemOption.get.findAllChildElems().takeWhile(_ != self).reverse
+      parentElemOption.get.findAllChildElems.takeWhile(_ != self).reverse
     }
   }
 
   def ownNavigationPathRelativeToRootElem: Seq[Int] = {
     def relativeNavigationPath(e: ThisElem): Seq[Int] = {
-      e.findParentElem().map { pe =>
+      e.findParentElem.map { pe =>
         // Recursive call
-        relativeNavigationPath(pe).appended(e.findAllPrecedingSiblingElems().size)
+        relativeNavigationPath(pe).appended(e.findAllPrecedingSiblingElems.size)
       }.getOrElse(IndexedSeq.empty)
     }
 
@@ -97,7 +97,7 @@ trait AbstractBackingElem extends AbstractScopedElem with BackingNodes.Elem {
   def baseUriOption: Option[URI] = {
     // Recursive call
     val parentBaseUriOption: Option[URI] =
-      findParentElem().flatMap(_.baseUriOption).orElse(docUriOption)
+      findParentElem.flatMap(_.baseUriOption).orElse(docUriOption)
 
     attrOption(XmlBaseEName).map(u => URI.create(u))
       .map(u => parentBaseUriOption.map(_.resolve(u)).getOrElse(u)).orElse(parentBaseUriOption)

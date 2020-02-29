@@ -64,7 +64,9 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-5",
 
-    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.2" % "test"
+    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.2" % "test",
+
+    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.7.0")
   )
   .jsSettings(
     // Do we need this jsEnv?
@@ -72,7 +74,9 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.7",
 
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
+
+    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.7.0")
   )
 
 lazy val yaidom2JVM = yaidom2.jvm

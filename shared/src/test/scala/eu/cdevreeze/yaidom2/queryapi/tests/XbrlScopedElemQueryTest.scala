@@ -33,7 +33,7 @@ abstract class XbrlScopedElemQueryTest[E <: ScopedNodes.Elem.Aux[_, E]] extends 
 
   test("testParseAndQueryScopedXml") {
     assertResult(true) {
-      rootElem.findAllDescendantElemsOrSelf().size >= 100
+      rootElem.findAllDescendantElemsOrSelf.size >= 100
     }
 
     val knownXbrliLocalNames =

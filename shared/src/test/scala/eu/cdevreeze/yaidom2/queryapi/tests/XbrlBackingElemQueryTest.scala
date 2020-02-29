@@ -34,7 +34,7 @@ abstract class XbrlBackingElemQueryTest[E <: BackingNodes.Elem.Aux[_, E]] extend
 
   test("testParseAndQueryXml") {
     assertResult(true) {
-      rootElem.findAllDescendantElemsOrSelf().size >= 100
+      rootElem.findAllDescendantElemsOrSelf.size >= 100
     }
 
     val knownXbrliLocalNames =

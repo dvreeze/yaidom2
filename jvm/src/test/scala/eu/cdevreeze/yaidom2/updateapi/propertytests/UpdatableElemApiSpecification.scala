@@ -43,7 +43,7 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
   property("transformChildElems-as-update") = forAll { elem: E =>
     toResolvedElem(
       elem.transformChildElems(updateElem)) == {
-      val steps: Set[Int] = ElemWithNavigationPath(elem).findAllChildElems().map(_.navigationPath.head).toSet
+      val steps: Set[Int] = ElemWithNavigationPath(elem).findAllChildElems.map(_.navigationPath.head).toSet
 
       toResolvedElem(
         elem.updateChildElems(steps)(updateElem))
@@ -53,7 +53,7 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
   property("transformChildElemsToNodeSeq-as-update") = forAll { elem: E =>
     toResolvedElem(
       elem.transformChildElemsToNodeSeq(updateElemToNodeSeq)) == {
-      val steps: Set[Int] = ElemWithNavigationPath(elem).findAllChildElems().map(_.navigationPath.head).toSet
+      val steps: Set[Int] = ElemWithNavigationPath(elem).findAllChildElems.map(_.navigationPath.head).toSet
 
       toResolvedElem(
         elem.updateChildElemsWithNodeSeq(steps)(updateElemToNodeSeq))
@@ -63,7 +63,7 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
   property("transformDescendantElemsOrSelf-as-update") = forAll { elem: E =>
     toResolvedElem(
       elem.transformDescendantElemsOrSelf(updateElem)) == {
-      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElemsOrSelf().map(_.navigationPath).toSet
+      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElemsOrSelf.map(_.navigationPath).toSet
 
       toResolvedElem(
         elem.updateDescendantElemsOrSelf(paths)(updateElem))
@@ -73,7 +73,7 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
   property("transformDescendantElemsOrSelfToNodeSeq-as-update") = forAll { elem: E =>
     toResolvedNodes(
       elem.transformDescendantElemsOrSelfToNodeSeq(updateElemToNodeSeq)) == {
-      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElemsOrSelf().map(_.navigationPath).toSet
+      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElemsOrSelf.map(_.navigationPath).toSet
 
       val descendantResult = elem.updateDescendantElemsWithNodeSeq(paths)(updateElemToNodeSeq)
       val result: Seq[N] =
@@ -86,7 +86,7 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
   property("transformDescendantElems-as-update") = forAll { elem: E =>
     toResolvedElem(
       elem.transformDescendantElems(updateElem)) == {
-      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems().map(_.navigationPath).toSet
+      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems.map(_.navigationPath).toSet
 
       toResolvedElem(
         elem.updateDescendantElemsOrSelf(paths)(updateElem))
@@ -96,7 +96,7 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
   property("transformDescendantElemsToNodeSeq-as-update") = forAll { elem: E =>
     toResolvedElem(
       elem.transformDescendantElemsToNodeSeq(updateElemToNodeSeq)) == {
-      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems().map(_.navigationPath).toSet
+      val paths: Set[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems.map(_.navigationPath).toSet
 
       val descendantResult = elem.updateDescendantElemsWithNodeSeq(paths)(updateElemToNodeSeq)
       toResolvedElem(descendantResult)

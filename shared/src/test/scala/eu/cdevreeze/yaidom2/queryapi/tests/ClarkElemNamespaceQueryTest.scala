@@ -105,7 +105,7 @@ trait ClarkElemNamespaceQueryTest extends FunSuite {
     }
 
     assertResult(Set(EName(nsXhtml, "strong"), EName(nsXhtml, "em"))) {
-      rootElem.filterDescendantElems(named(nsXhtml, "div")).flatMap(_.findAllChildElems()).map(_.name).toSet
+      rootElem.filterDescendantElems(named(nsXhtml, "div")).flatMap(_.findAllChildElems).map(_.name).toSet
     }
 
     assertResult(Set(nsAtom, nsXhtml)) {

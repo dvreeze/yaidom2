@@ -51,7 +51,7 @@ object ScopedNodes {
      * This is a requirement for namespaces in XML 1.0 (ignoring the default namespace), but not for namespaces in XML 1.1.
      */
     def hasNoPrefixedNamespaceUndeclarations: Boolean = {
-      findAllChildElems().forall { che =>
+      findAllChildElems.forall { che =>
         scope.withoutDefaultNamespace.relativize(che.scope.withoutDefaultNamespace).retainingUndeclarations.isEmpty
       }
     }

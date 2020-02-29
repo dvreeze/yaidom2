@@ -82,7 +82,7 @@ object ResolvedNodes {
         Some(self)
       } else {
         val childElemIdx: Int = navigationPath(0)
-        val childElems: Seq[Elem] = findAllChildElems()
+        val childElems: Seq[Elem] = findAllChildElems
 
         if (childElemIdx >= 0 && childElemIdx < childElems.size) {
           // Recursive call
@@ -95,17 +95,17 @@ object ResolvedNodes {
 
     // Overriding methods that have type member ThisElem in the method signature, to "correct" the method signature now that ThisElem is known
 
-    override def findAllChildElems(): Seq[ThisElem] = super.findAllChildElems()
+    override def findAllChildElems: Seq[ThisElem] = super.findAllChildElems
 
     override def filterDescendantElems(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElems(p)
 
-    override def findAllDescendantElems(): Seq[ThisElem] = super.findAllDescendantElems()
+    override def findAllDescendantElems: Seq[ThisElem] = super.findAllDescendantElems
 
     override def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElem(p)
 
     override def filterDescendantElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.filterDescendantElemsOrSelf(p)
 
-    override def findAllDescendantElemsOrSelf(): Seq[ThisElem] = super.findAllDescendantElemsOrSelf()
+    override def findAllDescendantElemsOrSelf: Seq[ThisElem] = super.findAllDescendantElemsOrSelf
 
     override def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = super.findDescendantElemOrSelf(p)
 

@@ -68,8 +68,8 @@ trait AbstractDialectBackingElem extends BackingNodes.Elem {
     underlyingElem.filterChildElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllChildElems(): Seq[ThisElem] = {
-    underlyingElem.findAllChildElems().map(e => wrapElem(e))
+  def findAllChildElems: Seq[ThisElem] = {
+    underlyingElem.findAllChildElems.map(e => wrapElem(e))
   }
 
   def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -80,8 +80,8 @@ trait AbstractDialectBackingElem extends BackingNodes.Elem {
     underlyingElem.filterDescendantElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllDescendantElems(): Seq[ThisElem] = {
-    underlyingElem.findAllDescendantElems().map(e => wrapElem(e))
+  def findAllDescendantElems: Seq[ThisElem] = {
+    underlyingElem.findAllDescendantElems.map(e => wrapElem(e))
   }
 
   def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -92,8 +92,8 @@ trait AbstractDialectBackingElem extends BackingNodes.Elem {
     underlyingElem.filterDescendantElemsOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
-    underlyingElem.findAllDescendantElemsOrSelf().map(e => wrapElem(e))
+  def findAllDescendantElemsOrSelf: Seq[ThisElem] = {
+    underlyingElem.findAllDescendantElemsOrSelf.map(e => wrapElem(e))
   }
 
   def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -258,16 +258,16 @@ trait AbstractDialectBackingElem extends BackingNodes.Elem {
     underlyingElem.findParentElem(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findParentElem(): Option[ThisElem] = {
-    underlyingElem.findParentElem().map(e => wrapElem(e))
+  def findParentElem: Option[ThisElem] = {
+    underlyingElem.findParentElem.map(e => wrapElem(e))
   }
 
   def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem] = {
     underlyingElem.filterAncestorElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllAncestorElems(): Seq[ThisElem] = {
-    underlyingElem.findAllAncestorElems().map(e => wrapElem(e))
+  def findAllAncestorElems: Seq[ThisElem] = {
+    underlyingElem.findAllAncestorElems.map(e => wrapElem(e))
   }
 
   def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -278,16 +278,16 @@ trait AbstractDialectBackingElem extends BackingNodes.Elem {
     underlyingElem.filterAncestorElemsOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
-    underlyingElem.findAllAncestorElemsOrSelf().map(e => wrapElem(e))
+  def findAllAncestorElemsOrSelf: Seq[ThisElem] = {
+    underlyingElem.findAllAncestorElemsOrSelf.map(e => wrapElem(e))
   }
 
   def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {
     underlyingElem.findAncestorElemOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
-    underlyingElem.findAllPrecedingSiblingElems().map(e => wrapElem(e))
+  def findAllPrecedingSiblingElems: Seq[ThisElem] = {
+    underlyingElem.findAllPrecedingSiblingElems.map(e => wrapElem(e))
   }
 
   def ownNavigationPathRelativeToRootElem: Seq[Int] = {

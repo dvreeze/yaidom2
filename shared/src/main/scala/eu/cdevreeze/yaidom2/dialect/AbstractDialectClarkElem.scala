@@ -61,8 +61,8 @@ trait AbstractDialectClarkElem extends ClarkNodes.Elem {
     underlyingElem.filterChildElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllChildElems(): Seq[ThisElem] = {
-    underlyingElem.findAllChildElems().map(e => wrapElem(e))
+  def findAllChildElems: Seq[ThisElem] = {
+    underlyingElem.findAllChildElems.map(e => wrapElem(e))
   }
 
   def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -73,8 +73,8 @@ trait AbstractDialectClarkElem extends ClarkNodes.Elem {
     underlyingElem.filterDescendantElems(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllDescendantElems(): Seq[ThisElem] = {
-    underlyingElem.findAllDescendantElems().map(e => wrapElem(e))
+  def findAllDescendantElems: Seq[ThisElem] = {
+    underlyingElem.findAllDescendantElems.map(e => wrapElem(e))
   }
 
   def findDescendantElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -85,8 +85,8 @@ trait AbstractDialectClarkElem extends ClarkNodes.Elem {
     underlyingElem.filterDescendantElemsOrSelf(e => p(wrapElem(e))).map(e => wrapElem(e))
   }
 
-  def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
-    underlyingElem.findAllDescendantElemsOrSelf().map(e => wrapElem(e))
+  def findAllDescendantElemsOrSelf: Seq[ThisElem] = {
+    underlyingElem.findAllDescendantElemsOrSelf.map(e => wrapElem(e))
   }
 
   def findDescendantElemOrSelf(p: ThisElem => Boolean): Option[ThisElem] = {

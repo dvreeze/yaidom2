@@ -202,7 +202,7 @@ class ElemCreationTest extends FunSuite {
 
   test("testCopyingAndEquivalenceOfXbrlInstance") {
     val originalScope = saxonDocument.documentElement.scope.ensuring(_.defaultNamespaceOption.contains(XbrliNs))
-    require(saxonDocument.documentElement.findAllDescendantElems().forall(_.scope == originalScope))
+    require(saxonDocument.documentElement.findAllDescendantElems.forall(_.scope == originalScope))
 
     val targetSimpleScope = SimpleScope.from(originalScope.withoutDefaultNamespace)
       .appendAggressively(SimpleScope.from("xbrli" -> XbrliNs))
@@ -220,7 +220,7 @@ class ElemCreationTest extends FunSuite {
           new SimpleNodes.Elem(e.qname, e.attributesByQName, targetSimpleScope.scope, e.children)
       }
 
-    require(originalRootElemWithoutDefaultNamespace.findAllDescendantElemsOrSelf().forall(_.scope == targetSimpleScope.scope))
+    require(originalRootElemWithoutDefaultNamespace.findAllDescendantElemsOrSelf.forall(_.scope == targetSimpleScope.scope))
 
     val rootElemWithENameContent: SimpleNodes.Elem =
       originalRootElemWithoutDefaultNamespace.transformDescendantElemsOrSelf {
@@ -234,7 +234,7 @@ class ElemCreationTest extends FunSuite {
         case e => e
       }
 
-    require(rootElemWithENameContent.findAllDescendantElemsOrSelf().forall(_.scope == targetSimpleScope.scope))
+    require(rootElemWithENameContent.findAllDescendantElemsOrSelf.forall(_.scope == targetSimpleScope.scope))
 
     val copiedRootElemWithENameContent: nodebuilder.Elem = nodebuilder.Elem.from(rootElemWithENameContent)
 

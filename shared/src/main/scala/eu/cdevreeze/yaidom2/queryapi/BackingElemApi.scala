@@ -32,24 +32,24 @@ trait BackingElemApi extends ScopedElemApi {
 
   def findParentElem(p: ThisElem => Boolean): Option[ThisElem]
 
-  def findParentElem(): Option[ThisElem]
+  def findParentElem: Option[ThisElem]
 
   def filterAncestorElems(p: ThisElem => Boolean): Seq[ThisElem]
 
-  def findAllAncestorElems(): Seq[ThisElem]
+  def findAllAncestorElems: Seq[ThisElem]
 
   def findAncestorElem(p: ThisElem => Boolean): Option[ThisElem]
 
   def filterAncestorElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem]
 
-  def findAllAncestorElemsOrSelf(): Seq[ThisElem]
+  def findAllAncestorElemsOrSelf: Seq[ThisElem]
 
   def findAncestorElemOrSelf(p: ThisElem => Boolean): Option[ThisElem]
 
   /**
    * Returns all preceding sibling element nodes. This method is needed for computing the relative "navigation path" to the root.
    */
-  def findAllPrecedingSiblingElems(): Seq[ThisElem]
+  def findAllPrecedingSiblingElems: Seq[ThisElem]
 
   /**
    * Returns the own navigation path relative to the root element. For example, if it is Seq(3, 5, 0), this means that

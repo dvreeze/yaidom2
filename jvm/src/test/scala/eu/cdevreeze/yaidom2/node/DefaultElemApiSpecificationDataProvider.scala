@@ -34,7 +34,7 @@ abstract class DefaultElemApiSpecificationDataProvider[E <: ClarkElemApi.Aux[E]]
   implicit val arbitraryElem: Arbitrary[E] = {
     val rootElems: Seq[E] =
       rootElemPaths.map(path => DefaultElemApiSpecificationDataProvider.getRootElemAsSaxonElem(path)).map(convertSaxonElemToElem)
-    val allElems: Seq[E] = rootElems.flatMap(_.findAllDescendantElemsOrSelf())
+    val allElems: Seq[E] = rootElems.flatMap(_.findAllDescendantElemsOrSelf)
     require(allElems.size >= 100, s"Expected at least 100 elements")
 
     Arbitrary(Gen.oneOf(Gen.oneOf(allElems), Gen.oneOf(rootElems)))

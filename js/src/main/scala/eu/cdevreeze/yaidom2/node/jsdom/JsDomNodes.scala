@@ -69,7 +69,7 @@ object JsDomNodes {
       Elem.filterChildElems(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllChildElems(): Seq[ThisElem] = {
+    def findAllChildElems: Seq[ThisElem] = {
       Elem.findAllChildElems(jsDomElement).map(n => Elem(n))
     }
 
@@ -81,7 +81,7 @@ object JsDomNodes {
       Elem.filterDescendantElems(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllDescendantElems(): Seq[ThisElem] = {
+    def findAllDescendantElems: Seq[ThisElem] = {
       Elem.findAllDescendantElems(jsDomElement).map(n => Elem(n))
     }
 
@@ -93,7 +93,7 @@ object JsDomNodes {
       Elem.filterDescendantElemsOrSelf(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
+    def findAllDescendantElemsOrSelf: Seq[ThisElem] = {
       Elem.findAllDescendantElemsOrSelf(jsDomElement).map(n => Elem(n))
     }
 
@@ -259,7 +259,7 @@ object JsDomNodes {
       Elem.findParentElem(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findParentElem(): Option[ThisElem] = {
+    def findParentElem: Option[ThisElem] = {
       Elem.findParentElem(jsDomElement).map(n => Elem(n))
     }
 
@@ -267,7 +267,7 @@ object JsDomNodes {
       Elem.filterAncestorElems(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllAncestorElems(): Seq[ThisElem] = {
+    def findAllAncestorElems: Seq[ThisElem] = {
       Elem.findAllAncestorElems(jsDomElement).map(n => Elem(n))
     }
 
@@ -279,7 +279,7 @@ object JsDomNodes {
       Elem.filterAncestorElemsOrSelf(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
+    def findAllAncestorElemsOrSelf: Seq[ThisElem] = {
       Elem.findAllAncestorElemsOrSelf(jsDomElement).map(n => Elem(n))
     }
 
@@ -287,7 +287,7 @@ object JsDomNodes {
       Elem.findAncestorElemOrSelf(jsDomElement, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
+    def findAllPrecedingSiblingElems: Seq[ThisElem] = {
       Elem.findAllPrecedingSiblingElems(jsDomElement).map(n => Elem(n))
     }
 

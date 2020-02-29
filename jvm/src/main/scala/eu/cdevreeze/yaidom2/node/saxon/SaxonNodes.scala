@@ -73,7 +73,7 @@ object SaxonNodes {
       Elem.filterChildElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllChildElems(): Seq[ThisElem] = {
+    def findAllChildElems: Seq[ThisElem] = {
       Elem.findAllChildElems(xdmNode).map(n => Elem(n))
     }
 
@@ -85,7 +85,7 @@ object SaxonNodes {
       Elem.filterDescendantElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllDescendantElems(): Seq[ThisElem] = {
+    def findAllDescendantElems: Seq[ThisElem] = {
       Elem.findAllDescendantElems(xdmNode).map(n => Elem(n))
     }
 
@@ -97,7 +97,7 @@ object SaxonNodes {
       Elem.filterDescendantElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllDescendantElemsOrSelf(): Seq[ThisElem] = {
+    def findAllDescendantElemsOrSelf: Seq[ThisElem] = {
       Elem.findAllDescendantElemsOrSelf(xdmNode).map(n => Elem(n))
     }
 
@@ -263,7 +263,7 @@ object SaxonNodes {
       Elem.findParentElem(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findParentElem(): Option[ThisElem] = {
+    def findParentElem: Option[ThisElem] = {
       Elem.findParentElem(xdmNode).map(n => Elem(n))
     }
 
@@ -271,7 +271,7 @@ object SaxonNodes {
       Elem.filterAncestorElems(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllAncestorElems(): Seq[ThisElem] = {
+    def findAllAncestorElems: Seq[ThisElem] = {
       Elem.findAllAncestorElems(xdmNode).map(n => Elem(n))
     }
 
@@ -283,7 +283,7 @@ object SaxonNodes {
       Elem.filterAncestorElemsOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllAncestorElemsOrSelf(): Seq[ThisElem] = {
+    def findAllAncestorElemsOrSelf: Seq[ThisElem] = {
       Elem.findAllAncestorElemsOrSelf(xdmNode).map(n => Elem(n))
     }
 
@@ -291,7 +291,7 @@ object SaxonNodes {
       Elem.findAncestorElemOrSelf(xdmNode, n => p(Elem(n))).map(n => Elem(n))
     }
 
-    def findAllPrecedingSiblingElems(): Seq[ThisElem] = {
+    def findAllPrecedingSiblingElems: Seq[ThisElem] = {
       Elem.findAllPrecedingSiblingElems(xdmNode).map(n => Elem(n))
     }
 
