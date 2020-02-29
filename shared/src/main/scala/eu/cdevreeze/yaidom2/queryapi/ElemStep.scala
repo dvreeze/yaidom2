@@ -28,6 +28,11 @@ import scala.reflect.ClassTag
  * This API has been highly inspired by the Saxon 9.9 streaming API. Unlike the Saxon API, this API is Scala-centric
  * instead of Java-centric, and this API limits itself to element nodes only. It also returns no stream but a collection.
  *
+ * Note that ElemStep, as a Function1 from elements to sequences of elements, is less generic than Function1. The latter
+ * (when "fixing" the parameter type but varying the result type) is a functor, with a "map" method that generalizes the
+ * "concat" method of ElemStep. Given that the yaidom2 API is rather element-centric, this limited ElemStep notion (that
+ * can only return sequences of elements) is probably appropriate.
+ *
  * @author Chris de Vreeze
  */
 trait ElemStep[E] extends Function1[E, Seq[E]] {
