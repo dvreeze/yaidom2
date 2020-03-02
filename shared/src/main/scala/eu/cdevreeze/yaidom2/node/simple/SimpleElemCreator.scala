@@ -16,7 +16,6 @@
 
 package eu.cdevreeze.yaidom2.node.simple
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -44,40 +43,40 @@ private[yaidom2] final case class SimpleElemCreator(scope: Scope, mayDropDefault
   def elem(name: EName, children: Seq[NodeType]): ElemType = {
     val ScopedQName(qname, newScope) = getScopedElementQName(name)
 
-    new Elem(qname, SeqMap.empty, newScope, children.to(ArraySeq))
+    new Elem(qname, SeqMap.empty, newScope, children.to(Vector))
   }
 
   def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
     val ScopedQName(qname, newScope) = getScopedElementQName(name)
     val attributesByQName: SeqMap[QName, String] = attributes.toSeq.map(kv => getAttributeQName(kv._1) -> kv._2).to(SeqMap)
 
-    new Elem(qname, attributesByQName, newScope, children.to(ArraySeq))
+    new Elem(qname, attributesByQName, newScope, children.to(Vector))
   }
 
   def textElem(name: EName, txt: String): ElemType = {
     val ScopedQName(qname, newScope) = getScopedElementQName(name)
 
-    new Elem(qname, SeqMap.empty, newScope, ArraySeq(Text(txt, false)))
+    new Elem(qname, SeqMap.empty, newScope, Vector(Text(txt, isCData = false)))
   }
 
   def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
     val ScopedQName(qname, newScope) = getScopedElementQName(name)
     val attributesByQName: SeqMap[QName, String] = attributes.toSeq.map(kv => getAttributeQName(kv._1) -> kv._2).to(SeqMap)
 
-    new Elem(qname, attributesByQName, newScope, ArraySeq(Text(txt, false)))
+    new Elem(qname, attributesByQName, newScope, Vector(Text(txt, isCData = false)))
   }
 
   def emptyElem(name: EName): ElemType = {
     val ScopedQName(qname, newScope) = getScopedElementQName(name)
 
-    new Elem(qname, SeqMap.empty, newScope, ArraySeq.empty)
+    new Elem(qname, SeqMap.empty, newScope, Vector.empty)
   }
 
   def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
     val ScopedQName(qname, newScope) = getScopedElementQName(name)
     val attributesByQName: SeqMap[QName, String] = attributes.toSeq.map(kv => getAttributeQName(kv._1) -> kv._2).to(SeqMap)
 
-    new Elem(qname, attributesByQName, newScope, ArraySeq.empty)
+    new Elem(qname, attributesByQName, newScope, Vector.empty)
   }
 
   private def getScopedElementQName(ename: EName): ScopedQName = {
@@ -133,7 +132,7 @@ private[yaidom2] object SimpleElemCreator {
 
   private case class ScopedQName(qname: QName, scope: Scope)
 
-  def strict(scope: Scope): SimpleElemCreator = SimpleElemCreator(scope, false)
+  def strict(scope: Scope): SimpleElemCreator = SimpleElemCreator(scope, mayDropDefaultNamespace = false)
 
-  def lenient(scope: Scope): SimpleElemCreator = SimpleElemCreator(scope, true)
+  def lenient(scope: Scope): SimpleElemCreator = SimpleElemCreator(scope, mayDropDefaultNamespace = true)
 }

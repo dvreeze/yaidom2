@@ -18,9 +18,7 @@ package eu.cdevreeze.yaidom2.node.nodebuilder
 
 import java.net.URI
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
-import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
@@ -98,7 +96,7 @@ object NodeBuilders {
   final class Elem private[nodebuilder](
     val name: EName,
     val attributes: SeqMap[EName, String],
-    val children: ArraySeq[Node], // TODO ArraySeq? For updatable elements?
+    val children: Vector[Node], // For querying, ArraySeq would be optimal, but not for (functional) updates
     val simpleScope: SimpleScope
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableAttributeCarryingElem {
 
@@ -114,7 +112,7 @@ object NodeBuilders {
     protected[yaidom2] def self: Elem = this
 
     protected[yaidom2] def toImmutableSeq(xs: collection.Seq[Elem]): Seq[Elem] = {
-      ArraySeq.from(xs)(classTag[Elem])
+      Vector.from(xs)
     }
 
     def scope: Scope = simpleScope.scope
@@ -190,7 +188,7 @@ object NodeBuilders {
         newChildren.collect { case e: Elem => e }.forall(e => scope.subScopeOf(e.scope)),
         s"Not all child elements have a strict super-scope of $scope")
 
-      new Elem(name, attributes, newChildren.to(ArraySeq), simpleScope)
+      new Elem(name, attributes, newChildren.to(Vector), simpleScope)
     }
 
     def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
@@ -286,7 +284,7 @@ object NodeBuilders {
     // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
-      val resultChildNodes: ArraySeq[ThisNode] =
+      val resultChildNodes: Vector[ThisNode] =
         children.map {
           case e: Elem => f(e)
           case n => n
@@ -296,10 +294,10 @@ object NodeBuilders {
     }
 
     def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
-      val resultChildNodes: ArraySeq[ThisNode] =
+      val resultChildNodes: Vector[ThisNode] =
         children.flatMap {
           case e: Elem => f(e)
-          case n => ArraySeq(n)
+          case n => Vector(n)
         }
 
       withChildren(resultChildNodes)
@@ -340,7 +338,7 @@ object NodeBuilders {
     def optionallyFrom(node: ScopedNodes.Node): Option[Node] = node match {
       case e: ScopedNodes.Elem => Elem.optionallyFrom(e)
       case t: ScopedNodes.Text => Some(Text(t.text))
-      case n => None
+      case _ => None
     }
 
     def from(node: ScopedNodes.Node): Node = node match {
@@ -400,7 +398,7 @@ object NodeBuilders {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val creationDslChildren = children.map { node => Node.from(node) }
 
-      new Elem(elm.name, elm.attributes, creationDslChildren.to(ArraySeq), simpleScope)
+      new Elem(elm.name, elm.attributes, creationDslChildren.to(Vector), simpleScope)
     }
 
     // Constraints on element builders (besides the use of SimpleScopes only)
@@ -499,7 +497,7 @@ object NodeBuilders {
         Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
         s"Could not turn element name $name into a QName (scope $simpleScope)")
 
-      new Elem(name, SeqMap.empty, children.to(ArraySeq), simpleScope)
+      new Elem(name, SeqMap.empty, children.to(Vector), simpleScope)
     }
 
     def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
@@ -510,7 +508,7 @@ object NodeBuilders {
         Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
         s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
 
-      new Elem(name, attributes, children.to(ArraySeq), simpleScope)
+      new Elem(name, attributes, children.to(Vector), simpleScope)
     }
 
     def textElem(name: EName, txt: String): ElemType = {
@@ -518,7 +516,7 @@ object NodeBuilders {
         Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
         s"Could not turn element name $name into a QName (scope $simpleScope)")
 
-      new Elem(name, SeqMap.empty, ArraySeq(Text(txt)), simpleScope)
+      new Elem(name, SeqMap.empty, Vector(Text(txt)), simpleScope)
     }
 
     def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
@@ -529,7 +527,7 @@ object NodeBuilders {
         Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
         s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
 
-      new Elem(name, attributes, ArraySeq(Text(txt)), simpleScope)
+      new Elem(name, attributes, Vector(Text(txt)), simpleScope)
     }
 
     def emptyElem(name: EName): ElemType = {
@@ -537,7 +535,7 @@ object NodeBuilders {
         Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
         s"Could not turn element name $name into a QName (scope $simpleScope)")
 
-      new Elem(name, SeqMap.empty, ArraySeq.empty, simpleScope)
+      new Elem(name, SeqMap.empty, Vector.empty, simpleScope)
     }
 
     def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
@@ -548,7 +546,7 @@ object NodeBuilders {
         Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
         s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
 
-      new Elem(name, attributes, ArraySeq.empty, simpleScope)
+      new Elem(name, attributes, Vector.empty, simpleScope)
     }
   }
 

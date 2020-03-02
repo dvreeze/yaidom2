@@ -16,10 +16,8 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
 import scala.collection.mutable
-import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
@@ -54,7 +52,7 @@ object ResolvedNodes {
   final case class Elem(
     name: EName,
     attributes: SeqMap[EName, String],
-    children: ArraySeq[Node]  // TODO ArraySeq? For updatable elements?
+    children: Vector[Node]  // For querying, ArraySeq would be optimal, but not for (functional) updates
   ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableAttributeCarryingElem {
 
     type ThisElem = Elem
@@ -66,7 +64,7 @@ object ResolvedNodes {
     protected[yaidom2] def self: Elem = this
 
     protected[yaidom2] def toImmutableSeq(xs: collection.Seq[Elem]): Seq[Elem] = {
-      ArraySeq.from(xs)(classTag[Elem])
+      Vector.from(xs)
     }
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -120,7 +118,7 @@ object ResolvedNodes {
     // Update API methods
 
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
-      Elem(name, attributes, newChildren.to(ArraySeq))
+      Elem(name, attributes, newChildren.to(Vector))
     }
 
     def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
@@ -212,7 +210,7 @@ object ResolvedNodes {
     // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
-      val resultChildNodes: ArraySeq[ThisNode] =
+      val resultChildNodes: Vector[ThisNode] =
         children.map {
           case e: Elem => f(e)
           case n => n
@@ -222,10 +220,10 @@ object ResolvedNodes {
     }
 
     def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
-      val resultChildNodes: ArraySeq[ThisNode] =
+      val resultChildNodes: Vector[ThisNode] =
         children.flatMap {
           case e: Elem => f(e)
-          case n => ArraySeq(n)
+          case n => Vector(n)
         }
 
       withChildren(resultChildNodes)
@@ -269,7 +267,7 @@ object ResolvedNodes {
         case n => true
       }
 
-      val doStripWhitespace = (findChildElem(_ => true).nonEmpty) && (children.forall(n => isWhitespaceText(n) || isNonTextNode(n)))
+      val doStripWhitespace = findChildElem(_ => true).nonEmpty && children.forall(n => isWhitespaceText(n) || isNonTextNode(n))
 
       // Recursive, but not tail-recursive
 
@@ -384,27 +382,27 @@ object ResolvedNodes {
     // ElemCreationApi methods
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {
-      Elem(name, SeqMap.empty, children.to(ArraySeq))
+      Elem(name, SeqMap.empty, children.to(Vector))
     }
 
     def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
-      Elem(name, attributes, children.to(ArraySeq))
+      Elem(name, attributes, children.to(Vector))
     }
 
     def textElem(name: EName, txt: String): ElemType = {
-      Elem(name, SeqMap.empty, ArraySeq(Text(txt)))
+      Elem(name, SeqMap.empty, Vector(Text(txt)))
     }
 
     def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
-      Elem(name, attributes, ArraySeq(Text(txt)))
+      Elem(name, attributes, Vector(Text(txt)))
     }
 
     def emptyElem(name: EName): ElemType = {
-      Elem(name, SeqMap.empty, ArraySeq.empty)
+      Elem(name, SeqMap.empty, Vector.empty)
     }
 
     def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
-      Elem(name, attributes, ArraySeq.empty)
+      Elem(name, attributes, Vector.empty)
     }
   }
 
@@ -420,7 +418,7 @@ object ResolvedNodes {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val resolvedChildren = children.map { node => Node.from(node) }
 
-      Elem(elm.name, elm.attributes, resolvedChildren.to(ArraySeq))
+      Elem(elm.name, elm.attributes, resolvedChildren.to(Vector))
     }
   }
 

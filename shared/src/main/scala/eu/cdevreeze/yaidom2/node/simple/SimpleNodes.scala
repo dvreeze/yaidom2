@@ -16,9 +16,7 @@
 
 package eu.cdevreeze.yaidom2.node.simple
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
-import scala.reflect.classTag
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
@@ -55,7 +53,7 @@ object SimpleNodes {
     val qname: QName,
     val attributesByQName: SeqMap[QName, String],
     val scope: Scope,
-    val children: ArraySeq[Node]  // TODO ArraySeq? For updatable elements?
+    val children: Vector[Node]  // For querying, ArraySeq would be optimal, but not for (functional) updates
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
 
     // TODO Requirements on constructor parameters
@@ -69,7 +67,7 @@ object SimpleNodes {
     protected[yaidom2] def self: Elem = this
 
     protected[yaidom2] def toImmutableSeq(xs: collection.Seq[Elem]): Seq[Elem] = {
-      ArraySeq.from(xs)(classTag[Elem])
+      Vector.from(xs)
     }
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -98,7 +96,7 @@ object SimpleNodes {
 
     def name: EName = {
       scope.resolveQNameOption(qname)
-        .getOrElse(sys.error(s"Element name '${qname}' should resolve to an EName in scope [${scope}]"))
+        .getOrElse(sys.error(s"Element name '$qname' should resolve to an EName in scope [$scope]"))
     }
 
     def attributes: SeqMap[EName, String] = {
@@ -144,7 +142,7 @@ object SimpleNodes {
     // Update API methods
 
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
-      new Elem(qname, attributesByQName, scope, newChildren.to(ArraySeq))
+      new Elem(qname, attributesByQName, scope, newChildren.to(Vector))
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
@@ -222,7 +220,7 @@ object SimpleNodes {
     // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {
-      val resultChildNodes: ArraySeq[ThisNode] =
+      val resultChildNodes: Vector[ThisNode] =
         children.map {
           case e: Elem => f(e)
           case n => n
@@ -232,10 +230,10 @@ object SimpleNodes {
     }
 
     def transformChildElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
-      val resultChildNodes: ArraySeq[ThisNode] =
+      val resultChildNodes: Vector[ThisNode] =
         children.flatMap {
           case e: Elem => f(e)
-          case n => ArraySeq(n)
+          case n => Vector(n)
         }
 
       withChildren(resultChildNodes)
@@ -268,9 +266,9 @@ object SimpleNodes {
 
       attributesByQName.collect { case (attQName, attValue) if p(attQName, attValue) =>
         val attEName = attrScope.resolveQNameOption(attQName)
-          .getOrElse(sys.error(s"Attribute name '${attQName}' should resolve to an EName in scope [${attrScope}]"))
+          .getOrElse(sys.error(s"Attribute name '$attQName' should resolve to an EName in scope [$attrScope]"))
 
-        (attEName -> attValue)
+        attEName -> attValue
       }
     }
   }
@@ -299,7 +297,7 @@ object SimpleNodes {
 
     def from(node: ScopedNodes.Node): Node = node match {
       case e: ScopedNodes.Elem => Elem.from(e)
-      case t: ScopedNodes.Text => Text(t.text, false)
+      case t: ScopedNodes.Text => Text(t.text, isCData = false)
       case c: ScopedNodes.Comment => Comment(c.text)
       case pi: ScopedNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
       case n => sys.error(s"Not an element, text, comment or processing instruction node: $n")
@@ -339,7 +337,7 @@ object SimpleNodes {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val simpleChildren = children.map { node => Node.from(node) }
 
-      new Elem(elm.qname, elm.attributesByQName, elm.scope, simpleChildren.to(ArraySeq))
+      new Elem(elm.qname, elm.attributesByQName, elm.scope, simpleChildren.to(Vector))
     }
   }
 

@@ -18,7 +18,6 @@ package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 
 import java.io.File
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -213,7 +212,7 @@ class ElemCreationTest extends FunSuite {
         case e if e.name == EName(XbrliNs, "measure") =>
           val text = targetSimpleScope.findQName(e.textAsResolvedQName).get.toString
           val textNode = SimpleNodes.Text(text, false)
-          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetSimpleScope.scope, ArraySeq(textNode))
+          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetSimpleScope.scope, Vector(textNode))
         case e if e.name.namespaceUriOption.contains(XbrliNs) =>
           new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetSimpleScope.scope, e.children)
         case e =>
@@ -228,9 +227,9 @@ class ElemCreationTest extends FunSuite {
           val dimension: EName = e.attrAsResolvedQName(EName.fromLocalName("dimension"))
 
           e.withAttributesByQName(e.attributesByQName + (QName.fromLocalName("dimension") -> dimension.toString))
-            .withChildren(ArraySeq(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
+            .withChildren(Vector(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
         case e if e.name == EName(XbrliNs, "measure") =>
-          e.withChildren(ArraySeq(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
+          e.withChildren(Vector(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
         case e => e
       }
 
@@ -280,7 +279,7 @@ class ElemCreationTest extends FunSuite {
           val measureEName = e.textAsResolvedQName
           val measureQName = SimpleScope.from(adaptedScope(e)).findQName(measureEName).get
 
-          new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), ArraySeq(SimpleNodes.Text(measureQName.toString, false)))
+          new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), Vector(SimpleNodes.Text(measureQName.toString, false)))
         case e if e.name.namespaceUriOption.contains(XbrliNs) =>
           new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), e.children)
         case e =>
