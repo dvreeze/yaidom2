@@ -100,8 +100,8 @@ object NodeBuilders {
     val simpleScope: SimpleScope
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableAttributeCarryingElem {
 
-    assert(Elem.hasValidQNamesCorrespondingToENames(name, attributes, simpleScope))
-    assert(this.hasNoPrefixedNamespaceUndeclarations)
+    assert(Elem.hasValidQNamesCorrespondingToENames(name, attributes, simpleScope)) // TODO Expensive check. Improve performance.
+    assert(this.hasNoPrefixedNamespaceUndeclarations) // TODO Expensive check. Improve performance.
 
     type ThisElem = Elem
 
