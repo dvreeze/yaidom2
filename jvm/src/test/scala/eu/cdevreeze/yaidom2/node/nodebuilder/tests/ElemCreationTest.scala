@@ -59,6 +59,23 @@ class ElemCreationTest extends FunSuite {
       "iso4217" -> Iso4217Ns
     )
 
+    // TODO This is still not a friendly element creation API, so let's see how we can fix that.
+    // First of all, element creation/updates/transformations need to know about known namespace-prefix mappings and use of
+    // namespaces in attribute values and element text. So let's start with making element creation/update/transformation
+    // type classes. The OO variants would then follow from these type classes, exposed as friendly OO APIs.
+    // Next we need type class instances for at least node builder elements. That's far from trivial. Fortunately they are
+    // restricted to using SimpleScopes, so invertible scopes without default namespace. (How does this help with documents
+    // that do use the default namespace? We still need similar type class instances for simple elements as well.)
+    // The creation/update/transformation type class instances for node builders would know about how to map any namespace
+    // to a prefix, and also about used namespaces in attribute values and element text. When using these APIs we would
+    // almost always pass a parent SimpleScope in functions building pieces of XML (as node builders). So available namespace-prefix
+    // mappings and knowledge about used namespaces would be state of (rather stable) type class instances (for node builders),
+    // whereas SimpleScopes would be passed as function parameters when using those APIs to build node builders.
+    // Maybe something like the state monad is needed instead to keep track of SimpleScopes while building elements.
+    // The API must also make it easy to create QNames on the fly, to be used in QName-valued attribute values or element text.
+    // All in all, when using the API prefixes must be created and SimpleScopes must be enhanced without any effort on the part
+    // of the user of the API. In other words, prefix creation and namespace declaration creation must happen automatically.
+
     val elemCreator = nodebuilder.NodeBuilders.ElemCreator(startScope)
 
     def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
