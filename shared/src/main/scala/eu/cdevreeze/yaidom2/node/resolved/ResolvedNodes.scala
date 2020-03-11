@@ -21,7 +21,7 @@ import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
-import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
+import eu.cdevreeze.yaidom2.creationapi.LegacyElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
@@ -363,7 +363,7 @@ object ResolvedNodes {
 
   // Next the functional query (and creation) API
 
-  object Node extends ClarkNodeFactories.NodeFactory with ElemCreationApi {
+  object Node extends ClarkNodeFactories.NodeFactory with LegacyElemCreationApi {
 
     type NodeType = Node
 

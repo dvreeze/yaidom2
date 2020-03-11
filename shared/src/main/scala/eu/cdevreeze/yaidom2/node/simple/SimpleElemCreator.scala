@@ -21,14 +21,14 @@ import scala.collection.immutable.SeqMap
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
+import eu.cdevreeze.yaidom2.creationapi.LegacyElemCreationApi
 
 /**
  * Element creation API for simple elements. This class is still experimental.
  *
  * @author Chris de Vreeze
  */
-private[yaidom2] final case class SimpleElemCreator(scope: Scope, mayDropDefaultNamespace: Boolean) extends ElemCreationApi {
+private[yaidom2] final case class SimpleElemCreator(scope: Scope, mayDropDefaultNamespace: Boolean) extends LegacyElemCreationApi {
 
   import SimpleElemCreator._
 

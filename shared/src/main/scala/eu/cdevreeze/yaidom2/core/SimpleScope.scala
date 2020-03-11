@@ -123,6 +123,11 @@ final case class SimpleScope private(scope: Scope) {
   }
 
   /**
+   * Alias for appendDefensively.
+   */
+  def prepend(otherSimpleScope: SimpleScope): SimpleScope = appendDefensively(otherSimpleScope)
+
+  /**
    * Appends the parameter simple scope to this one, but leaves out the prefixes and namespaces in this (!) simple scope
    * that occur in the parameter simple scope. In other words, the parameter simple scope takes precedence over this one.
    * As a consequence, it is possible that not all namespaces in this simple scope end up in the result.
@@ -139,6 +144,11 @@ final case class SimpleScope private(scope: Scope) {
     SimpleScope.from(scopeToRetain.append(otherSimpleScope.scope))
       .ensuring(sc => otherSimpleScope.subScopeOf(sc))
   }
+
+  /**
+   * Alias for appendAggressively.
+   */
+  def append(otherSimpleScope: SimpleScope): SimpleScope = appendAggressively(otherSimpleScope)
 
   /**
    * Like `appendDefensively`, but throws an exception if namespaces get lost.

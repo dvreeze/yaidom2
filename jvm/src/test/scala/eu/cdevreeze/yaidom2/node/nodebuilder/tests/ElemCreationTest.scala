@@ -21,6 +21,7 @@ import java.io.File
 import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.core.NamespacePrefixMapper
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.core.SimpleScope
@@ -51,6 +52,81 @@ class ElemCreationTest extends FunSuite {
   }
 
   test("testCreationAndEquivalenceOfXbrlContext") {
+    val mappings: Map[String, String] = Map(
+      XbrliNs -> "xbrli",
+      LinkNs -> "link",
+      XLinkNs -> "xlink",
+      XbrldiNs -> "xbrldi",
+      Iso4217Ns -> "iso4217",
+      GaapNs -> "gaap",
+    )
+
+    implicit val namespacePrefixMapper: NamespacePrefixMapper = NamespacePrefixMapper.fromMapWithFallback(mappings)
+
+    implicit val elemCreator: nodebuilder.NodeBuilderCreationApi = nodebuilder.NodeBuilderCreationApi(namespacePrefixMapper)
+
+    import nodebuilder.NodeBuilderCreationApi._
+    import elemCreator._
+
+    def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
+      val scope: SimpleScope = extractScope(Set(dimension, member))
+
+      textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope)
+        .creationApi
+        .plusAttribute(EName.fromLocalName("dimension"), scope.findQName(dimension).get.toString)
+        .underlyingElem
+    }
+
+    val xbrliEntity: nodebuilder.Elem = {
+      emptyElem(EName(XbrliNs, "entity"), SimpleScope.Empty)
+        .creationApi
+        .plusChild(
+          textElem(EName(XbrliNs, "identifier"), "1234567890", SimpleScope.Empty)
+            .creationApi
+            .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
+            .underlyingElem)
+        .plusChild(emptyElem(EName(XbrliNs, "segment"), SimpleScope.Empty))
+        .underlyingElem
+        .transformDescendantElems {
+          case e@nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
+            e.creationApi
+              .plusChild(createExplicitMemberElem(EName(GaapNs, "EntityAxis"), EName(GaapNs, "ABCCompanyDomain")))
+              .plusChild(createExplicitMemberElem(EName(GaapNs, "BusinessSegmentAxis"), EName(GaapNs, "ConsolidatedGroupDomain")))
+              .plusChild(createExplicitMemberElem(EName(GaapNs, "VerificationAxis"), EName(GaapNs, "UnqualifiedOpinionMember")))
+              .plusChild(createExplicitMemberElem(EName(GaapNs, "PremiseAxis"), EName(GaapNs, "ActualMember")))
+              .plusChild(createExplicitMemberElem(EName(GaapNs, "ReportDateAxis"), EName(GaapNs, "ReportedAsOfMarch182008Member")))
+              .underlyingElem
+          case e => e
+        }
+    }
+
+    val xbrliPeriod: nodebuilder.Elem =
+      emptyElem(EName(XbrliNs, "period"), SimpleScope.Empty)
+        .creationApi
+        .plusChild(textElem(EName(XbrliNs, "instant"), "2005-12-31", SimpleScope.Empty))
+        .underlyingElem
+
+    val xbrliContext: nodebuilder.Elem =
+      emptyElem(EName(XbrliNs, "context"), SimpleScope.Empty)
+        .creationApi
+        .plusAttribute(EName.fromLocalName("id"), "I-2005")
+        .plusChild(xbrliEntity)
+        .plusChild(xbrliPeriod)
+        .underlyingElem
+
+    val originalContext: SaxonNodes.Elem =
+      saxonDocument.documentElement.findChildElem { e =>
+        e.name == EName(XbrliNs, "context") && e.attr("id") == "I-2005"
+      }.get.ensuring(_.qname.prefixOption.isEmpty)
+
+    // The original context may use the default namespace for the xbrli namespace, but equality is not affected
+
+    assertResult(resolved.Elem.from(originalContext).removeAllInterElementWhitespace.coalesceAndNormalizeAllText) {
+      resolved.Elem.from(xbrliContext).removeAllInterElementWhitespace.coalesceAndNormalizeAllText
+    }
+  }
+
+  test("testCreationAndEquivalenceOfXbrlInstance") {
     val startScope = SimpleScope.from(
       "xbrli" -> XbrliNs,
       "link" -> LinkNs,
@@ -75,63 +151,6 @@ class ElemCreationTest extends FunSuite {
     // The API must also make it easy to create QNames on the fly, to be used in QName-valued attribute values or element text.
     // All in all, when using the API prefixes must be created and SimpleScopes must be enhanced without any effort on the part
     // of the user of the API. In other words, prefix creation and namespace declaration creation must happen automatically.
-
-    val elemCreator = nodebuilder.NodeBuilders.ElemCreator(startScope)
-
-    def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
-      val currElemCreator =
-        elemCreator.appendAggressively(SimpleScope.from("xbrli" -> XbrliNs, "xbrldi" -> XbrldiNs, "gaap" -> GaapNs))
-
-      currElemCreator.textElem(EName(XbrldiNs, "explicitMember"), currElemCreator.simpleScope.findQName(member).get.toString)
-        .plusAttribute(EName.fromLocalName("dimension"), currElemCreator.simpleScope.findQName(dimension).get.toString)
-    }
-
-    val xbrliEntity: nodebuilder.Elem =
-      elemCreator.emptyElem(EName(XbrliNs, "entity"))
-        .plusChild(
-          elemCreator.textElem(EName(XbrliNs, "identifier"), "1234567890")
-            .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK"))
-        .plusChild(elemCreator.emptyElem(EName(XbrliNs, "segment")))
-        .transformDescendantElems {
-          case e@nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
-            e.plusChild(createExplicitMemberElem(EName(GaapNs, "EntityAxis"), EName(GaapNs, "ABCCompanyDomain")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "BusinessSegmentAxis"), EName(GaapNs, "ConsolidatedGroupDomain")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "VerificationAxis"), EName(GaapNs, "UnqualifiedOpinionMember")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "PremiseAxis"), EName(GaapNs, "ActualMember")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "ReportDateAxis"), EName(GaapNs, "ReportedAsOfMarch182008Member")))
-          case e => e
-        }
-
-    val xbrliPeriod: nodebuilder.Elem =
-      elemCreator.emptyElem(EName(XbrliNs, "period"))
-        .plusChild(elemCreator.textElem(EName(XbrliNs, "instant"), "2005-12-31"))
-
-    val xbrliContext: nodebuilder.Elem =
-      elemCreator.emptyElem(EName(XbrliNs, "context"))
-        .plusAttribute(EName.fromLocalName("id"), "I-2005")
-        .plusChild(xbrliEntity)
-        .plusChild(xbrliPeriod)
-
-    val originalContext: SaxonNodes.Elem =
-      saxonDocument.documentElement.findChildElem { e =>
-        e.name == EName(XbrliNs, "context") && e.attr("id") == "I-2005"
-      }.get.ensuring(_.qname.prefixOption.isEmpty)
-
-    // The original context may use the default namespace for the xbrli namespace, but equality is not affected
-
-    assertResult(resolved.Elem.from(originalContext).removeAllInterElementWhitespace.coalesceAndNormalizeAllText) {
-      resolved.Elem.from(xbrliContext).removeAllInterElementWhitespace.coalesceAndNormalizeAllText
-    }
-  }
-
-  test("testCreationAndEquivalenceOfXbrlInstance") {
-    val startScope = SimpleScope.from(
-      "xbrli" -> XbrliNs,
-      "link" -> LinkNs,
-      "xlink" -> XLinkNs,
-      "xbrldi" -> XbrldiNs,
-      "iso4217" -> Iso4217Ns
-    )
 
     val elemCreator = nodebuilder.NodeBuilders.ElemCreator(startScope)
 

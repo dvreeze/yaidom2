@@ -24,7 +24,7 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.core.SimpleScope
-import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
+import eu.cdevreeze.yaidom2.creationapi.LegacyElemCreationApi
 import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
@@ -456,7 +456,7 @@ object NodeBuilders {
    *
    * @author Chris de Vreeze
    */
-  final case class ElemCreator(simpleScope: SimpleScope) extends ElemCreationApi {
+  final case class ElemCreator(simpleScope: SimpleScope) extends LegacyElemCreationApi {
 
     type NodeType = Node
 
@@ -549,5 +549,4 @@ object NodeBuilders {
       new Elem(name, attributes, Vector.empty, simpleScope)
     }
   }
-
 }
