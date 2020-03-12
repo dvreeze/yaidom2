@@ -38,6 +38,14 @@ import org.scalatest.FunSuite
 
 class ElemCreationTest extends FunSuite {
 
+  // TODO Remove the old legacy element creation DSL, and improve and enhance the new one.
+  // The new one must be implemented for other element implementations (simple, resolved) as well.
+  // It must be tested well, documented well (also w.r.t. usage best practices, and provable properties), and it must
+  // get methods like pushUpNamespaceDeclarations.
+  // Should the new element creation API become a regular type class?
+
+  // TODO Enhance the new element creation API with (pluggable) knowledge about used namespaces in attribute values and element text.
+
   private val processor = new Processor(false)
 
   private def inputXmlFileOnClasspath: String = "/test-xml/sample-xbrl-instance.xml"
@@ -51,23 +59,31 @@ class ElemCreationTest extends FunSuite {
     saxon.Document(doc)
   }
 
+  private val XbrliNs = "http://www.xbrl.org/2003/instance"
+  private val LinkNs = "http://www.xbrl.org/2003/linkbase"
+  private val XLinkNs = "http://www.w3.org/1999/xlink"
+  private val XbrldiNs = "http://xbrl.org/2006/xbrldi"
+  private val Iso4217Ns = "http://www.xbrl.org/2003/iso4217"
+
+  private val GaapNs = "http://xasb.org/gaap"
+
+  private val mappings: Map[String, String] = Map(
+    XbrliNs -> "xbrli",
+    LinkNs -> "link",
+    XLinkNs -> "xlink",
+    XbrldiNs -> "xbrldi",
+    Iso4217Ns -> "iso4217",
+    GaapNs -> "gaap",
+  )
+
+  implicit private val namespacePrefixMapper: NamespacePrefixMapper = NamespacePrefixMapper.fromMapWithFallback(mappings)
+
+  implicit private val elemCreator: nodebuilder.NodeBuilderCreationApi = nodebuilder.NodeBuilderCreationApi(namespacePrefixMapper)
+
+  import nodebuilder.NodeBuilderCreationApi._
+  import elemCreator._
+
   test("testCreationAndEquivalenceOfXbrlContext") {
-    val mappings: Map[String, String] = Map(
-      XbrliNs -> "xbrli",
-      LinkNs -> "link",
-      XLinkNs -> "xlink",
-      XbrldiNs -> "xbrldi",
-      Iso4217Ns -> "iso4217",
-      GaapNs -> "gaap",
-    )
-
-    implicit val namespacePrefixMapper: NamespacePrefixMapper = NamespacePrefixMapper.fromMapWithFallback(mappings)
-
-    implicit val elemCreator: nodebuilder.NodeBuilderCreationApi = nodebuilder.NodeBuilderCreationApi(namespacePrefixMapper)
-
-    import nodebuilder.NodeBuilderCreationApi._
-    import elemCreator._
-
     def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
       val scope: SimpleScope = extractScope(Set(dimension, member))
 
@@ -127,45 +143,20 @@ class ElemCreationTest extends FunSuite {
   }
 
   test("testCreationAndEquivalenceOfXbrlInstance") {
-    val startScope = SimpleScope.from(
-      "xbrli" -> XbrliNs,
-      "link" -> LinkNs,
-      "xlink" -> XLinkNs,
-      "xbrldi" -> XbrldiNs,
-      "iso4217" -> Iso4217Ns
-    )
-
-    // TODO This is still not a friendly element creation API, so let's see how we can fix that.
-    // First of all, element creation/updates/transformations need to know about known namespace-prefix mappings and use of
-    // namespaces in attribute values and element text. So let's start with making element creation/update/transformation
-    // type classes. The OO variants would then follow from these type classes, exposed as friendly OO APIs.
-    // Next we need type class instances for at least node builder elements. That's far from trivial. Fortunately they are
-    // restricted to using SimpleScopes, so invertible scopes without default namespace. (How does this help with documents
-    // that do use the default namespace? We still need similar type class instances for simple elements as well.)
-    // The creation/update/transformation type class instances for node builders would know about how to map any namespace
-    // to a prefix, and also about used namespaces in attribute values and element text. When using these APIs we would
-    // almost always pass a parent SimpleScope in functions building pieces of XML (as node builders). So available namespace-prefix
-    // mappings and knowledge about used namespaces would be state of (rather stable) type class instances (for node builders),
-    // whereas SimpleScopes would be passed as function parameters when using those APIs to build node builders.
-    // Maybe something like the state monad is needed instead to keep track of SimpleScopes while building elements.
-    // The API must also make it easy to create QNames on the fly, to be used in QName-valued attribute values or element text.
-    // All in all, when using the API prefixes must be created and SimpleScopes must be enhanced without any effort on the part
-    // of the user of the API. In other words, prefix creation and namespace declaration creation must happen automatically.
-
-    val elemCreator = nodebuilder.NodeBuilders.ElemCreator(startScope)
-
     val schemaRef: nodebuilder.Elem =
-      elemCreator.emptyElem(
+      emptyElem(
         EName(LinkNs, "schemaRef"),
-        SeqMap(EName(XLinkNs, "type") -> "simple", EName(XLinkNs, "href") -> "gaap.xsd"))
+        SeqMap(EName(XLinkNs, "type") -> "simple", EName(XLinkNs, "href") -> "gaap.xsd"),
+        SimpleScope.Empty)
 
     val linkbaseRef: nodebuilder.Elem =
-      elemCreator.emptyElem(
+      emptyElem(
         EName(LinkNs, "linkbaseRef"),
         SeqMap(
           EName(XLinkNs, "type") -> "simple",
           EName(XLinkNs, "href") -> "gaap-formula.xml",
-          EName(XLinkNs, "arcrole") -> "http://www.w3.org/1999/xlink/properties/linkbase"))
+          EName(XLinkNs, "arcrole") -> "http://www.w3.org/1999/xlink/properties/linkbase"),
+        SimpleScope.Empty)
 
     val contexts: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(XbrliNs, "context"))
       .map(e => createContext(e))
@@ -174,19 +165,21 @@ class ElemCreationTest extends FunSuite {
       .map(e => createUnit(e))
 
     val facts: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(canBeFact)
-      .map(e => createFact(e, elemCreator.simpleScope))
+      .map(e => createFact(e, SimpleScope.from(mappings.map(_.swap))))
 
     val footnoteLinks: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(LinkNs, "footnoteLink"))
       .map(e => createFootnoteLink(e))
 
     val xbrlInstance: nodebuilder.Elem =
-      elemCreator.emptyElem(EName(XbrliNs, "xbrl"))
+      emptyElem(EName(XbrliNs, "xbrl"), SimpleScope.Empty)
+        .creationApi
         .plusChild(schemaRef)
         .plusChild(linkbaseRef)
         .plusChildren(contexts)
         .plusChildren(units)
         .plusChildren(facts)
         .plusChildren(footnoteLinks)
+        .underlyingElem
 
     def transformElementTree(rootElem: resolved.Elem): resolved.Elem = {
       rootElem.transformDescendantElemsOrSelf {
@@ -338,14 +331,13 @@ class ElemCreationTest extends FunSuite {
       originalFact.attributes.keySet.subsetOf(Set("contextRef", "unitRef", "decimals", "id").map(EName.fromLocalName)),
       s"Unexpected attributes in: ${originalFact.name}")
 
-    val scope = parentScope.appendAggressively(SimpleScope.from("gaap" -> GaapNs))
-    val elemCreator = nodebuilder.NodeBuilders.ElemCreator(scope)
-
-    elemCreator.textElem(originalFact.name, originalFact.text)
+    textElem(originalFact.name, originalFact.text, parentScope)
+      .creationApi
       .plusAttribute(EName.fromLocalName("contextRef"), originalFact.attr("contextRef"))
       .plusAttributeOption(EName.fromLocalName("unitRef"), originalFact.attrOption("unitRef"))
       .plusAttributeOption(EName.fromLocalName("decimals"), originalFact.attrOption("decimals"))
       .plusAttributeOption(EName.fromLocalName("id"), originalFact.attrOption("id"))
+      .underlyingElem
   }
 
   private def createFootnoteLink(originalFootnoteLink: ScopedNodes.Elem): nodebuilder.Elem = {
@@ -366,12 +358,4 @@ class ElemCreationTest extends FunSuite {
 
     nodebuilder.Elem.from(transformedSimpleFootnoteLink)
   }
-
-  private val XbrliNs = "http://www.xbrl.org/2003/instance"
-  private val LinkNs = "http://www.xbrl.org/2003/linkbase"
-  private val XLinkNs = "http://www.w3.org/1999/xlink"
-  private val XbrldiNs = "http://xbrl.org/2006/xbrldi"
-  private val Iso4217Ns = "http://www.xbrl.org/2003/iso4217"
-
-  private val GaapNs = "http://xasb.org/gaap"
 }
