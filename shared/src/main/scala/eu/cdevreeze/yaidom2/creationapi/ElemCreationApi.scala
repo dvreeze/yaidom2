@@ -42,6 +42,10 @@ trait ElemCreationApi {
 
   def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: SimpleScope): ElemType
 
+  def elem(name: EName, children: Seq[NodeType], parentScope: SimpleScope): ElemType
+
+  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: SimpleScope): ElemType
+
   def children(elem: ElemType): Seq[NodeType]
 
   /**

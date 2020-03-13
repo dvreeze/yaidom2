@@ -94,14 +94,14 @@ class ElemCreationTest extends FunSuite {
     }
 
     val xbrliEntity: nodebuilder.Elem = {
-      emptyElem(EName(XbrliNs, "entity"), SimpleScope.Empty)
+      emptyElem(EName(XbrliNs, "entity"), SimpleScope.empty)
         .creationApi
         .plusChild(
-          textElem(EName(XbrliNs, "identifier"), "1234567890", SimpleScope.Empty)
+          textElem(EName(XbrliNs, "identifier"), "1234567890", SimpleScope.empty)
             .creationApi
             .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
             .underlyingElem)
-        .plusChild(emptyElem(EName(XbrliNs, "segment"), SimpleScope.Empty))
+        .plusChild(emptyElem(EName(XbrliNs, "segment"), SimpleScope.empty))
         .underlyingElem
         .transformDescendantElems {
           case e@nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
@@ -117,13 +117,13 @@ class ElemCreationTest extends FunSuite {
     }
 
     val xbrliPeriod: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "period"), SimpleScope.Empty)
+      emptyElem(EName(XbrliNs, "period"), SimpleScope.empty)
         .creationApi
-        .plusChild(textElem(EName(XbrliNs, "instant"), "2005-12-31", SimpleScope.Empty))
+        .plusChild(textElem(EName(XbrliNs, "instant"), "2005-12-31", SimpleScope.empty))
         .underlyingElem
 
     val xbrliContext: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "context"), SimpleScope.Empty)
+      emptyElem(EName(XbrliNs, "context"), SimpleScope.empty)
         .creationApi
         .plusAttribute(EName.fromLocalName("id"), "I-2005")
         .plusChild(xbrliEntity)
@@ -147,7 +147,7 @@ class ElemCreationTest extends FunSuite {
       emptyElem(
         EName(LinkNs, "schemaRef"),
         SeqMap(EName(XLinkNs, "type") -> "simple", EName(XLinkNs, "href") -> "gaap.xsd"),
-        SimpleScope.Empty)
+        SimpleScope.empty)
 
     val linkbaseRef: nodebuilder.Elem =
       emptyElem(
@@ -156,7 +156,7 @@ class ElemCreationTest extends FunSuite {
           EName(XLinkNs, "type") -> "simple",
           EName(XLinkNs, "href") -> "gaap-formula.xml",
           EName(XLinkNs, "arcrole") -> "http://www.w3.org/1999/xlink/properties/linkbase"),
-        SimpleScope.Empty)
+        SimpleScope.empty)
 
     val contexts: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(XbrliNs, "context"))
       .map(e => createContext(e))
@@ -171,7 +171,7 @@ class ElemCreationTest extends FunSuite {
       .map(e => createFootnoteLink(e))
 
     val xbrlInstance: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "xbrl"), SimpleScope.Empty)
+      emptyElem(EName(XbrliNs, "xbrl"), SimpleScope.empty)
         .creationApi
         .plusChild(schemaRef)
         .plusChild(linkbaseRef)
@@ -233,7 +233,7 @@ class ElemCreationTest extends FunSuite {
     require(saxonDocument.documentElement.findAllDescendantElems.forall(_.scope == originalScope))
 
     val targetSimpleScope = SimpleScope.from(originalScope.withoutDefaultNamespace)
-      .appendAggressively(SimpleScope.from("xbrli" -> XbrliNs))
+      .append(SimpleScope.from("xbrli" -> XbrliNs))
 
     val originalRootElemWithoutDefaultNamespace: SimpleNodes.Elem =
       SimpleNodes.Elem.from(saxonDocument.documentElement)

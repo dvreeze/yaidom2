@@ -319,7 +319,7 @@ object NodeBuilders {
 
     def deeplyEnhancingScopeWith(extraScope: SimpleScope): Elem = {
       transformDescendantElemsOrSelf { e =>
-        new Elem(e.name, e.attributes, e.children, e.simpleScope.appendAggressivelyOrThrow(extraScope))
+        new Elem(e.name, e.attributes, e.children, e.simpleScope.appendOrThrow(extraScope))
       }
     }
   }
@@ -468,28 +468,28 @@ object NodeBuilders {
      * Returns `ElemCreator(simpleScope.appendDefensively(otherSimpleScope))`.
      */
     def appendDefensively(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.appendDefensively(otherSimpleScope))
+      ElemCreator(simpleScope.prepend(otherSimpleScope))
     }
 
     /**
      * Returns `ElemCreator(simpleScope.appendAggressively(otherSimpleScope))`.
      */
     def appendAggressively(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.appendAggressively(otherSimpleScope))
+      ElemCreator(simpleScope.append(otherSimpleScope))
     }
 
     /**
      * Returns `ElemCreator(simpleScope.appendDefensivelyOrThrow(otherSimpleScope))`.
      */
     def appendDefensivelyOrThrow(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.appendDefensivelyOrThrow(otherSimpleScope))
+      ElemCreator(simpleScope.prependOrThrow(otherSimpleScope))
     }
 
     /**
      * Returns `ElemCreator(simpleScope.appendAggressivelyOrThrow(otherSimpleScope))`.
      */
     def appendAggressivelyOrThrow(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.appendAggressivelyOrThrow(otherSimpleScope))
+      ElemCreator(simpleScope.appendOrThrow(otherSimpleScope))
     }
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {

@@ -79,6 +79,8 @@ package eu.cdevreeze.yaidom2.core
  * @author Chris de Vreeze
  */
 final case class Scope(prefixNamespaceMap: Map[String, String]) {
+  require(!prefixNamespaceMap.contains("xml"), s"Prefix 'xml' is built-in and must not occur explicitly in the scope")
+
   import Scope._
 
   /** Returns true if this Scope is empty. Faster than comparing this Scope against the empty Scope. */
@@ -237,8 +239,11 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     result
   }
 
-  /** Returns `Scope(this.prefixNamespaceMap ++ scope.prefixNamespaceMap)` */
+  /** Returns `Scope(this.prefixNamespaceMap ++ scope.prefixNamespaceMap)`. Note that namespaces may get lost as a result. */
   def append(scope: Scope): Scope = Scope(this.prefixNamespaceMap ++ scope.prefixNamespaceMap)
+
+  /** Returns `scope.append(this)` */
+  def prepend(scope: Scope): Scope = scope.append(this)
 
   /** Returns `Scope(this.prefixNamespaceMap -- prefixes)` */
   def minus(prefixes: Set[String]): Scope = Scope(this.prefixNamespaceMap -- prefixes)

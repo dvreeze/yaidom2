@@ -56,6 +56,19 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
     new Elem(name, attributes, Vector(Text(txt)), scope)
   }
 
+  def elem(name: EName, children: Seq[NodeType], parentScope: SimpleScope): ElemType = {
+    elem(name, SeqMap.empty, children, parentScope)
+  }
+
+  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: SimpleScope): ElemType = {
+    val scope: SimpleScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
+    new Elem(
+      name,
+      attributes,
+      children.map(ch => nodeUsingParentScope(ch, scope)).to(Vector),
+      scope)
+  }
+
   def children(elem: ElemType): Seq[NodeType] = elem.children
 
   def withChildren(elem: ElemType, newChildren: Seq[NodeType]): ElemType = {
