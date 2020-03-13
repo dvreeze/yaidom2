@@ -25,7 +25,7 @@ import scala.collection.immutable.SeqMap
  * mapping.
  *
  * Unlike Scopes, namespace prefix mappings can map multiple namespaces to the same prefix. Namespace prefix mappings are not
- * used for holding an element's in-scope namespaces (that's what Scope and SimpleScope do), but they are used "in the background"
+ * used for holding an element's in-scope namespaces (that's what Scope and PrefixedScope do), but they are used "in the background"
  * to generate prefixes from namespaces.
  *
  * When using a NamespacePrefixMapper in the background in an element creation DSL, it works best if within the same XML

@@ -21,7 +21,7 @@ import scala.util.chaining._
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.NamespacePrefixMapper
-import eu.cdevreeze.yaidom2.core.SimpleScope
+import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Text
 
@@ -38,30 +38,30 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
 
   type ElemType = NodeBuilders.Elem
 
-  def emptyElem(name: EName, parentScope: SimpleScope): ElemType = {
+  def emptyElem(name: EName, parentScope: PrefixedScope): ElemType = {
     emptyElem(name, SeqMap.empty, parentScope)
   }
 
-  def emptyElem(name: EName, attributes: SeqMap[EName, String], parentScope: SimpleScope): ElemType = {
-    val scope: SimpleScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
+  def emptyElem(name: EName, attributes: SeqMap[EName, String], parentScope: PrefixedScope): ElemType = {
+    val scope: PrefixedScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
     new Elem(name, attributes, Vector.empty, scope)
   }
 
-  def textElem(name: EName, txt: String, parentScope: SimpleScope): ElemType = {
+  def textElem(name: EName, txt: String, parentScope: PrefixedScope): ElemType = {
     textElem(name, SeqMap.empty, txt, parentScope)
   }
 
-  def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: SimpleScope): ElemType = {
-    val scope: SimpleScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
+  def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType = {
+    val scope: PrefixedScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
     new Elem(name, attributes, Vector(Text(txt)), scope)
   }
 
-  def elem(name: EName, children: Seq[NodeType], parentScope: SimpleScope): ElemType = {
+  def elem(name: EName, children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
     elem(name, SeqMap.empty, children, parentScope)
   }
 
-  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: SimpleScope): ElemType = {
-    val scope: SimpleScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
+  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
+    val scope: PrefixedScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
     new Elem(
       name,
       attributes,
@@ -75,16 +75,16 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
     new Elem(
       elem.name,
       elem.attributes,
-      newChildren.map(ch => nodeUsingParentScope(ch, elem.simpleScope)).to(Vector),
-      elem.simpleScope)
+      newChildren.map(ch => nodeUsingParentScope(ch, elem.prefixedScope)).to(Vector),
+      elem.prefixedScope)
   }
 
   def plusChild(elem: ElemType, child: NodeType): ElemType = {
     new Elem(
       elem.name,
       elem.attributes,
-      elem.children.appended(nodeUsingParentScope(child, elem.simpleScope)),
-      elem.simpleScope)
+      elem.children.appended(nodeUsingParentScope(child, elem.prefixedScope)),
+      elem.prefixedScope)
   }
 
   def plusChildOption(elem: ElemType, childOption: Option[NodeType]): ElemType = {
@@ -105,8 +105,8 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
     new Elem(
       elem.name,
       elem.attributes,
-      elem.children.appendedAll(childSeq.map(ch => nodeUsingParentScope(ch, elem.simpleScope))),
-      elem.simpleScope)
+      elem.children.appendedAll(childSeq.map(ch => nodeUsingParentScope(ch, elem.prefixedScope))),
+      elem.prefixedScope)
   }
 
   def minusChild(elem: ElemType, index: Int): ElemType = {
@@ -115,12 +115,12 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
   }
 
   def withAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType = {
-    val scope: SimpleScope = elem.simpleScope.append(extractScope(newAttributes.keySet))
+    val scope: PrefixedScope = elem.prefixedScope.append(extractScope(newAttributes.keySet))
     new Elem(elem.name, newAttributes, elem.children, scope)
   }
 
   def plusAttribute(elem: ElemType, attrName: EName, attrValue: String): ElemType = {
-    val scope: SimpleScope = elem.simpleScope.append(extractScope(attrName))
+    val scope: PrefixedScope = elem.prefixedScope.append(extractScope(attrName))
     new Elem(elem.name, elem.attributes.updated(attrName, attrValue), elem.children, scope)
   }
 
@@ -129,16 +129,16 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
   }
 
   def plusAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType = {
-    val scope: SimpleScope = elem.simpleScope.append(extractScope(newAttributes.keySet))
+    val scope: PrefixedScope = elem.prefixedScope.append(extractScope(newAttributes.keySet))
     new Elem(elem.name, elem.attributes.concat(newAttributes), elem.children, scope)
   }
 
   def minusAttribute(elem: ElemType, attrName: EName): ElemType = {
-    new Elem(elem.name, elem.attributes.removed(attrName), elem.children, elem.simpleScope)
+    new Elem(elem.name, elem.attributes.removed(attrName), elem.children, elem.prefixedScope)
   }
 
-  def usingParentScope(elem: ElemType, parentScope: SimpleScope): ElemType = {
-    val currentScope: SimpleScope = parentScope.append(elem.simpleScope)
+  def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {
+    val currentScope: PrefixedScope = parentScope.append(elem.prefixedScope)
     // Recursive calls
     new Elem(
       elem.name,
@@ -150,18 +150,18 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
       currentScope)
   }
 
-  def nodeUsingParentScope(node: NodeType, parentScope: SimpleScope): NodeType = {
+  def nodeUsingParentScope(node: NodeType, parentScope: PrefixedScope): NodeType = {
     node match {
       case e: Elem => usingParentScope(e, parentScope)
       case n => n
     }
   }
 
-  def extractScope(ename: EName): SimpleScope = {
+  def extractScope(ename: EName): PrefixedScope = {
     extractScope(Set(ename))
   }
 
-  def extractScope(enames: Set[EName]): SimpleScope = {
+  def extractScope(enames: Set[EName]): PrefixedScope = {
     val namespaces: Set[String] = enames.flatMap(_.namespaceUriOption)
 
     val prefixNamespaceMap: Map[String, String] = namespaces.toSeq.map { ns =>
@@ -169,7 +169,7 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
       prefix -> ns
     }.toMap
 
-    SimpleScope.from(prefixNamespaceMap)
+    PrefixedScope.from(prefixNamespaceMap)
   }
 }
 
@@ -244,7 +244,7 @@ object NodeBuilderCreationApi {
       nodeBuilderCreationApi.minusAttribute(underlyingElem, attrName).pipe(wrap)
     }
 
-    def usingParentScope(parentScope: SimpleScope): ThisElem = {
+    def usingParentScope(parentScope: PrefixedScope): ThisElem = {
       nodeBuilderCreationApi.usingParentScope(underlyingElem, parentScope).pipe(wrap)
     }
 

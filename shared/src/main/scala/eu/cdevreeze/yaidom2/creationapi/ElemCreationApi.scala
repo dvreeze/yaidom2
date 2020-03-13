@@ -19,7 +19,7 @@ package eu.cdevreeze.yaidom2.creationapi
 import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.core.SimpleScope
+import eu.cdevreeze.yaidom2.core.PrefixedScope
 
 /**
  * Element creation API. Typical implementations are rather stable objects that use a NamespacePrefixMapper internally.
@@ -34,13 +34,13 @@ trait ElemCreationApi {
 
   type ElemType <: NodeType
 
-  def emptyElem(name: EName, parentScope: SimpleScope): ElemType
+  def emptyElem(name: EName, parentScope: PrefixedScope): ElemType
 
-  def emptyElem(name: EName, attributes: SeqMap[EName, String], parentScope: SimpleScope): ElemType
+  def emptyElem(name: EName, attributes: SeqMap[EName, String], parentScope: PrefixedScope): ElemType
 
-  def textElem(name: EName, txt: String, parentScope: SimpleScope): ElemType
+  def textElem(name: EName, txt: String, parentScope: PrefixedScope): ElemType
 
-  def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: SimpleScope): ElemType
+  def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType
 
   /**
    * Creates an element with the given name and children.
@@ -49,7 +49,7 @@ trait ElemCreationApi {
    *
    * For performance it is best not to pass big child element trees.
    */
-  def elem(name: EName, children: Seq[NodeType], parentScope: SimpleScope): ElemType
+  def elem(name: EName, children: Seq[NodeType], parentScope: PrefixedScope): ElemType
 
   /**
    * Creates an element with the given name, attributes and children.
@@ -58,7 +58,7 @@ trait ElemCreationApi {
    *
    * For performance it is best not to pass big child element trees.
    */
-  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: SimpleScope): ElemType
+  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType
 
   def children(elem: ElemType): Seq[NodeType]
 
@@ -146,11 +146,11 @@ trait ElemCreationApi {
    * This method is used internally in this element creation DSL, but is also handy in application code when adding
    * namespaces that are known to be used in attribute values or element text.
    */
-  def usingParentScope(elem: ElemType, parentScope: SimpleScope): ElemType
+  def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType
 
-  def extractScope(ename: EName): SimpleScope
+  def extractScope(ename: EName): PrefixedScope
 
-  def extractScope(enames: Set[EName]): SimpleScope
+  def extractScope(enames: Set[EName]): PrefixedScope
 }
 
 object ElemCreationApi {
@@ -198,7 +198,7 @@ object ElemCreationApi {
 
     def minusAttribute(attrName: EName): ThisElem
 
-    def usingParentScope(parentScope: SimpleScope): ThisElem
+    def usingParentScope(parentScope: PrefixedScope): ThisElem
 
     def underlying: UnderlyingElem
   }

@@ -24,7 +24,7 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.NamespacePrefixMapper
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.core.SimpleScope
+import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
@@ -85,7 +85,7 @@ class ElemCreationTest extends FunSuite {
 
   test("testCreationAndEquivalenceOfXbrlContext") {
     def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
-      val scope: SimpleScope = extractScope(Set(dimension, member))
+      val scope: PrefixedScope = extractScope(Set(dimension, member))
 
       textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope)
         .creationApi
@@ -94,14 +94,14 @@ class ElemCreationTest extends FunSuite {
     }
 
     val xbrliEntity: nodebuilder.Elem = {
-      emptyElem(EName(XbrliNs, "entity"), SimpleScope.empty)
+      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty)
         .creationApi
         .plusChild(
-          textElem(EName(XbrliNs, "identifier"), "1234567890", SimpleScope.empty)
+          textElem(EName(XbrliNs, "identifier"), "1234567890", PrefixedScope.empty)
             .creationApi
             .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
             .underlyingElem)
-        .plusChild(emptyElem(EName(XbrliNs, "segment"), SimpleScope.empty))
+        .plusChild(emptyElem(EName(XbrliNs, "segment"), PrefixedScope.empty))
         .underlyingElem
         .transformDescendantElems {
           case e@nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
@@ -117,13 +117,13 @@ class ElemCreationTest extends FunSuite {
     }
 
     val xbrliPeriod: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "period"), SimpleScope.empty)
+      emptyElem(EName(XbrliNs, "period"), PrefixedScope.empty)
         .creationApi
-        .plusChild(textElem(EName(XbrliNs, "instant"), "2005-12-31", SimpleScope.empty))
+        .plusChild(textElem(EName(XbrliNs, "instant"), "2005-12-31", PrefixedScope.empty))
         .underlyingElem
 
     val xbrliContext: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "context"), SimpleScope.empty)
+      emptyElem(EName(XbrliNs, "context"), PrefixedScope.empty)
         .creationApi
         .plusAttribute(EName.fromLocalName("id"), "I-2005")
         .plusChild(xbrliEntity)
@@ -147,7 +147,7 @@ class ElemCreationTest extends FunSuite {
       emptyElem(
         EName(LinkNs, "schemaRef"),
         SeqMap(EName(XLinkNs, "type") -> "simple", EName(XLinkNs, "href") -> "gaap.xsd"),
-        SimpleScope.empty)
+        PrefixedScope.empty)
 
     val linkbaseRef: nodebuilder.Elem =
       emptyElem(
@@ -156,7 +156,7 @@ class ElemCreationTest extends FunSuite {
           EName(XLinkNs, "type") -> "simple",
           EName(XLinkNs, "href") -> "gaap-formula.xml",
           EName(XLinkNs, "arcrole") -> "http://www.w3.org/1999/xlink/properties/linkbase"),
-        SimpleScope.empty)
+        PrefixedScope.empty)
 
     val contexts: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(XbrliNs, "context"))
       .map(e => createContext(e))
@@ -165,13 +165,13 @@ class ElemCreationTest extends FunSuite {
       .map(e => createUnit(e))
 
     val facts: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(canBeFact)
-      .map(e => createFact(e, SimpleScope.from(mappings.map(_.swap))))
+      .map(e => createFact(e, PrefixedScope.from(mappings.map(_.swap))))
 
     val footnoteLinks: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(LinkNs, "footnoteLink"))
       .map(e => createFootnoteLink(e))
 
     val xbrlInstance: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "xbrl"), SimpleScope.empty)
+      emptyElem(EName(XbrliNs, "xbrl"), PrefixedScope.empty)
         .creationApi
         .plusChild(schemaRef)
         .plusChild(linkbaseRef)
@@ -232,23 +232,23 @@ class ElemCreationTest extends FunSuite {
     val originalScope = saxonDocument.documentElement.scope.ensuring(_.defaultNamespaceOption.contains(XbrliNs))
     require(saxonDocument.documentElement.findAllDescendantElems.forall(_.scope == originalScope))
 
-    val targetSimpleScope = SimpleScope.from(originalScope.withoutDefaultNamespace)
-      .append(SimpleScope.from("xbrli" -> XbrliNs))
+    val targetPrefixedScope = PrefixedScope.from(originalScope.withoutDefaultNamespace)
+      .append(PrefixedScope.from("xbrli" -> XbrliNs))
 
     val originalRootElemWithoutDefaultNamespace: SimpleNodes.Elem =
       SimpleNodes.Elem.from(saxonDocument.documentElement)
       .transformDescendantElemsOrSelf {
         case e if e.name == EName(XbrliNs, "measure") =>
-          val text = targetSimpleScope.findQName(e.textAsResolvedQName).get.toString
+          val text = targetPrefixedScope.findQName(e.textAsResolvedQName).get.toString
           val textNode = SimpleNodes.Text(text, false)
-          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetSimpleScope.scope, Vector(textNode))
+          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, Vector(textNode))
         case e if e.name.namespaceUriOption.contains(XbrliNs) =>
-          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetSimpleScope.scope, e.children)
+          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, e.children)
         case e =>
-          new SimpleNodes.Elem(e.qname, e.attributesByQName, targetSimpleScope.scope, e.children)
+          new SimpleNodes.Elem(e.qname, e.attributesByQName, targetPrefixedScope.scope, e.children)
       }
 
-    require(originalRootElemWithoutDefaultNamespace.findAllDescendantElemsOrSelf.forall(_.scope == targetSimpleScope.scope))
+    require(originalRootElemWithoutDefaultNamespace.findAllDescendantElemsOrSelf.forall(_.scope == targetPrefixedScope.scope))
 
     val rootElemWithENameContent: SimpleNodes.Elem =
       originalRootElemWithoutDefaultNamespace.transformDescendantElemsOrSelf {
@@ -262,7 +262,7 @@ class ElemCreationTest extends FunSuite {
         case e => e
       }
 
-    require(rootElemWithENameContent.findAllDescendantElemsOrSelf.forall(_.scope == targetSimpleScope.scope))
+    require(rootElemWithENameContent.findAllDescendantElemsOrSelf.forall(_.scope == targetPrefixedScope.scope))
 
     val copiedRootElemWithENameContent: nodebuilder.Elem = nodebuilder.Elem.from(rootElemWithENameContent)
 
@@ -306,7 +306,7 @@ class ElemCreationTest extends FunSuite {
       simpleUnit.transformDescendantElemsOrSelf {
         case e if e.name == EName(XbrliNs, "measure") =>
           val measureEName = e.textAsResolvedQName
-          val measureQName = SimpleScope.from(adaptedScope(e)).findQName(measureEName).get
+          val measureQName = PrefixedScope.from(adaptedScope(e)).findQName(measureEName).get
 
           new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), Vector(SimpleNodes.Text(measureQName.toString, false)))
         case e if e.name.namespaceUriOption.contains(XbrliNs) =>
@@ -322,7 +322,7 @@ class ElemCreationTest extends FunSuite {
     !Set(XbrliNs, LinkNs).contains(e.name.namespaceUriOption.getOrElse(""))
   }
 
-  private def createFact(originalFact: ScopedNodes.Elem, parentScope: SimpleScope): nodebuilder.Elem = {
+  private def createFact(originalFact: ScopedNodes.Elem, parentScope: PrefixedScope): nodebuilder.Elem = {
     require(canBeFact(originalFact), s"Expected fact")
     require(originalFact.attrOption(EName.fromLocalName("contextRef")).nonEmpty, s"Expected contextRef attribute")
     require(originalFact.qname.prefixOption.contains("gaap"), s"Expected 'gaap' fact")

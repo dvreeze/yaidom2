@@ -23,7 +23,7 @@ import scala.collection.immutable.SeqMap
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.core.SimpleScope
+import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.creationapi.LegacyElemCreationApi
 import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
@@ -97,10 +97,10 @@ object NodeBuilders {
     val name: EName,
     val attributes: SeqMap[EName, String],
     val children: Vector[Node], // For querying, ArraySeq would be optimal, but not for (functional) updates
-    val simpleScope: SimpleScope
+    val prefixedScope: PrefixedScope
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableAttributeCarryingElem {
 
-    assert(Elem.hasValidQNamesCorrespondingToENames(name, attributes, simpleScope)) // TODO Expensive check. Improve performance.
+    assert(Elem.hasValidQNamesCorrespondingToENames(name, attributes, prefixedScope)) // TODO Expensive check. Improve performance.
     assert(this.hasNoPrefixedNamespaceUndeclarations) // TODO Expensive check. Improve performance.
 
     type ThisElem = Elem
@@ -115,11 +115,11 @@ object NodeBuilders {
       Vector.from(xs)
     }
 
-    def scope: Scope = simpleScope.scope
+    def scope: Scope = prefixedScope.scope
 
     def qname: QName = {
       val prefixOption: Option[String] =
-        if (name.namespaceUriOption.isEmpty) None else simpleScope.findPrefixForNamespace(name.namespaceUriOption.get)
+        if (name.namespaceUriOption.isEmpty) None else prefixedScope.findPrefixForNamespace(name.namespaceUriOption.get)
 
       QName(prefixOption, name.localPart)
     }
@@ -127,7 +127,7 @@ object NodeBuilders {
     def attributesByQName: SeqMap[QName, String] = {
       attributes.map { case (attrName, attrValue) =>
         val prefixOption: Option[String] =
-          if (attrName.namespaceUriOption.isEmpty) None else simpleScope.findPrefixForNamespace(attrName.namespaceUriOption.get)
+          if (attrName.namespaceUriOption.isEmpty) None else prefixedScope.findPrefixForNamespace(attrName.namespaceUriOption.get)
 
         QName(prefixOption, attrName.localPart) -> attrValue
       }
@@ -145,7 +145,7 @@ object NodeBuilders {
       if (navigationPath.isEmpty) {
         Some(self)
       } else {
-        val childElemIdx: Int = navigationPath(0)
+        val childElemIdx: Int = navigationPath.head
         val childElems: Seq[Elem] = findAllChildElems
 
         if (childElemIdx >= 0 && childElemIdx < childElems.size) {
@@ -188,15 +188,15 @@ object NodeBuilders {
         newChildren.collect { case e: Elem => e }.forall(e => scope.subScopeOf(e.scope)),
         s"Not all child elements have a strict super-scope of $scope")
 
-      new Elem(name, attributes, newChildren.to(Vector), simpleScope)
+      new Elem(name, attributes, newChildren.to(Vector), prefixedScope)
     }
 
     def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
       require(
-        newAttributes.keySet.forall(attrName => simpleScope.findQName(attrName).nonEmpty),
+        newAttributes.keySet.forall(attrName => prefixedScope.findQName(attrName).nonEmpty),
         s"Not all attribute names can be converted to QNames given scope $scope")
 
-      new Elem(name, newAttributes, children, simpleScope)
+      new Elem(name, newAttributes, children, prefixedScope)
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
@@ -317,9 +317,9 @@ object NodeBuilders {
 
     // Other methods
 
-    def deeplyEnhancingScopeWith(extraScope: SimpleScope): Elem = {
+    def deeplyEnhancingScopeWith(extraScope: PrefixedScope): Elem = {
       transformDescendantElemsOrSelf { e =>
-        new Elem(e.name, e.attributes, e.children, e.simpleScope.appendOrThrow(extraScope))
+        new Elem(e.name, e.attributes, e.children, e.prefixedScope.append(extraScope))
       }
     }
   }
@@ -356,8 +356,8 @@ object NodeBuilders {
 
     type TargetElemType = Elem
 
-    def unapply(elem: Elem): Option[(EName, SeqMap[EName, String], Seq[Node], SimpleScope)] = {
-      val v = (elem.name, elem.attributes, elem.children, elem.simpleScope)
+    def unapply(elem: Elem): Option[(EName, SeqMap[EName, String], Seq[Node], PrefixedScope)] = {
+      val v = (elem.name, elem.attributes, elem.children, elem.prefixedScope)
       Some(v)
     }
 
@@ -365,8 +365,8 @@ object NodeBuilders {
       val allElemsOrSelf = elm.findAllDescendantElemsOrSelf
 
       def isItselfValid(e: ScopedNodes.Elem): Boolean = {
-        SimpleScope.optionallyFrom(e.scope).nonEmpty &&
-          hasValidQNamesCorrespondingToENames(e.name, e.attributes, SimpleScope.from(e.scope)) &&
+        PrefixedScope.optionallyFrom(e.scope).nonEmpty &&
+          hasValidQNamesCorrespondingToENames(e.name, e.attributes, PrefixedScope.from(e.scope)) &&
           e.hasNoPrefixedNamespaceUndeclarations
       }
 
@@ -380,10 +380,10 @@ object NodeBuilders {
     def from(elm: ScopedNodes.Elem): Elem = {
       require(elm.scope.isInvertible, s"Not an invertible scope: ${elm.scope}")
       require(elm.scope.defaultNamespaceOption.isEmpty, s"Not a scope without default namespace: ${elm.scope}")
-      val simpleScope = SimpleScope.from(elm.scope)
+      val prefixedScope = PrefixedScope.from(elm.scope)
 
       require(
-        hasValidQNamesCorrespondingToENames(elm.name, elm.attributes, simpleScope),
+        hasValidQNamesCorrespondingToENames(elm.name, elm.attributes, prefixedScope),
         s"Element ${elm.name} with scope ${elm.scope} is corrupt with respect to naming (the correspondence between QNames and ENames)")
 
       require(elm.hasNoPrefixedNamespaceUndeclarations, s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
@@ -398,10 +398,10 @@ object NodeBuilders {
       // Recursion, with Node.from and Elem.from being mutually dependent
       val creationDslChildren = children.map { node => Node.from(node) }
 
-      new Elem(elm.name, elm.attributes, creationDslChildren.to(Vector), simpleScope)
+      new Elem(elm.name, elm.attributes, creationDslChildren.to(Vector), prefixedScope)
     }
 
-    // Constraints on element builders (besides the use of SimpleScopes only)
+    // Constraints on element builders (besides the use of PrefixedScopes only)
 
     // Property ScopedNodes.Elem.hasNoPrefixedNamespaceUndeclarations is required too
 
@@ -410,32 +410,32 @@ object NodeBuilders {
      * QName, given the passed simple scope. This is a requirement that has to be fulfilled in order to create an
      * element builder containing this data, and it must hold for all descendant elements as well.
      */
-    def hasValidQNamesCorrespondingToENames(elementName: EName, attributes: SeqMap[EName, String], simpleScope: SimpleScope): Boolean = {
-      hasValidElementQNamesCorrespondingToEName(elementName, simpleScope) &&
-        hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope)
+    def hasValidQNamesCorrespondingToENames(elementName: EName, attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
+      hasValidElementQNamesCorrespondingToEName(elementName, prefixedScope) &&
+        hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope)
     }
 
     /**
      * Returns true if the element name (as EName) uniquely determines a corresponding QName, given the passed simple scope.
      */
-    def hasValidElementQNamesCorrespondingToEName(elementName: EName, simpleScope: SimpleScope): Boolean = {
-      hasValidQNameCorrespondingToEName(elementName, simpleScope)
+    def hasValidElementQNamesCorrespondingToEName(elementName: EName, prefixedScope: PrefixedScope): Boolean = {
+      hasValidQNameCorrespondingToEName(elementName, prefixedScope)
     }
 
     /**
      * Returns true if the attribute names (as ENames) uniquely determine a corresponding QName, given the passed simple scope.
      */
-    def hasValidAttributeQNamesCorrespondingToENames(attributes: SeqMap[EName, String], simpleScope: SimpleScope): Boolean = {
+    def hasValidAttributeQNamesCorrespondingToENames(attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
       attributes.forall { case (attrName, _) =>
-        hasValidQNameCorrespondingToEName(attrName, simpleScope)
+        hasValidQNameCorrespondingToEName(attrName, prefixedScope)
       }
     }
 
     /**
      * Returns true if the given EName uniquely determines a corresponding QName, given the passed simple scope.
      */
-    def hasValidQNameCorrespondingToEName(ename: EName, simpleScope: SimpleScope): Boolean = {
-      simpleScope.findQName(ename).nonEmpty
+    def hasValidQNameCorrespondingToEName(ename: EName, prefixedScope: PrefixedScope): Boolean = {
+      prefixedScope.findQName(ename).nonEmpty
     }
   }
 
@@ -456,7 +456,7 @@ object NodeBuilders {
    *
    * @author Chris de Vreeze
    */
-  final case class ElemCreator(simpleScope: SimpleScope) extends LegacyElemCreationApi {
+  final case class ElemCreator(prefixedScope: PrefixedScope) extends LegacyElemCreationApi {
 
     type NodeType = Node
 
@@ -465,88 +465,74 @@ object NodeBuilders {
     // TODO Checks on prefixed namespace undeclarations
 
     /**
-     * Returns `ElemCreator(simpleScope.appendDefensively(otherSimpleScope))`.
+     * Returns `ElemCreator(prefixedScope.appendDefensively(otherPrefixedScope))`.
      */
-    def appendDefensively(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.prepend(otherSimpleScope))
+    def appendDefensively(otherPrefixedScope: PrefixedScope): ElemCreator = {
+      ElemCreator(prefixedScope.prepend(otherPrefixedScope))
     }
 
     /**
-     * Returns `ElemCreator(simpleScope.appendAggressively(otherSimpleScope))`.
+     * Returns `ElemCreator(prefixedScope.appendAggressively(otherPrefixedScope))`.
      */
-    def appendAggressively(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.append(otherSimpleScope))
-    }
-
-    /**
-     * Returns `ElemCreator(simpleScope.appendDefensivelyOrThrow(otherSimpleScope))`.
-     */
-    def appendDefensivelyOrThrow(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.prependOrThrow(otherSimpleScope))
-    }
-
-    /**
-     * Returns `ElemCreator(simpleScope.appendAggressivelyOrThrow(otherSimpleScope))`.
-     */
-    def appendAggressivelyOrThrow(otherSimpleScope: SimpleScope): ElemCreator = {
-      ElemCreator(simpleScope.appendOrThrow(otherSimpleScope))
+    def appendAggressively(otherPrefixedScope: PrefixedScope): ElemCreator = {
+      ElemCreator(prefixedScope.append(otherPrefixedScope))
     }
 
     def elem(name: EName, children: Seq[NodeType]): ElemType = {
       require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
-        s"Could not turn element name $name into a QName (scope $simpleScope)")
+        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
+        s"Could not turn element name $name into a QName (scope $prefixedScope)")
 
-      new Elem(name, SeqMap.empty, children.to(Vector), simpleScope)
+      new Elem(name, SeqMap.empty, children.to(Vector), prefixedScope)
     }
 
     def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
       require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
-        s"Could not turn element name $name into a QName (scope $simpleScope)")
+        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
+        s"Could not turn element name $name into a QName (scope $prefixedScope)")
       require(
-        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
-        s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
+        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope),
+        s"Could not turn all attribute names into QNames (element $name, scope $prefixedScope)")
 
-      new Elem(name, attributes, children.to(Vector), simpleScope)
+      new Elem(name, attributes, children.to(Vector), prefixedScope)
     }
 
     def textElem(name: EName, txt: String): ElemType = {
       require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
-        s"Could not turn element name $name into a QName (scope $simpleScope)")
+        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
+        s"Could not turn element name $name into a QName (scope $prefixedScope)")
 
-      new Elem(name, SeqMap.empty, Vector(Text(txt)), simpleScope)
+      new Elem(name, SeqMap.empty, Vector(Text(txt)), prefixedScope)
     }
 
     def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
       require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
-        s"Could not turn element name $name into a QName (scope $simpleScope)")
+        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
+        s"Could not turn element name $name into a QName (scope $prefixedScope)")
       require(
-        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
-        s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
+        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope),
+        s"Could not turn all attribute names into QNames (element $name, scope $prefixedScope)")
 
-      new Elem(name, attributes, Vector(Text(txt)), simpleScope)
+      new Elem(name, attributes, Vector(Text(txt)), prefixedScope)
     }
 
     def emptyElem(name: EName): ElemType = {
       require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
-        s"Could not turn element name $name into a QName (scope $simpleScope)")
+        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
+        s"Could not turn element name $name into a QName (scope $prefixedScope)")
 
-      new Elem(name, SeqMap.empty, Vector.empty, simpleScope)
+      new Elem(name, SeqMap.empty, Vector.empty, prefixedScope)
     }
 
     def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
       require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, simpleScope),
-        s"Could not turn element name $name into a QName (scope $simpleScope)")
+        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
+        s"Could not turn element name $name into a QName (scope $prefixedScope)")
       require(
-        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, simpleScope),
-        s"Could not turn all attribute names into QNames (element $name, scope $simpleScope)")
+        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope),
+        s"Could not turn all attribute names into QNames (element $name, scope $prefixedScope)")
 
-      new Elem(name, attributes, Vector.empty, simpleScope)
+      new Elem(name, attributes, Vector.empty, prefixedScope)
     }
   }
 }
