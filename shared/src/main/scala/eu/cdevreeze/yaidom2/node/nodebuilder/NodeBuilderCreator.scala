@@ -30,7 +30,7 @@ import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Text
  *
  * @author Chris de Vreeze
  */
-final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMapper) extends ElemCreationApi {
+final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper) extends ElemCreationApi {
 
   // TODO Add knowledge about used namespaces (in attribute values and element text)
 
@@ -173,22 +173,22 @@ final class NodeBuilderCreationApi(val namespacePrefixMapper: NamespacePrefixMap
   }
 }
 
-object NodeBuilderCreationApi {
+object NodeBuilderCreator {
 
-  def apply(namespacePrefixMapper: NamespacePrefixMapper): NodeBuilderCreationApi = {
-    new NodeBuilderCreationApi(namespacePrefixMapper)
+  def apply(namespacePrefixMapper: NamespacePrefixMapper): NodeBuilderCreator = {
+    new NodeBuilderCreator(namespacePrefixMapper)
   }
 
   implicit class WithCreationApi(val underlyingElem: NodeBuilders.Elem) {
 
-    def creationApi(implicit nodeBuilderCreationApi: NodeBuilderCreationApi): Elem = {
-      new Elem(underlyingElem)(nodeBuilderCreationApi)
+    def creationApi(implicit nodeBuilderCreator: NodeBuilderCreator): Elem = {
+      new Elem(underlyingElem)(nodeBuilderCreator)
     }
   }
 
   final class Elem(
     val underlyingElem: NodeBuilders.Elem)
-    (implicit val nodeBuilderCreationApi: NodeBuilderCreationApi) extends ElemCreationApi.Elem {
+    (implicit val nodeBuilderCreator: NodeBuilderCreator) extends ElemCreationApi.Elem {
 
     type UnderlyingNode = NodeBuilders.Node
 
@@ -197,61 +197,61 @@ object NodeBuilderCreationApi {
     type ThisElem = Elem
 
     def withChildren(newChildren: Seq[UnderlyingNode]): ThisElem = {
-      nodeBuilderCreationApi.withChildren(underlyingElem, newChildren).pipe(wrap)
+      nodeBuilderCreator.withChildren(underlyingElem, newChildren).pipe(wrap)
     }
 
     def plusChild(child: UnderlyingNode): ThisElem = {
-      nodeBuilderCreationApi.plusChild(underlyingElem, child).pipe(wrap)
+      nodeBuilderCreator.plusChild(underlyingElem, child).pipe(wrap)
     }
 
     def plusChildOption(childOption: Option[UnderlyingNode]): ThisElem = {
-      nodeBuilderCreationApi.plusChildOption(underlyingElem, childOption).pipe(wrap)
+      nodeBuilderCreator.plusChildOption(underlyingElem, childOption).pipe(wrap)
     }
 
     def plusChild(index: Int, child: UnderlyingNode): ThisElem = {
-      nodeBuilderCreationApi.plusChild(underlyingElem, index, child).pipe(wrap)
+      nodeBuilderCreator.plusChild(underlyingElem, index, child).pipe(wrap)
     }
 
     def plusChildOption(index: Int, childOption: Option[UnderlyingNode]): ThisElem = {
-      nodeBuilderCreationApi.plusChildOption(underlyingElem, index, childOption).pipe(wrap)
+      nodeBuilderCreator.plusChildOption(underlyingElem, index, childOption).pipe(wrap)
     }
 
     def plusChildren(childSeq: Seq[UnderlyingNode]): ThisElem = {
-      nodeBuilderCreationApi.plusChildren(underlyingElem, childSeq).pipe(wrap)
+      nodeBuilderCreator.plusChildren(underlyingElem, childSeq).pipe(wrap)
     }
 
     def minusChild(index: Int): ThisElem = {
-      nodeBuilderCreationApi.minusChild(underlyingElem, index).pipe(wrap)
+      nodeBuilderCreator.minusChild(underlyingElem, index).pipe(wrap)
     }
 
     def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
-      nodeBuilderCreationApi.withAttributes(underlyingElem, newAttributes).pipe(wrap)
+      nodeBuilderCreator.withAttributes(underlyingElem, newAttributes).pipe(wrap)
     }
 
     def plusAttribute(attrName: EName, attrValue: String): ThisElem = {
-      nodeBuilderCreationApi.plusAttribute(underlyingElem, attrName, attrValue).pipe(wrap)
+      nodeBuilderCreator.plusAttribute(underlyingElem, attrName, attrValue).pipe(wrap)
     }
 
     def plusAttributeOption(attrName: EName, attrValueOption: Option[String]): ThisElem = {
-      nodeBuilderCreationApi.plusAttributeOption(underlyingElem, attrName, attrValueOption).pipe(wrap)
+      nodeBuilderCreator.plusAttributeOption(underlyingElem, attrName, attrValueOption).pipe(wrap)
     }
 
     def plusAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
-      nodeBuilderCreationApi.plusAttributes(underlyingElem, newAttributes).pipe(wrap)
+      nodeBuilderCreator.plusAttributes(underlyingElem, newAttributes).pipe(wrap)
     }
 
     def minusAttribute(attrName: EName): ThisElem = {
-      nodeBuilderCreationApi.minusAttribute(underlyingElem, attrName).pipe(wrap)
+      nodeBuilderCreator.minusAttribute(underlyingElem, attrName).pipe(wrap)
     }
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem = {
-      nodeBuilderCreationApi.usingParentScope(underlyingElem, parentScope).pipe(wrap)
+      nodeBuilderCreator.usingParentScope(underlyingElem, parentScope).pipe(wrap)
     }
 
     def underlying: UnderlyingElem = underlyingElem
 
     private def wrap(underlyingElem: UnderlyingElem): ThisElem = {
-      new Elem(underlyingElem)(nodeBuilderCreationApi)
+      new Elem(underlyingElem)(nodeBuilderCreator)
     }
   }
 }

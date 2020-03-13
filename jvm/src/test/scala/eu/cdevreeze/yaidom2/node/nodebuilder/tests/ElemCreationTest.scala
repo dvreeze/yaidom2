@@ -78,9 +78,9 @@ class ElemCreationTest extends FunSuite {
 
   implicit private val namespacePrefixMapper: NamespacePrefixMapper = NamespacePrefixMapper.fromMapWithFallback(mappings)
 
-  implicit private val elemCreator: nodebuilder.NodeBuilderCreationApi = nodebuilder.NodeBuilderCreationApi(namespacePrefixMapper)
+  implicit private val elemCreator: nodebuilder.NodeBuilderCreator = nodebuilder.NodeBuilderCreator(namespacePrefixMapper)
 
-  import nodebuilder.NodeBuilderCreationApi._
+  import nodebuilder.NodeBuilderCreator._
   import elemCreator._
 
   test("testCreationAndEquivalenceOfXbrlContext") {
