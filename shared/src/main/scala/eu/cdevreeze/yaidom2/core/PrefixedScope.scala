@@ -24,6 +24,8 @@ package eu.cdevreeze.yaidom2.core
  * default namespace anywhere in the element ancestry. Hence, prefixed scopes are preferable to scopes in general when used
  * in element creation DSLs.
  *
+ * Prefixed scopes are not necessarily invertible, so there may be more than one prefix for any given namespace.
+ *
  * @author Chris de Vreeze
  */
 final case class PrefixedScope private(scope: Scope) {
@@ -94,6 +96,13 @@ final case class PrefixedScope private(scope: Scope) {
   }
 
   /**
+   * Returns the equivalent of `findQName(ename).get`.
+   */
+  def getQName(ename: EName): QName = {
+    findQName(ename).getOrElse(sys.error(s"No QName found for EName '$ename' using prefixed scope $this"))
+  }
+
+  /**
    * Finds an optional prefix for the given namespace.
    */
   def findPrefixForNamespace(namespace: String): Option[String] = {
@@ -102,6 +111,13 @@ final case class PrefixedScope private(scope: Scope) {
     } else {
       scope.prefixesForNamespace(namespace).toSeq.sorted.headOption
     }
+  }
+
+  /**
+   * Rerurns the equivalent of `findPrefixForNamespace(namespace).get`.
+   */
+  def getPrefixForNamespace(namespace: String): String = {
+    findPrefixForNamespace(namespace).getOrElse(sys.error(s"No prefix found for namespace '$namespace' using prefixed scope $this"))
   }
 
   /**

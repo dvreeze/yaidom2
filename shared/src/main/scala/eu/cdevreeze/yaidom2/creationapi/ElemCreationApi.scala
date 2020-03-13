@@ -147,10 +147,6 @@ trait ElemCreationApi {
    * namespaces that are known to be used in attribute values or element text.
    */
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType
-
-  def extractScope(ename: EName): PrefixedScope
-
-  def extractScope(enames: Set[EName]): PrefixedScope
 }
 
 object ElemCreationApi {

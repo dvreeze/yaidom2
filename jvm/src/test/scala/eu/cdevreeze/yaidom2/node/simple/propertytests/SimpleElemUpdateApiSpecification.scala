@@ -16,13 +16,12 @@
 
 package eu.cdevreeze.yaidom2.node.simple.propertytests
 
-import eu.cdevreeze.yaidom2.core.{EName, PrefixedScope, QName, Scope}
+import eu.cdevreeze.yaidom2.core.{EName, NamespacePrefixMapper, PrefixedScope, QName}
 import eu.cdevreeze.yaidom2.node.DefaultUpdatableElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.simple.SimpleElemCreator
 import eu.cdevreeze.yaidom2.updateapi.propertytests.UpdatableElemApiSpecification
-
-import scala.collection.immutable.SeqMap
 
 class SimpleElemUpdateApiSpecification
   extends DefaultUpdatableElemApiSpecificationDataProvider[simple.Node, simple.Elem]("Simple-UpdatableElemApi")
@@ -33,29 +32,27 @@ class SimpleElemUpdateApiSpecification
   }
 
   protected def updateElem(e: simple.Elem): simple.Elem = {
+    val prefixedScope: PrefixedScope = PrefixedScope(e.scope.withoutDefaultNamespace)
+
+    val mappings: Map[String, String] = prefixedScope.scope.prefixNamespaceMap.map(_.swap)
+
+    val elemCreator: SimpleElemCreator = SimpleElemCreator(NamespacePrefixMapper.fromMapWithFallback(mappings))
+
     e.withAttributesByQName(e.attributesByQName + (QName.fromLocalName("testAttribute") -> "test"))
-      .withChildren(e.children.appended(
-        new simple.Elem(getQName(EName.fromLocalName("test-element"), e.scope), SeqMap.empty, e.scope, Vector(simple.Text("test", false)))))
+      .withChildren(e.children.appended(elemCreator.textElem(EName.fromLocalName("test-element"), "test", prefixedScope)))
   }
 
   protected def updateElemToNodeSeq(e: simple.Elem): Seq[simple.Node] = {
+    val prefixedScope: PrefixedScope = PrefixedScope(e.scope.withoutDefaultNamespace)
+
+    val mappings: Map[String, String] = prefixedScope.scope.prefixNamespaceMap.map(_.swap)
+
+    val elemCreator: SimpleElemCreator = SimpleElemCreator(NamespacePrefixMapper.fromMapWithFallback(mappings))
+
     Seq(
       e.withAttributesByQName(e.attributesByQName + (QName.fromLocalName("testAttribute") -> "test"))
-        .withChildren(e.children.appended(
-          new simple.Elem(getQName(EName.fromLocalName("test-element"), e.scope), SeqMap.empty, e.scope, Vector(simple.Text("test", false))))),
+        .withChildren(e.children.appended(elemCreator.textElem(EName.fromLocalName("test-element"), "test", prefixedScope))),
       simple.Text("addedText", false),
-      new simple.Elem(getQName(EName.fromLocalName("other-test-element"), e.scope), SeqMap.empty, e.scope, Vector(simple.Text( "test2", false))))
-  }
-
-  private def getQName(ename: EName, scope: Scope): QName = {
-    // Not complete. Does not recognize prefix "xml" .
-    if (ename.namespaceUriOption.isEmpty) {
-      require(scope.defaultNamespaceOption.isEmpty)
-      QName.fromLocalName(ename.localPart)
-    } else {
-      PrefixedScope(scope.withoutDefaultNamespace).findQName(ename).getOrElse {
-        require(scope.defaultNamespaceOption.contains(ename.namespaceUriOption.get))
-        QName.fromLocalName(ename.localPart)}
-    }
+      elemCreator.textElem(EName.fromLocalName("other-test-element"), "test2", prefixedScope))
   }
 }

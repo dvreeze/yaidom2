@@ -116,6 +116,9 @@ object NodeBuilders {
 
     def scope: Scope = prefixedScope.scope
 
+    /**
+     * Returns the QName. If prefixed, the prefix is the "minimal" one in string comparison order for the namespace of the EName.
+     */
     def qname: QName = {
       val prefixOption: Option[String] =
         if (name.namespaceUriOption.isEmpty) None else prefixedScope.findPrefixForNamespace(name.namespaceUriOption.get)
@@ -123,6 +126,10 @@ object NodeBuilders {
       QName(prefixOption, name.localPart)
     }
 
+    /**
+     * Returns the attributes by QName. For any attribute name, if prefixed, the prefix is the "minimal" one in string comparison order
+     * for the namespace of the attribute EName.
+     */
     def attributesByQName: SeqMap[QName, String] = {
       attributes.map { case (attrName, attrValue) =>
         val prefixOption: Option[String] =
