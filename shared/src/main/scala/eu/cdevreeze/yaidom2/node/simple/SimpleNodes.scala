@@ -149,18 +149,6 @@ object SimpleNodes {
       findAllChildElems.zipWithIndex
     }
 
-    override def plusChild(child: ThisNode): ThisElem = super.plusChild(child)
-
-    override def plusChildOption(childOption: Option[ThisNode]): ThisElem = super.plusChildOption(childOption)
-
-    override def plusChild(index: Int, child: ThisNode): ThisElem = super.plusChild(index, child)
-
-    override def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem = super.plusChildOption(index, childOption)
-
-    override def plusChildren(childSeq: Seq[ThisNode]): ThisElem = super.plusChildren(childSeq)
-
-    override def minusChild(index: Int): ThisElem = super.minusChild(index)
-
     override def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = super.updateChildElem(navigationStep)(f)
 
     override def updateChildElem(navigationStep: Int, newElem: ThisElem): ThisElem = super.updateChildElem(navigationStep, newElem)

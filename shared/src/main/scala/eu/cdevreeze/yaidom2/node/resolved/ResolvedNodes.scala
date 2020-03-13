@@ -24,7 +24,7 @@ import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
-import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableAttributeCarryingElem
+import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
 /**
  * "Resolved" nodes.
@@ -52,7 +52,7 @@ object ResolvedNodes {
     name: EName,
     attributes: SeqMap[EName, String],
     children: Vector[Node]  // For querying, ArraySeq would be optimal, but not for (functional) updates
-  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableAttributeCarryingElem {
+  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableElem {
 
     type ThisElem = Elem
 
@@ -120,25 +120,9 @@ object ResolvedNodes {
       Elem(name, attributes, newChildren.to(Vector))
     }
 
-    def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
-      Elem(name, newAttributes, children)
-    }
-
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
       findAllChildElems.zipWithIndex
     }
-
-    override def plusChild(child: ThisNode): ThisElem = super.plusChild(child)
-
-    override def plusChildOption(childOption: Option[ThisNode]): ThisElem = super.plusChildOption(childOption)
-
-    override def plusChild(index: Int, child: ThisNode): ThisElem = super.plusChild(index, child)
-
-    override def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem = super.plusChildOption(index, childOption)
-
-    override def plusChildren(childSeq: Seq[ThisNode]): ThisElem = super.plusChildren(childSeq)
-
-    override def minusChild(index: Int): ThisElem = super.minusChild(index)
 
     override def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = super.updateChildElem(navigationStep)(f)
 
@@ -195,16 +179,6 @@ object ResolvedNodes {
     override def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
       super.updateTopmostElemsWithNodeSeq(f)
     }
-
-    override def plusAttribute(attrName: EName, attrValue: String): ThisElem = super.plusAttribute(attrName, attrValue)
-
-    override def plusAttributeOption(attrName: EName, attrValueOption: Option[String]): ThisElem = {
-      super.plusAttributeOption(attrName, attrValueOption)
-    }
-
-    override def plusAttributes(newAttributes: SeqMap[EName, String]): ThisElem = super.plusAttributes(newAttributes)
-
-    override def minusAttribute(attrName: EName): ThisElem = super.minusAttribute(attrName)
 
     // Transformation API methods
 

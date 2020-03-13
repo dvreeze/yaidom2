@@ -32,7 +32,7 @@ import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.elemstep.ScopedElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
-import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableAttributeCarryingElem
+import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
 /**
  * "Creation DSL" nodes and documents.
@@ -97,7 +97,7 @@ object NodeBuilders {
     val attributes: SeqMap[EName, String],
     val children: Vector[Node], // For querying, ArraySeq would be optimal, but not for (functional) updates
     val prefixedScope: PrefixedScope
-  ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableAttributeCarryingElem {
+  ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
 
     assert(Elem.hasValidQNamesCorrespondingToENames(name, attributes, prefixedScope)) // TODO Expensive check. Improve performance.
     assert(this.hasNoPrefixedNamespaceUndeclarations) // TODO Expensive check. Improve performance.
@@ -197,29 +197,9 @@ object NodeBuilders {
       new Elem(name, attributes, newChildren.to(Vector), prefixedScope)
     }
 
-    def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
-      require(
-        newAttributes.keySet.forall(attrName => prefixedScope.findQName(attrName).nonEmpty),
-        s"Not all attribute names can be converted to QNames given scope $scope")
-
-      new Elem(name, newAttributes, children, prefixedScope)
-    }
-
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
       findAllChildElems.zipWithIndex
     }
-
-    override def plusChild(child: ThisNode): ThisElem = super.plusChild(child)
-
-    override def plusChildOption(childOption: Option[ThisNode]): ThisElem = super.plusChildOption(childOption)
-
-    override def plusChild(index: Int, child: ThisNode): ThisElem = super.plusChild(index, child)
-
-    override def plusChildOption(index: Int, childOption: Option[ThisNode]): ThisElem = super.plusChildOption(index, childOption)
-
-    override def plusChildren(childSeq: Seq[ThisNode]): ThisElem = super.plusChildren(childSeq)
-
-    override def minusChild(index: Int): ThisElem = super.minusChild(index)
 
     override def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = super.updateChildElem(navigationStep)(f)
 
@@ -276,16 +256,6 @@ object NodeBuilders {
     override def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
       super.updateTopmostElemsWithNodeSeq(f)
     }
-
-    override def plusAttribute(attrName: EName, attrValue: String): ThisElem = super.plusAttribute(attrName, attrValue)
-
-    override def plusAttributeOption(attrName: EName, attrValueOption: Option[String]): ThisElem = {
-      super.plusAttributeOption(attrName, attrValueOption)
-    }
-
-    override def plusAttributes(newAttributes: SeqMap[EName, String]): ThisElem = super.plusAttributes(newAttributes)
-
-    override def minusAttribute(attrName: EName): ThisElem = super.minusAttribute(attrName)
 
     // Transformation API methods
 

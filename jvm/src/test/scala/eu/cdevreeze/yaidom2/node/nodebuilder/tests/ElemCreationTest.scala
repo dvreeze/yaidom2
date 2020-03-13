@@ -182,9 +182,12 @@ class ElemCreationTest extends FunSuite {
         .underlyingElem
 
     def transformElementTree(rootElem: resolved.Elem): resolved.Elem = {
+      implicit val resolvedElemCreator: resolved.ResolvedElemCreator.type = resolved.ResolvedElemCreator
+      import resolved.ResolvedElemCreator._
+
       rootElem.transformDescendantElemsOrSelf {
         case e@resolved.Elem(EName(Some(XbrliNs), "xbrl"), _, _) =>
-          e.minusAttribute(EName("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation"))
+          e.creationApi.minusAttribute(EName("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation")).underlying
         case e@resolved.Elem(EName(Some(XbrliNs), "measure"), _, _) =>
           e.withChildren(Seq(resolved.Text(QName.parse(e.text).localPart)))
         case e => e
