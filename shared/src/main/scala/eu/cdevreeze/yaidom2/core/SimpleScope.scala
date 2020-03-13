@@ -110,14 +110,6 @@ final case class SimpleScope private(scope: Scope) {
   def prepend(otherSimpleScope: SimpleScope): SimpleScope = otherSimpleScope.append(this)
 
   /**
-   * Alias for 'prepend'.
-   */
-  @deprecated(message = "Use 'prepend' instead", since = "0.8.0")
-  def appendDefensively(otherSimpleScope: SimpleScope): SimpleScope = {
-    prepend(otherSimpleScope)
-  }
-
-  /**
    * Appends the parameter SimpleScope to this one, where the prefixes and namespaces in the parameter SimpleScope take
    * precedence over the ones in this SimpleScope. The result is always a super-scope of the parameter simple scope.
    * Note that namespaces and even prefixes in this SimpleScope may get lost.
@@ -128,15 +120,7 @@ final case class SimpleScope private(scope: Scope) {
     val scopeFilteredOnNamespaces: Scope = this.scope.filterNamespaces(ns => !namespacesToKeep.contains(ns))
 
     SimpleScope.from(scopeFilteredOnNamespaces.append(otherSimpleScope.scope))
-      .ensuring(sc => otherSimpleScope.subScopeOf(sc))
-  }
-
-  /**
-   * Alias for 'append'.
-   */
-  @deprecated(message = "Use 'append' instead", since = "0.8.0")
-  def appendAggressively(otherSimpleScope: SimpleScope): SimpleScope = {
-    append(otherSimpleScope)
+      .ensuring(_.superScopeOf(otherSimpleScope))
   }
 
   /**
@@ -147,34 +131,18 @@ final case class SimpleScope private(scope: Scope) {
   }
 
   /**
-   * Alias for 'prependOrThrow'.
-   */
-  @deprecated(message = "Use 'prependOrThrow' instead", since = "0.8.0")
-  def appendDefensivelyOrThrow(otherSimpleScope: SimpleScope): SimpleScope = {
-    prependOrThrow(otherSimpleScope)
-  }
-
-  /**
    * Like `append`, but throws an exception if namespaces get lost.
    */
   def appendOrThrow(otherSimpleScope: SimpleScope): SimpleScope = {
     val result = append(otherSimpleScope)
 
-    val lostNamespaces: Set[String] = (this.namespaces.union(otherSimpleScope.namespaces)).diff(result.namespaces)
+    val lostNamespaces: Set[String] = this.namespaces.union(otherSimpleScope.namespaces).diff(result.namespaces)
 
     if (lostNamespaces.nonEmpty) {
       sys.error(
         s"Losing namespaces ${lostNamespaces.mkString(", ")} when adding $otherSimpleScope to $this (aggressively), which is not allowed")
     }
     result
-  }
-
-  /**
-   * Alias for 'appendOrThrow'.
-   */
-  @deprecated(message = "Use 'appendOrThrow' instead", since = "0.8.0")
-  def appendAggressivelyOrThrow(otherSimpleScope: SimpleScope): SimpleScope = {
-    appendOrThrow(otherSimpleScope)
   }
 }
 
@@ -192,7 +160,7 @@ object SimpleScope {
   }
 
   /** The "empty" `SimpleScope` */
-  val empty = SimpleScope(Scope.Empty)
+  val empty: SimpleScope = SimpleScope(Scope.Empty)
 
   /**
    * Same as `SimpleScope.from(Scope.from(m))`.
