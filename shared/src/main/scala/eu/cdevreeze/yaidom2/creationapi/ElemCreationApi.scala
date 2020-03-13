@@ -42,8 +42,22 @@ trait ElemCreationApi {
 
   def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: SimpleScope): ElemType
 
+  /**
+   * Creates an element with the given name and children.
+   *
+   * Internally method usingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0.
+   *
+   * For performance it is best not to pass big child element trees.
+   */
   def elem(name: EName, children: Seq[NodeType], parentScope: SimpleScope): ElemType
 
+  /**
+   * Creates an element with the given name, attributes and children.
+   *
+   * Internally method usingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0.
+   *
+   * For performance it is best not to pass big child element trees.
+   */
   def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: SimpleScope): ElemType
 
   def children(elem: ElemType): Seq[NodeType]
@@ -126,8 +140,11 @@ trait ElemCreationApi {
   def minusAttribute(elem: ElemType, attrName: EName): ElemType
 
   /**
-   * Recursively uses the given parent scope to enrich the given element and its descendants. This method is also useful for
-   * adding namespaces used in attribute values or element text.
+   * Recursively appends each element's scope to the parent scope, thus preventing the occurrence of prefixed namespace undeclarations
+   * throughout the XML tree. After all, XML 1.0 does not allow any prefixed namespace undeclarations.
+   *
+   * This method is used internally in this element creation DSL, but is also handy in application code when adding
+   * namespaces that are known to be used in attribute values or element text.
    */
   def usingParentScope(elem: ElemType, parentScope: SimpleScope): ElemType
 
