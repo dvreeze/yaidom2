@@ -16,8 +16,6 @@
 
 package eu.cdevreeze.yaidom2.node
 
-import eu.cdevreeze.yaidom2.core.Scope
-
 /**
  * This package contains "simple" element representations that do not know about their ancestry and document URI.
  *
@@ -52,8 +50,4 @@ package object simple {
   val Comment = SimpleNodes.Comment
 
   val ProcessingInstruction = SimpleNodes.ProcessingInstruction
-
-  private[yaidom2] def strictElemCreator(scope: Scope): SimpleElemCreator = SimpleElemCreator.strict(scope)
-
-  private[yaidom2] def lenientElemCreator(scope: Scope): SimpleElemCreator = SimpleElemCreator.lenient(scope)
 }

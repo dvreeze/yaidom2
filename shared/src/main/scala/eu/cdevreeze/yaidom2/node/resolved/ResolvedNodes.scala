@@ -21,7 +21,6 @@ import scala.collection.mutable
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
-import eu.cdevreeze.yaidom2.creationapi.LegacyElemCreationApi
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
@@ -363,11 +362,7 @@ object ResolvedNodes {
 
   // Next the functional query (and creation) API
 
-  object Node extends ClarkNodeFactories.NodeFactory with LegacyElemCreationApi {
-
-    type NodeType = Node
-
-    type ElemType = Elem
+  object Node extends ClarkNodeFactories.NodeFactory {
 
     type TargetNodeType = Node
 
@@ -377,32 +372,6 @@ object ResolvedNodes {
       case e: ClarkNodes.Elem => Elem.from(e)
       case t: ClarkNodes.Text => Text(t.text)
       case n => sys.error(s"Not an element or text node: $n")
-    }
-
-    // ElemCreationApi methods
-
-    def elem(name: EName, children: Seq[NodeType]): ElemType = {
-      Elem(name, SeqMap.empty, children.to(Vector))
-    }
-
-    def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
-      Elem(name, attributes, children.to(Vector))
-    }
-
-    def textElem(name: EName, txt: String): ElemType = {
-      Elem(name, SeqMap.empty, Vector(Text(txt)))
-    }
-
-    def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
-      Elem(name, attributes, Vector(Text(txt)))
-    }
-
-    def emptyElem(name: EName): ElemType = {
-      Elem(name, SeqMap.empty, Vector.empty)
-    }
-
-    def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
-      Elem(name, attributes, Vector.empty)
     }
   }
 

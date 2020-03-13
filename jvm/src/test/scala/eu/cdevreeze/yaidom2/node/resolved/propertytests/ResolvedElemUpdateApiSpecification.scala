@@ -22,6 +22,8 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.updateapi.propertytests.UpdatableElemApiSpecification
 
+import scala.collection.immutable.SeqMap
+
 class ResolvedElemUpdateApiSpecification
   extends DefaultUpdatableElemApiSpecificationDataProvider[resolved.Node, resolved.Elem]("Resolved-UpdatableElemApi")
     with UpdatableElemApiSpecification[resolved.Node, resolved.Elem] {
@@ -32,14 +34,16 @@ class ResolvedElemUpdateApiSpecification
 
   protected def updateElem(e: resolved.Elem): resolved.Elem = {
     e.copy(attributes = e.attributes + (EName.fromLocalName("testAttribute") -> "test"))
-      .copy(children = e.children.appended(resolved.Node.textElem(EName.fromLocalName("test-element"), "test")))
+      .copy(children = e.children.appended(
+        resolved.Elem(EName.fromLocalName("test-element"), SeqMap.empty, Vector(resolved.Text("test")))))
   }
 
   protected def updateElemToNodeSeq(e: resolved.Elem): Seq[resolved.Node] = {
     Seq(
       e.copy(attributes = e.attributes + (EName.fromLocalName("testAttribute") -> "test"))
-        .copy(children = e.children.appended(resolved.Node.textElem(EName.fromLocalName("test-element"), "test"))),
+        .copy(children = e.children.appended(
+          resolved.Elem(EName.fromLocalName("test-element"), SeqMap.empty, Vector(resolved.Text("test"))))),
       resolved.Text("addedText"),
-      resolved.Node.textElem(EName.fromLocalName("other-test-element"), "test2"))
+      resolved.Elem(EName.fromLocalName("other-test-element"), SeqMap.empty, Vector(resolved.Text("test2"))))
   }
 }

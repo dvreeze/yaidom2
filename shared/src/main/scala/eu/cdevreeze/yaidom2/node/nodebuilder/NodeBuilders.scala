@@ -24,7 +24,6 @@ import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.core.PrefixedScope
-import eu.cdevreeze.yaidom2.creationapi.LegacyElemCreationApi
 import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
@@ -447,92 +446,5 @@ object NodeBuilders {
   object ElemSteps extends ScopedElemStepFactory {
 
     type ElemType = Elem
-  }
-
-  // The element creation API implementation
-
-  /**
-   * Element creation API for "creation DSL" elements.
-   *
-   * @author Chris de Vreeze
-   */
-  final case class ElemCreator(prefixedScope: PrefixedScope) extends LegacyElemCreationApi {
-
-    type NodeType = Node
-
-    type ElemType = Elem
-
-    // TODO Checks on prefixed namespace undeclarations
-
-    /**
-     * Returns `ElemCreator(prefixedScope.appendDefensively(otherPrefixedScope))`.
-     */
-    def appendDefensively(otherPrefixedScope: PrefixedScope): ElemCreator = {
-      ElemCreator(prefixedScope.prepend(otherPrefixedScope))
-    }
-
-    /**
-     * Returns `ElemCreator(prefixedScope.appendAggressively(otherPrefixedScope))`.
-     */
-    def appendAggressively(otherPrefixedScope: PrefixedScope): ElemCreator = {
-      ElemCreator(prefixedScope.append(otherPrefixedScope))
-    }
-
-    def elem(name: EName, children: Seq[NodeType]): ElemType = {
-      require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
-        s"Could not turn element name $name into a QName (scope $prefixedScope)")
-
-      new Elem(name, SeqMap.empty, children.to(Vector), prefixedScope)
-    }
-
-    def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType]): ElemType = {
-      require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
-        s"Could not turn element name $name into a QName (scope $prefixedScope)")
-      require(
-        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope),
-        s"Could not turn all attribute names into QNames (element $name, scope $prefixedScope)")
-
-      new Elem(name, attributes, children.to(Vector), prefixedScope)
-    }
-
-    def textElem(name: EName, txt: String): ElemType = {
-      require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
-        s"Could not turn element name $name into a QName (scope $prefixedScope)")
-
-      new Elem(name, SeqMap.empty, Vector(Text(txt)), prefixedScope)
-    }
-
-    def textElem(name: EName, attributes: SeqMap[EName, String], txt: String): ElemType = {
-      require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
-        s"Could not turn element name $name into a QName (scope $prefixedScope)")
-      require(
-        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope),
-        s"Could not turn all attribute names into QNames (element $name, scope $prefixedScope)")
-
-      new Elem(name, attributes, Vector(Text(txt)), prefixedScope)
-    }
-
-    def emptyElem(name: EName): ElemType = {
-      require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
-        s"Could not turn element name $name into a QName (scope $prefixedScope)")
-
-      new Elem(name, SeqMap.empty, Vector.empty, prefixedScope)
-    }
-
-    def emptyElem(name: EName, attributes: SeqMap[EName, String]): ElemType = {
-      require(
-        Elem.hasValidElementQNamesCorrespondingToEName(name, prefixedScope),
-        s"Could not turn element name $name into a QName (scope $prefixedScope)")
-      require(
-        Elem.hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope),
-        s"Could not turn all attribute names into QNames (element $name, scope $prefixedScope)")
-
-      new Elem(name, attributes, Vector.empty, prefixedScope)
-    }
   }
 }
