@@ -22,7 +22,7 @@ import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
  * Transformable element API.
  *
  * If we think of element trees in a more generic way, as arbitrary trees with "elements" of arbitrary types, then those generic
- * tree types would be monads. They would therefore have a "map" function, among other functions. Note that such a "map"
+ * tree types would be functors (maybe or maybe not monads). They would therefore have a "map" function. Note that such a "map"
  * function, when restricted to a result element type which is the same as the source element type, in trait TransformableElemApi
  * becomes the same function as "transformDescendantElemsOrSelf".
  *
