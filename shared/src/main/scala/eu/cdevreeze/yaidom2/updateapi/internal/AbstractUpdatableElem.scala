@@ -20,7 +20,6 @@ import scala.collection.immutable.SeqMap
 
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.Nodes
-import eu.cdevreeze.yaidom2.queryapi.internal.ElemWithNavigationPath
 import eu.cdevreeze.yaidom2.updateapi.UpdatableElemApi
 
 /**
@@ -133,66 +132,6 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
     }
   }
 
-  def updateChildElems(f: PartialFunction[(ThisElem, Int), ThisElem]): ThisElem = {
-    val editsByStep: Map[Int, ThisElem] =
-      findAllChildElemsWithSteps.collect { case childElemWithStep if f.isDefinedAt(childElemWithStep) =>
-        (childElemWithStep._2, f(childElemWithStep))
-      }.toMap
-
-    updateChildElems(editsByStep.keySet) { case (che, step) =>
-      editsByStep.getOrElse(step, che)
-    }
-  }
-
-  def updateChildElemsWithNodeSeq(f: PartialFunction[(ThisElem, Int), Seq[ThisNode]]): ThisElem = {
-    val editsByStep: Map[Int, Seq[ThisNode]] =
-      findAllChildElemsWithSteps.collect { case childElemWithStep if f.isDefinedAt(childElemWithStep) =>
-        (childElemWithStep._2, f(childElemWithStep))
-      }.toMap
-
-    updateChildElemsWithNodeSeq(editsByStep.keySet) { case (che, step) =>
-      editsByStep.getOrElse(step, Seq(che))
-    }
-  }
-
-  def updateTopmostElemsOrSelf(f: PartialFunction[(ThisElem, Seq[Int]), ThisElem]): ThisElem = {
-    var editsByNavigationPaths: Map[Seq[Int], ThisElem] = Map.empty
-
-    ElemWithNavigationPath(self).findTopmostElemsOrSelf { elem =>
-      val elemNavigationPathPair: (ThisElem, Seq[Int]) = (elem.elem, elem.navigationPath)
-      val isDefined = f.isDefinedAt(elemNavigationPathPair)
-
-      if (isDefined) {
-        editsByNavigationPaths += (elem.navigationPath -> f(elemNavigationPathPair))
-      }
-
-      isDefined
-    }
-
-    updateDescendantElemsOrSelf(editsByNavigationPaths.keySet) { case (elem, navigationPath) =>
-      editsByNavigationPaths.getOrElse(navigationPath, elem)
-    }
-  }
-
-  def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
-    var editsByNavigationPaths: Map[Seq[Int], Seq[ThisNode]] = Map.empty
-
-    ElemWithNavigationPath(self).findTopmostElems { elem =>
-      val elemNavigationPathPair: (ThisElem, Seq[Int]) = (elem.elem, elem.navigationPath)
-      val isDefined = f.isDefinedAt(elemNavigationPathPair)
-
-      if (isDefined) {
-        editsByNavigationPaths += (elem.navigationPath -> f(elemNavigationPathPair))
-      }
-
-      isDefined
-    }
-
-    updateDescendantElemsWithNodeSeq(editsByNavigationPaths.keySet) { case (elem, navigationPath) =>
-      editsByNavigationPaths.getOrElse(navigationPath, Seq(elem))
-    }
-  }
-
   protected[yaidom2] def self: ThisElem
 
   /**
@@ -204,12 +143,12 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
 
     children.zipWithIndex.foreach { case (ch, nodeIndex) =>
       ch match {
-        case che: Nodes.Elem =>
+        case _: Nodes.Elem =>
           if (navigationSteps.contains(step)) {
             result = (step, nodeIndex) :: result
           }
           step += 1
-        case ch: Nodes.Node =>
+        case _: Nodes.Node =>
       }
     }
 

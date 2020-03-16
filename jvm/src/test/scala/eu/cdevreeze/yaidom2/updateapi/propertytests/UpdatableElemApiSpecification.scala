@@ -103,6 +103,22 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
     }
   }
 
+  // TransformableElemApi methods in terms of other ones
+
+  property("transformDescendantElems-as-other-transform") = forAll { elem: E =>
+    toResolvedElem(elem.transformDescendantElems(updateElem)) == {
+      val result = elem.transformDescendantElemsOrSelf(_.transformChildElems(updateElem))
+      toResolvedElem(result)
+    }
+  }
+
+  property("transformDescendantElemsToNodeSeq-as-other-transform") = forAll { elem: E =>
+    toResolvedElem(elem.transformDescendantElemsToNodeSeq(updateElemToNodeSeq)) == {
+      val result = elem.transformDescendantElemsOrSelf(_.transformChildElemsToNodeSeq(updateElemToNodeSeq))
+      toResolvedElem(result)
+    }
+  }
+
   private def toResolvedElem(e: E): resolved.Elem = {
     resolved.Elem.from(e)
   }

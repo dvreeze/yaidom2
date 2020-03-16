@@ -20,7 +20,10 @@ import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 
 /**
  * Updatable element API. It is to a large extent centered around "navigation paths". For an explanation of these navigation
- * paths, see for example method `ElemApi.findDescendantElemOrSelf`.
+ * paths, see for example method `ElemApi.findDescendantElemOrSelf` (taking a navigation path as parameter).
+ *
+ * It is the responsibility of client code to create valid result trees (e.g. not introducing any prefixed namespace undeclarations,
+ * which are not allowed in XML 1.0).
  *
  * @author Chris de Vreeze
  */
@@ -92,7 +95,7 @@ trait UpdatableElemApi extends TransformableElemApi {
 
   /**
    * Functionally updates this element tree at the given navigation steps (relative to this element). It is equivalent
-   * to calling method `updateChildElem(navigationStep)(f)` repeatedly, but in reverse document order (in order not to
+   * to calling method `updateChildElemWithNodeSeq(navigationStep)(f)` repeatedly, but in reverse document order (in order not to
    * undo earlier updates).
    *
    * For efficiency it is best to pass only small sets of navigation steps.
@@ -117,32 +120,6 @@ trait UpdatableElemApi extends TransformableElemApi {
    * the empty path, if passed, is ignored.
    */
   def updateDescendantElemsWithNodeSeq(navigationPaths: Set[Seq[Int]])(f: (ThisElem, Seq[Int]) => Seq[ThisNode]): ThisElem
-
-  // Functional update methods taking partial update functions.
-
-  /**
-   * Calls `updateChildElems(navigationSteps)(f)`, where the set of navigation steps is the set of steps for which
-   * the partial update function is defined.
-   */
-  def updateChildElems(f: PartialFunction[(ThisElem, Int), ThisElem]): ThisElem
-
-  /**
-   * Calls `updateChildElemsWithNodeSeq(navigationSteps)(f)`, where the set of navigation steps is the set of steps for which
-   * the partial update function is defined.
-   */
-  def updateChildElemsWithNodeSeq(f: PartialFunction[(ThisElem, Int), Seq[ThisNode]]): ThisElem
-
-  /**
-   * Calls `updateDescendantElemsOrSelf(navigationPaths)(f)`, where the set of navigation paths is the set of topmost element
-   * navigation paths for which the partial update function is defined.
-   */
-  def updateTopmostElemsOrSelf(f: PartialFunction[(ThisElem, Seq[Int]), ThisElem]): ThisElem
-
-  /**
-   * Calls `updateDescendantElemsWithNodeSeq(navigationPaths)(f)`, where the set of navigation paths is the set of topmost non-empty element
-   * navigation paths for which the partial update function is defined. Hence, the empty path is ignored.
-   */
-  def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem
 }
 
 object UpdatableElemApi {

@@ -193,18 +193,6 @@ object SimpleNodes {
       super.updateDescendantElemsWithNodeSeq(navigationPaths)(f)
     }
 
-    override def updateChildElems(f: PartialFunction[(ThisElem, Int), ThisElem]): ThisElem = super.updateChildElems(f)
-
-    override def updateChildElemsWithNodeSeq(f: PartialFunction[(ThisElem, Int), Seq[ThisNode]]): ThisElem = super.updateChildElemsWithNodeSeq(f)
-
-    override def updateTopmostElemsOrSelf(f: PartialFunction[(ThisElem, Seq[Int]), ThisElem]): ThisElem = {
-      super.updateTopmostElemsOrSelf(f)
-    }
-
-    override def updateTopmostElemsWithNodeSeq(f: PartialFunction[(ThisElem, Seq[Int]), Seq[ThisNode]]): ThisElem = {
-      super.updateTopmostElemsWithNodeSeq(f)
-    }
-
     // Transformation API methods
 
     def transformChildElems(f: ThisElem => ThisElem): ThisElem = {

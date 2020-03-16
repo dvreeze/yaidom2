@@ -19,7 +19,8 @@ package eu.cdevreeze.yaidom2.updateapi
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 
 /**
- * Transformable element API.
+ * Transformable element API. It is the responsibility of client code to create valid result trees (e.g. not introducing any
+ * prefixed namespace undeclarations, which are not allowed in XML 1.0).
  *
  * If we think of element trees in a more generic way, as arbitrary trees with "elements" of arbitrary types, then those generic
  * tree types would be functors (maybe or maybe not monads). They would therefore have a "map" function. Note that such a "map"
@@ -67,6 +68,11 @@ trait TransformableElemApi extends ClarkNodes.Elem {
    * That is, returns the equivalent of:
    * {{{
    * transformChildElems(_.transformDescendantElemsOrSelf(f))
+   * }}}
+   *
+   * It is equivalent to the following expression:
+   * {{{
+   * transformDescendantElemsOrSelf(_.transformChildElems(f))
    * }}}
    */
   def transformDescendantElems(f: ThisElem => ThisElem): ThisElem
