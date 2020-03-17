@@ -99,7 +99,7 @@ object NodeBuilders {
     val prefixedScope: PrefixedScope
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
 
-    assert(Elem.hasValidQNamesCorrespondingToENames(name, attributes, prefixedScope)) // TODO Expensive check. Improve performance.
+    assert(Elem.hasElementAndAttributeQNames(name, attributes, prefixedScope)) // TODO Expensive check. Improve performance.
     assert(this.hasNoPrefixedNamespaceUndeclarations) // TODO Expensive check. Improve performance.
 
     type ThisElem = Elem
@@ -189,10 +189,18 @@ object NodeBuilders {
 
     // Update API methods
 
+    /**
+     * Replaces the children by the given child nodes. Throws an exception if at least one prefixed namespace undeclaration
+     * would be introduced. Therefore it is better to use the "element creation DSL" instead.
+     */
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
+      val introducesNoPrefixedNamespaceUndeclarations: Boolean =
+        newChildren.collect { case e: Elem => e }.forall { che =>
+          prefixedScope.scope.relativize(che.prefixedScope.scope).retainingUndeclarations.isEmpty
+        }
       require(
-        newChildren.collect { case e: Elem => e }.forall(e => scope.subScopeOf(e.scope)),
-        s"Not all child elements have a strict super-scope of $scope")
+        introducesNoPrefixedNamespaceUndeclarations,
+        s"Not all child elements introduce no (prefixed) namespace undeclarations (current element's scope: $scope)")
 
       new Elem(name, attributes, newChildren.to(Vector), prefixedScope)
     }
@@ -278,14 +286,6 @@ object NodeBuilders {
     override def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
       super.transformDescendantElemsToNodeSeq(f)
     }
-
-    // Other methods
-
-    def deeplyEnhancingScopeWith(extraScope: PrefixedScope): Elem = {
-      transformDescendantElemsOrSelf { e =>
-        new Elem(e.name, e.attributes, e.children, e.prefixedScope.append(extraScope))
-      }
-    }
   }
 
   /**
@@ -325,12 +325,17 @@ object NodeBuilders {
       Some(v)
     }
 
+    /**
+     * Returns an optional copy of the passed element as "creation DSL" element.
+     * If the passed element does not meet the requirements of "creation DSL" elements, None is returned.
+     * Such requirements include the absence of any default namespace, the absence of namespace undeclarations, etc.
+     */
     def optionallyFrom(elm: ScopedNodes.Elem): Option[Elem] = {
       val allElemsOrSelf = elm.findAllDescendantElemsOrSelf
 
       def isItselfValid(e: ScopedNodes.Elem): Boolean = {
         PrefixedScope.optionallyFrom(e.scope).nonEmpty &&
-          hasValidQNamesCorrespondingToENames(e.name, e.attributes, PrefixedScope.from(e.scope)) &&
+          hasElementAndAttributeQNames(e.name, e.attributes, PrefixedScope.from(e.scope)) && // this should be true anyway
           e.hasNoPrefixedNamespaceUndeclarations
       }
 
@@ -342,21 +347,18 @@ object NodeBuilders {
     }
 
     def from(elm: ScopedNodes.Elem): Elem = {
-      require(elm.scope.isInvertible, s"Not an invertible scope: ${elm.scope}")
       require(elm.scope.defaultNamespaceOption.isEmpty, s"Not a scope without default namespace: ${elm.scope}")
       val prefixedScope = PrefixedScope.from(elm.scope)
 
       require(
-        hasValidQNamesCorrespondingToENames(elm.name, elm.attributes, prefixedScope),
+        hasElementAndAttributeQNames(elm.name, elm.attributes, prefixedScope),
         s"Element ${elm.name} with scope ${elm.scope} is corrupt with respect to naming (the correspondence between QNames and ENames)")
 
       require(elm.hasNoPrefixedNamespaceUndeclarations, s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
 
       val children = elm.children.collect {
-        case childElm: ScopedNodes.Elem =>
-          childElm
-        case childText: ScopedNodes.Text =>
-          childText
+        case childElm: ScopedNodes.Elem => childElm
+        case childText: ScopedNodes.Text => childText
       }
 
       // Recursion, with Node.from and Elem.from being mutually dependent
@@ -370,35 +372,35 @@ object NodeBuilders {
     // Property ScopedNodes.Elem.hasNoPrefixedNamespaceUndeclarations is required too
 
     /**
-     * Returns true if both element name (as EName) and attribute names (as ENames) uniquely determine a corresponding
+     * Returns true if both element name (as EName) and attribute names (as ENames) determine a corresponding
      * QName, given the passed simple scope. This is a requirement that has to be fulfilled in order to create an
      * element builder containing this data, and it must hold for all descendant elements as well.
      */
-    def hasValidQNamesCorrespondingToENames(elementName: EName, attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
-      hasValidElementQNamesCorrespondingToEName(elementName, prefixedScope) &&
-        hasValidAttributeQNamesCorrespondingToENames(attributes, prefixedScope)
+    def hasElementAndAttributeQNames(elementName: EName, attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
+      hasElementQName(elementName, prefixedScope) &&
+        hasAttributeQNames(attributes, prefixedScope)
     }
 
     /**
-     * Returns true if the element name (as EName) uniquely determines a corresponding QName, given the passed simple scope.
+     * Returns true if the element name (as EName) determines a corresponding QName, given the passed simple scope.
      */
-    def hasValidElementQNamesCorrespondingToEName(elementName: EName, prefixedScope: PrefixedScope): Boolean = {
-      hasValidQNameCorrespondingToEName(elementName, prefixedScope)
+    def hasElementQName(elementName: EName, prefixedScope: PrefixedScope): Boolean = {
+      hasQName(elementName, prefixedScope)
     }
 
     /**
-     * Returns true if the attribute names (as ENames) uniquely determine a corresponding QName, given the passed simple scope.
+     * Returns true if the attribute names (as ENames) determine a corresponding QName, given the passed simple scope.
      */
-    def hasValidAttributeQNamesCorrespondingToENames(attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
+    def hasAttributeQNames(attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
       attributes.forall { case (attrName, _) =>
-        hasValidQNameCorrespondingToEName(attrName, prefixedScope)
+        hasQName(attrName, prefixedScope)
       }
     }
 
     /**
-     * Returns true if the given EName uniquely determines a corresponding QName, given the passed simple scope.
+     * Returns true if the given EName determines a corresponding QName, given the passed simple scope.
      */
-    def hasValidQNameCorrespondingToEName(ename: EName, prefixedScope: PrefixedScope): Boolean = {
+    def hasQName(ename: EName, prefixedScope: PrefixedScope): Boolean = {
       prefixedScope.findQName(ename).nonEmpty
     }
   }

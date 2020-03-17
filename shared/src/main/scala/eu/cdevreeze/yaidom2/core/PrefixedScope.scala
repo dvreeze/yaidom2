@@ -75,7 +75,7 @@ final case class PrefixedScope private(scope: Scope) {
   }
 
   /**
-   * Finds an optional QName for the given EName.
+   * Finds an optional QName for the given EName. See method findPrefixForNamespace for the choice of prefix, if any.
    */
   def findQName(ename: EName): Option[QName] = {
     if (ename.namespaceUriOption.isEmpty) {
@@ -103,7 +103,7 @@ final case class PrefixedScope private(scope: Scope) {
   }
 
   /**
-   * Finds an optional prefix for the given namespace.
+   * Finds an optional prefix for the given namespace. The "smallest" prefix (in string sort order), if any, is returned.
    */
   def findPrefixForNamespace(namespace: String): Option[String] = {
     if (namespace == Scope.XmlNamespace) {
