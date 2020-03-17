@@ -92,8 +92,9 @@ object NamespacePrefixMapper {
 
   /**
    * NamespacePrefixMapper backed by a cache from namespaces to prefixes. The cache only grows, so it is not a real cache,
-   * because it lacks an eviction strategy. Prefixes are generated on cache misses, using the provided prefix start string.
-   * The last prefix, if any, should be the one of the mapping added last to the SeqMap of mappings.
+   * because it lacks an eviction strategy. Prefixes are generated on cache misses, using the provided prefix start string,
+   * and appending an (increasing) integer to it. The last prefix, if any, should be the one of the mapping added last to the
+   * SeqMap of mappings.
    *
    * Note that the absence of a cache eviction strategy should not really be a problem in practice, since typical usage
    * scenarios do not deal with many thousands of namespaces. Of course this is only true if these prefix generators (or

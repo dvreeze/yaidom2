@@ -60,6 +60,9 @@ trait ElemCreationApi {
    */
   def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType
 
+  /**
+   * Returns all child nodes of the given element.
+   */
   def children(elem: ElemType): Seq[NodeType]
 
   /**

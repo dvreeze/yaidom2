@@ -119,6 +119,30 @@ trait UpdatableElemApiSpecification[N, E <: AbstractUpdatableElem.Aux[N, E]] ext
     }
   }
 
+  // UpdatableElemApi methods in terms of other ones
+
+  property("updateDescendantElemsOrSelf-as-single-path-updates-combined") = forAll { elem: E =>
+    val somePaths: Seq[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems.map(_.navigationPath).take(40)
+
+    toResolvedElem(elem.updateDescendantElemsOrSelf(somePaths.toSet)(updateElem)) == {
+      val result = somePaths.reverse.foldLeft(elem) { (accElem, path) =>
+        accElem.updateDescendantElemOrSelf(path)(updateElem)
+      }
+      toResolvedElem(result)
+    }
+  }
+
+  property("updateDescendantElemsWithNodeSeq-as-single-path-updates-combined") = forAll { elem: E =>
+    val somePaths: Seq[Seq[Int]] = ElemWithNavigationPath(elem).findAllDescendantElems.map(_.navigationPath).take(40)
+
+    toResolvedElem(elem.updateDescendantElemsWithNodeSeq(somePaths.toSet)(updateElemToNodeSeq)) == {
+      val result = somePaths.reverse.foldLeft(elem) { (accElem, path) =>
+        accElem.updateDescendantElemWithNodeSeq(path)(updateElemToNodeSeq)
+      }
+      toResolvedElem(result)
+    }
+  }
+
   private def toResolvedElem(e: E): resolved.Elem = {
     resolved.Elem.from(e)
   }
