@@ -229,7 +229,7 @@ class ElemCreationTest extends FunSuite {
     val originalScope = saxonDocument.documentElement.scope.ensuring(_.defaultNamespaceOption.contains(XbrliNs))
     require(saxonDocument.documentElement.findAllDescendantElems.forall(_.scope == originalScope))
 
-    val targetPrefixedScope = PrefixedScope.from(originalScope.withoutDefaultNamespace)
+    val targetPrefixedScope = PrefixedScope.ignoringDefaultNamespace(originalScope)
       .append(PrefixedScope.from("xbrli" -> XbrliNs))
 
     val originalRootElemWithoutDefaultNamespace: SimpleNodes.Elem =
@@ -237,7 +237,7 @@ class ElemCreationTest extends FunSuite {
       .transformDescendantElemsOrSelf {
         case e if e.name == EName(XbrliNs, "measure") =>
           val text = targetPrefixedScope.findQName(e.textAsResolvedQName).get.toString
-          val textNode = SimpleNodes.Text(text, false)
+          val textNode = SimpleNodes.text(text)
           new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, Vector(textNode))
         case e if e.name.namespaceUriOption.contains(XbrliNs) =>
           new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, e.children)
@@ -253,9 +253,9 @@ class ElemCreationTest extends FunSuite {
           val dimension: EName = e.attrAsResolvedQName(EName.fromLocalName("dimension"))
 
           e.withAttributesByQName(e.attributesByQName + (QName.fromLocalName("dimension") -> dimension.toString))
-            .withChildren(Vector(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
+            .withChildren(Vector(SimpleNodes.text(e.textAsResolvedQName.toString)))
         case e if e.name == EName(XbrliNs, "measure") =>
-          e.withChildren(Vector(SimpleNodes.Text(e.textAsResolvedQName.toString, false)))
+          e.withChildren(Vector(SimpleNodes.text(e.textAsResolvedQName.toString)))
         case e => e
       }
 
@@ -305,7 +305,7 @@ class ElemCreationTest extends FunSuite {
           val measureEName = e.textAsResolvedQName
           val measureQName = PrefixedScope.from(adaptedScope(e)).findQName(measureEName).get
 
-          new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), Vector(SimpleNodes.Text(measureQName.toString, false)))
+          new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), Vector(SimpleNodes.text(measureQName.toString)))
         case e if e.name.namespaceUriOption.contains(XbrliNs) =>
           new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), e.children)
         case e =>
@@ -348,9 +348,8 @@ class ElemCreationTest extends FunSuite {
     }
 
     val transformedSimpleFootnoteLink: SimpleNodes.Elem =
-      simpleFootnoteLink.transformDescendantElemsOrSelf {
-        case e =>
-          new SimpleNodes.Elem(e.qname, e.attributesByQName, adaptedScope(e), e.children)
+      simpleFootnoteLink.transformDescendantElemsOrSelf { e =>
+        new SimpleNodes.Elem(e.qname, e.attributesByQName, adaptedScope(e), e.children)
       }
 
     nodebuilder.Elem.from(transformedSimpleFootnoteLink)

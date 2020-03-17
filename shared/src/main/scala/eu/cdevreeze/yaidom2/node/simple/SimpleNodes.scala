@@ -317,4 +317,8 @@ object SimpleNodes {
     }
   }
 
+  /**
+   * Returns a non-CDATA text with the given text string.
+   */
+  def text(textString: String): Text = Text(textString, isCData = false)
 }

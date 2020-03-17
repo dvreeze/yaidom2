@@ -172,6 +172,10 @@ object PrefixedScope {
     if (scope.defaultNamespaceOption.isEmpty) Some(PrefixedScope.from(scope)) else None
   }
 
+  def ignoringDefaultNamespace(scope: Scope): PrefixedScope = {
+    from(scope.withoutDefaultNamespace)
+  }
+
   /** The "empty" `PrefixedScope` */
   val empty: PrefixedScope = PrefixedScope(Scope.Empty)
 
