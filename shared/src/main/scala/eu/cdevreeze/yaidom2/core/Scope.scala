@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.core
 
+import scala.collection.immutable.SeqMap
+
 /**
  * Scope mapping prefixes to namespace URIs, as well as holding an optional default namespace. In other words, <em>in-scope
  * namespaces</em>.
@@ -72,13 +74,13 @@ package eu.cdevreeze.yaidom2.core
  * A `Scope` must not contain prefix "xmlns" and must not contain namespace URI "http://www.w3.org/2000/xmlns/".
  * Moreover, a `Scope` must not contain the XML namespace (prefix "xml", namespace URI "http://www.w3.org/XML/1998/namespace").
  *
- * The Scope is backed by a map from prefixes (or the empty string for the default namespace) to (non-empty) namespace URIs.
+ * The Scope is backed by a SeqMap from prefixes (or the empty string for the default namespace) to (non-empty) namespace URIs.
  *
  * This class depends on Declarations, but not the other way around.
  *
  * @author Chris de Vreeze
  */
-final case class Scope(prefixNamespaceMap: Map[String, String]) {
+final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   require(!prefixNamespaceMap.contains("xml"), s"Prefix 'xml' is built-in and must not occur explicitly in the scope")
 
   import Scope._
@@ -94,7 +96,7 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
 
   /** Returns an adapted copy of this Scope, but retaining only the default namespace, if any */
   def retainingDefaultNamespace: Scope = {
-    val m = prefixNamespaceMap.filter { case (pref, ns) => pref == DefaultNsPrefix }
+    val m = prefixNamespaceMap.filter { case (pref, _) => pref == DefaultNsPrefix }
     if (m.isEmpty) Scope.Empty else Scope(m)
   }
 
@@ -132,7 +134,7 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
   /** Returns `Scope.from(this.prefixNamespaceMap.filterKeys(p))`. */
   def filterKeys(p: String => Boolean): Scope = {
     // Method filterKeys deprecated since Scala 2.13.0.
-    Scope.from(this.prefixNamespaceMap.filter { case (pref, _) => p(pref) }.toMap)
+    Scope.from(this.prefixNamespaceMap.filter { case (pref, _) => p(pref) }.to(SeqMap))
   }
 
   /** Returns `this.prefixNamespaceMap.keySet`. */
@@ -210,17 +212,17 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     if (Scope.this == scope) {
       Declarations.Empty
     } else {
-      val newlyDeclared: Map[String, String] = scope.prefixNamespaceMap filter {
+      val newlyDeclared: SeqMap[String, String] = scope.prefixNamespaceMap.filter {
         case (pref, ns) =>
           assert(ns.length > 0)
           Scope.this.prefixNamespaceMap.getOrElse(pref, "") != ns
       }
 
       val removed: Set[String] = Scope.this.prefixNamespaceMap.keySet.diff(scope.prefixNamespaceMap.keySet)
-      val undeclarations: Map[String, String] = (removed.map (pref => (pref -> ""))).toMap
+      val undeclarations: Map[String, String] = removed.map(pref => pref -> "").toMap
 
       assert(newlyDeclared.keySet.intersect(removed).isEmpty)
-      val m: Map[String, String] = newlyDeclared ++ undeclarations
+      val m: SeqMap[String, String] = newlyDeclared ++ undeclarations
 
       Declarations(m)
     }
@@ -239,7 +241,12 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     result
   }
 
-  /** Returns `Scope(this.prefixNamespaceMap ++ scope.prefixNamespaceMap)`. Note that namespaces may get lost as a result. */
+  /**
+   * Returns `Scope(this.prefixNamespaceMap ++ scope.prefixNamespaceMap)`. Note that namespaces may get lost as a result.
+   *
+   * Clearly, if a prefix occurs both in this Scope and in the parameter Scope, the prefix-namespace mapping in the parameter
+   * Scope wins for that prefix.
+   */
   def append(scope: Scope): Scope = Scope(this.prefixNamespaceMap ++ scope.prefixNamespaceMap)
 
   /** Returns `scope.append(this)` */
@@ -262,8 +269,8 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
   /** Creates a `String` representation of this `Scope`, as it is shown in XML */
   def toStringInXml: String = {
     val defaultNsString = if (defaultNamespaceOption.isEmpty) "" else """xmlns="%s"""".format(defaultNamespaceOption.get)
-    val prefixScopeString = (prefixNamespaceMap - DefaultNsPrefix).map { case (pref, ns) => """xmlns:%s="%s"""".format(pref, ns) } mkString (" ")
-    List(defaultNsString, prefixScopeString).filterNot { _ == "" } mkString (" ")
+    val prefixScopeString = (prefixNamespaceMap - DefaultNsPrefix).map { case (pref, ns) => """xmlns:%s="%s"""".format(pref, ns) }.mkString(" ")
+    List(defaultNsString, prefixScopeString).filterNot { _ == "" }.mkString(" ")
   }
 
   /**
@@ -272,12 +279,12 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     */
   def inverse: Map[String, Set[String]] = {
     val nsPrefixPairs = this.prefixNamespaceMap.toSeq.map { case (prefix, ns) => (ns, prefix) }
-    val nsPrefixPairsGroupedByNs: Map[String, Seq[(String, String)]] = nsPrefixPairs.groupBy { case (ns, prefix) => ns }
+    val nsPrefixPairsGroupedByNs: Map[String, Seq[(String, String)]] = nsPrefixPairs.groupBy { case (ns, _) => ns }
 
     // Method mapValues deprecated since Scala 2.13.0.
     val result = nsPrefixPairsGroupedByNs.toSeq.map {
       case (ns, xs) =>
-        val result = xs.map { case (ns, prefix) => prefix }
+        val result = xs.map { case (_, prefix) => prefix }
         ns -> result.toSet
     }.toMap
 
@@ -293,17 +300,17 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
   def makeInvertible: Scope = {
     // Method mapValues deprecated since Scala 2.13.0.
     val prefixNsMap = inverse.toSeq.map { case (ns, prefs) => ns -> prefs.head }
-      .collect { case (ns, pref) => pref -> ns }.toMap
+      .map(_.swap).to(SeqMap)
 
     Scope.from(prefixNsMap).ensuring(_.isInvertible)
   }
 
   /**
-    * Returns the prefixes for the given namespace URI. The result includes the empty string for the default namespace, if
-    * the default namespace is indeed equal to the passed namespace URI. The result does not include "xml" for the
+    * Returns the prefixes for the given namespace URI (in insertion order). The result includes the empty string for the default
+    * namespace, if the default namespace is indeed equal to the passed namespace URI. The result does not include "xml" for the
     * implicit "xml" namespace (with namespace URI http://www.w3.org/XML/1998/namespace).
     *
-    * The result is equivalent to:
+    * The result, converted to a Set, is equivalent to:
     * {{{
     * this.inverse.getOrElse(namespaceUri, Set())
     * }}}
@@ -311,11 +318,11 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     * This method can be handy when "inserting" an "element" into a parent tree, if one wants to reuse prefixes of the
     * parent tree.
     */
-  def prefixesForNamespace(namespaceUri: String): Set[String] = {
+  def prefixesForNamespace(namespaceUri: String): Seq[String] = {
     require(namespaceUri.nonEmpty, s"Empty namespace URI not allowed")
 
-    val prefixes = this.prefixNamespaceMap.toSeq.collect { case (prefix, ns) if ns == namespaceUri => prefix }
-    prefixes.toSet
+    val prefixes: Seq[String] = this.prefixNamespaceMap.toSeq.collect { case (prefix, ns) if ns == namespaceUri => prefix }
+    prefixes
   }
 
   /**
@@ -326,6 +333,7 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     *
     * If the given namespace is the default namespace, but if there is also a non-empty prefix for the namespace, that
     * non-empty prefix is returned. Otherwise, if the given namespace is the default namespace, the empty string is returned.
+    * If there are multiple non-empty prefixes for the namespace, the last one (in insertion order) is returned.
     *
     * The prefix fallback is only used if `prefixesForNamespace(namespaceUri).isEmpty`. If the fallback prefix conflicts
     * with an already used prefix (including ""), an exception is thrown.
@@ -339,7 +347,7 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
     if (namespaceUri == XmlNamespace) {
       "xml"
     } else {
-      val prefixes = prefixesForNamespace(namespaceUri)
+      val prefixes: Seq[String] = prefixesForNamespace(namespaceUri)
 
       if (prefixes.isEmpty) {
         val pref = getFallbackPrefix()
@@ -352,7 +360,7 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
 
         pref
       } else {
-        if (prefixes == Set("")) "" else (prefixes - "").head
+        if (prefixes == Seq("")) "" else prefixes.filterNot(_ == "").last
       }
     }
   }
@@ -377,7 +385,7 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
   def includingNamespace(namespaceUri: String, getFallbackPrefix: () => String): Scope = {
     require(namespaceUri.nonEmpty, s"Empty namespace URI not allowed")
 
-    if (namespaceUri == XmlNamespace || !prefixesForNamespace(namespaceUri).isEmpty) {
+    if (namespaceUri == XmlNamespace || prefixesForNamespace(namespaceUri).nonEmpty) {
       this
     } else {
       assert(namespaceUri != XmlNamespace)
@@ -387,18 +395,34 @@ final case class Scope(prefixNamespaceMap: Map[String, String]) {
       this.resolve(Declarations.from(prefix -> namespaceUri))
     }
   }
+
+  /**
+   * Returns `!conflictsWith(otherScope)`.
+   */
+  def doesNotConflictWith(otherScope: Scope): Boolean = {
+    !conflictsWith(otherScope)
+  }
+
+  /**
+   * Returns true if there is at least one (possibly empty) prefix for which this Scope and the parameter Scope disagree
+   * on the namespace.
+   */
+  def conflictsWith(otherScope: Scope): Boolean = {
+    val commonPrefixes: Set[String] = this.keySet.intersect(otherScope.keySet)
+    this.filterKeys(commonPrefixes) != otherScope.filterKeys(commonPrefixes)
+  }
 }
 
 object Scope {
 
   /** The "empty" `Scope` */
-  val Empty = Scope(Map())
+  val Empty: Scope = Scope(SeqMap())
 
   /**
     * Same as the constructor, but removing the 'xml' prefix, if any.
     * Therefore this call is easier to use than the constructor or default `apply` method.
     */
-  def from(m: Map[String, String]): Scope = {
+  def from(m: SeqMap[String, String]): Scope = {
     if (m.contains("xml")) {
       require(
         m("xml") == XmlNamespace,
@@ -408,9 +432,9 @@ object Scope {
   }
 
   /** Returns `from(Map[String, String](m: _*))` */
-  def from(m: (String, String)*): Scope = from(Map[String, String](m: _*))
+  def from(m: (String, String)*): Scope = from(SeqMap[String, String](m: _*))
 
   val DefaultNsPrefix = ""
 
-  val XmlNamespace = Declarations.XmlNamespace
+  val XmlNamespace: String = Declarations.XmlNamespace
 }

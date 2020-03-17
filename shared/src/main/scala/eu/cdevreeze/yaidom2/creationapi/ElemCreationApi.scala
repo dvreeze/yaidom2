@@ -45,7 +45,8 @@ trait ElemCreationApi {
   /**
    * Creates an element with the given name and children.
    *
-   * Internally method usingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0.
+   * Internally method usingNonConflictingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0,
+   * and to consistently use the same prefix-namespace mappings throughout the XML tree (although new non-conflicting ones may be added in descendants).
    *
    * For performance it is best not to pass big child element trees.
    */
@@ -54,7 +55,8 @@ trait ElemCreationApi {
   /**
    * Creates an element with the given name, attributes and children.
    *
-   * Internally method usingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0.
+   * Internally method usingNonConflictingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0,
+   * and to consistently use the same prefix-namespace mappings throughout the XML tree (although new non-conflicting ones may be added in descendants).
    *
    * For performance it is best not to pass big child element trees.
    */
@@ -68,7 +70,8 @@ trait ElemCreationApi {
   /**
    * Returns a copy of the given element in which the children have been replaced by the given collection of child nodes.
    *
-   * Internally method usingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0.
+   * Internally method usingNonConflictingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0,
+   * and to consistently use the same prefix-namespace mappings throughout the XML tree (although new non-conflicting ones may be added in descendants).
    *
    * For performance it is best not to pass big child element trees.
    */
@@ -117,7 +120,8 @@ trait ElemCreationApi {
   /**
    * Returns a copy of the given element in which the attributes have been replaced by the given collection of attributes.
    *
-   * Internally method usingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0.
+   * Internally method usingNonConflictingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0,
+   * and to consistently use the same prefix-namespace mappings throughout the XML tree (although new non-conflicting ones may be added in descendants).
    */
   def withAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType
 
@@ -146,10 +150,23 @@ trait ElemCreationApi {
    * Recursively appends each element's scope to the parent scope, thus preventing the occurrence of prefixed namespace undeclarations
    * throughout the XML tree. After all, XML 1.0 does not allow any prefixed namespace undeclarations.
    *
+   * Note that all (prefixed) scope additions throughout the XML tree are "non-destructive", as per the contract of PrefixedScope.append.
+   * This means that the scope of each element itself is leading in prefix-namespace mappings, also in finding the same prefix per namespace.
+   *
+   * This method is used internally in this element creation DSL, but is also handy in application code.
+   *
+   * Note that due to its recursion over the XML tree, this is an expensive method for large XML trees.
+   */
+  def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType
+
+  /**
+   * Like method usingParentScope, but throwing an exception if anywhere in the XML tree a conflict occurs between parent
+   * scope and element scope (as per method PrefixedScope.conflictsWith).
+   *
    * This method is used internally in this element creation DSL, but is also handy in application code when adding
    * namespaces that are known to be used in attribute values or element text.
    */
-  def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType
+  def usingNonConflictingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType
 }
 
 object ElemCreationApi {
@@ -198,6 +215,8 @@ object ElemCreationApi {
     def minusAttribute(attrName: EName): ThisElem
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem
+
+    def usingNonConflictingParentScope(parentScope: PrefixedScope): ThisElem
 
     def underlying: UnderlyingElem
   }

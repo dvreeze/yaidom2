@@ -41,7 +41,9 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
 
   def emptyElem(name: EName, attributes: SeqMap[EName, String], parentScope: PrefixedScope): ElemType = {
     // Not using the default namespace
-    val scope: PrefixedScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
+    val extraScope: PrefixedScope = extractScope(name +: attributes.keys.toIndexedSeq)
+    require(parentScope.doesNotConflictWith(extraScope), s"Conflicting scopes '$parentScope' and '$extraScope'")
+    val scope: PrefixedScope = parentScope.append(extraScope)
 
     new Elem(
       scope.getQName(name),
@@ -56,13 +58,15 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
 
   def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType = {
     // Not using the default namespace
-    val scope: PrefixedScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
+    val extraScope: PrefixedScope = extractScope(name +: attributes.keys.toIndexedSeq)
+    require(parentScope.doesNotConflictWith(extraScope), s"Conflicting scopes '$parentScope' and '$extraScope'")
+    val scope: PrefixedScope = parentScope.append(extraScope)
 
     new Elem(
       scope.getQName(name),
       attributes.map { case (ename, v) => scope.getQName(ename) -> v },
       scope.scope,
-      Vector(Text(txt, false)))
+      Vector(Text(txt, isCData = false)))
   }
 
   def elem(name: EName, children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
@@ -70,15 +74,17 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
   }
 
   def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
-    // Here we do have to take the default namespace of the children into account, if any (see overloaded nodeUsingParentScope method)
-    val prefixedScope: PrefixedScope = parentScope.append(extractScope(attributes.keySet.incl(name)))
+    // Here we do have to take the default namespace of the children into account, if any (see overloaded nodeUsingNonConflictingParentScope method)
+    val extraScope: PrefixedScope = extractScope(name +: attributes.keys.toIndexedSeq)
+    require(parentScope.doesNotConflictWith(extraScope), s"Conflicting scopes '$parentScope' and '$extraScope'")
+    val prefixedScope: PrefixedScope = parentScope.append(extraScope)
 
     new Elem(
       prefixedScope.getQName(name),
       attributes.map { case (ename, v) => prefixedScope.getQName(ename) -> v },
       prefixedScope.scope,
       children.to(Vector).map {
-        case che: Elem => nodeUsingParentScope(che, prefixedScope.scope)
+        case che: Elem => nodeUsingNonConflictingParentScope(che, prefixedScope.scope)
         case ch: Node => ch
       })
   }
@@ -90,7 +96,7 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributesByQName,
       elem.scope,
-      newChildren.map(ch => nodeUsingParentScope(ch, elem.scope)).to(Vector))
+      newChildren.map(ch => nodeUsingNonConflictingParentScope(ch, elem.scope)).to(Vector))
   }
 
   def plusChild(elem: ElemType, child: NodeType): ElemType = {
@@ -98,7 +104,7 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributesByQName,
       elem.scope,
-      elem.children.appended(nodeUsingParentScope(child, elem.scope)))
+      elem.children.appended(nodeUsingNonConflictingParentScope(child, elem.scope)))
   }
 
   def plusChildOption(elem: ElemType, childOption: Option[NodeType]): ElemType = {
@@ -120,7 +126,7 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributesByQName,
       elem.scope,
-      elem.children.appendedAll(childSeq.map(ch => nodeUsingParentScope(ch, elem.scope))))
+      elem.children.appendedAll(childSeq.map(ch => nodeUsingNonConflictingParentScope(ch, elem.scope))))
   }
 
   def minusChild(elem: ElemType, index: Int): ElemType = {
@@ -129,8 +135,10 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
   }
 
   def withAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType = {
-    val prefixedScope: PrefixedScope = PrefixedScope(elem.scope.withoutDefaultNamespace).append(extractScope(newAttributes.keySet))
-    val scope: Scope = prefixedScope.scope.append(elem.scope.retainingDefaultNamespace)
+    val extraScope: PrefixedScope = extractScope(newAttributes.keys.toSeq)
+    require(elem.scope.doesNotConflictWith(extraScope.scope), s"Conflicting scopes '${elem.scope}' and '$extraScope'")
+    val scope: Scope = elem.scope.append(extraScope.scope)
+    val prefixedScope: PrefixedScope = PrefixedScope.from(scope.withoutDefaultNamespace)
 
     new Elem(
       elem.qname,
@@ -140,8 +148,10 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
   }
 
   def plusAttribute(elem: ElemType, attrName: EName, attrValue: String): ElemType = {
-    val prefixedScope: PrefixedScope = PrefixedScope(elem.scope.withoutDefaultNamespace).append(extractScope(attrName))
-    val scope: Scope = prefixedScope.scope.append(elem.scope.retainingDefaultNamespace)
+    val extraScope: PrefixedScope = extractScope(attrName)
+    require(elem.scope.doesNotConflictWith(extraScope.scope), s"Conflicting scopes '${elem.scope}' and '$extraScope'")
+    val scope: Scope = elem.scope.append(extraScope.scope)
+    val prefixedScope: PrefixedScope = PrefixedScope.from(scope.withoutDefaultNamespace)
 
     new Elem(
       elem.qname,
@@ -155,8 +165,10 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
   }
 
   def plusAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType = {
-    val prefixedScope: PrefixedScope = PrefixedScope(elem.scope.withoutDefaultNamespace).append(extractScope(newAttributes.keySet))
-    val scope: Scope = prefixedScope.scope.append(elem.scope.retainingDefaultNamespace)
+    val extraScope: PrefixedScope = extractScope(newAttributes.keys.toSeq)
+    require(elem.scope.doesNotConflictWith(extraScope.scope), s"Conflicting scopes '${elem.scope}' and '$extraScope'")
+    val scope: Scope = elem.scope.append(extraScope.scope)
+    val prefixedScope: PrefixedScope = PrefixedScope.from(scope.withoutDefaultNamespace)
 
     new Elem(
       elem.qname,
@@ -183,6 +195,14 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
     nodeUsingParentScope(node, parentScope.scope)
   }
 
+  def usingNonConflictingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {
+    usingNonConflictingParentScope(elem, parentScope.scope)
+  }
+
+  def nodeUsingNonConflictingParentScope(node: NodeType, parentScope: PrefixedScope): NodeType = {
+    nodeUsingNonConflictingParentScope(node, parentScope.scope)
+  }
+
   def usingParentScope(elem: ElemType, parentScope: Scope): ElemType = {
     val currentScope: Scope = parentScope.append(elem.scope).ensuring(_.superScopeOf(elem.scope))
     // Recursive calls
@@ -203,17 +223,38 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
     }
   }
 
-  def extractScope(ename: EName): PrefixedScope = {
-    extractScope(Set(ename))
+  def usingNonConflictingParentScope(elem: ElemType, parentScope: Scope): ElemType = {
+    require(parentScope.doesNotConflictWith(elem.scope), s"Conflicting scopes '$parentScope' and '${elem.scope}'")
+    val currentScope: Scope = parentScope.append(elem.scope).ensuring(_.superScopeOf(elem.scope))
+    // Recursive calls
+    new Elem(
+      elem.qname,
+      elem.attributesByQName,
+      currentScope,
+      elem.children.map {
+        case che: Elem => usingNonConflictingParentScope(che, currentScope)
+        case n => n
+      })
   }
 
-  def extractScope(enames: Set[EName]): PrefixedScope = {
-    val namespaces: Set[String] = enames.flatMap(_.namespaceUriOption)
+  def nodeUsingNonConflictingParentScope(node: NodeType, parentScope: Scope): NodeType = {
+    node match {
+      case e: Elem => usingNonConflictingParentScope(e, parentScope)
+      case n => n
+    }
+  }
 
-    val prefixNamespaceMap: Map[String, String] = namespaces.toSeq.map { ns =>
+  def extractScope(ename: EName): PrefixedScope = {
+    extractScope(Seq(ename))
+  }
+
+  def extractScope(enames: Seq[EName]): PrefixedScope = {
+    val namespaces: Seq[String] = enames.flatMap(_.namespaceUriOption).distinct
+
+    val prefixNamespaceMap: SeqMap[String, String] = namespaces.map { ns =>
       val prefix = namespacePrefixMapper.getPrefix(ns) // Throws if no prefix found!
       prefix -> ns
-    }.toMap
+    }.to(SeqMap)
 
     PrefixedScope.from(prefixNamespaceMap)
   }
@@ -292,6 +333,10 @@ object SimpleElemCreator {
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem = {
       elemCreator.usingParentScope(underlyingElem, parentScope).pipe(wrap)
+    }
+
+    def usingNonConflictingParentScope(parentScope: PrefixedScope): ThisElem = {
+      elemCreator.usingNonConflictingParentScope(underlyingElem, parentScope).pipe(wrap)
     }
 
     def underlying: UnderlyingElem = underlyingElem

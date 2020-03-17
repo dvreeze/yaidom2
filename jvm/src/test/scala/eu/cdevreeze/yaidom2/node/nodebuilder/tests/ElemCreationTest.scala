@@ -67,7 +67,7 @@ class ElemCreationTest extends FunSuite {
 
   private val GaapNs = "http://xasb.org/gaap"
 
-  private val mappings: Map[String, String] = Map(
+  private val mappings: SeqMap[String, String] = SeqMap(
     XbrliNs -> "xbrli",
     LinkNs -> "link",
     XLinkNs -> "xlink",
@@ -85,7 +85,7 @@ class ElemCreationTest extends FunSuite {
 
   test("testCreationAndEquivalenceOfXbrlContext") {
     def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
-      val scope: PrefixedScope = extractScope(Set(dimension, member))
+      val scope: PrefixedScope = extractScope(Seq(dimension, member))
 
       textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope)
         .creationApi

@@ -464,7 +464,7 @@ object SaxonNodes {
       if (navigationPath.isEmpty) {
         Some(elem)
       } else {
-        val childElemIdx: Int = navigationPath(0)
+        val childElemIdx: Int = navigationPath.head
         val childElems: Seq[ElemType] = findAllChildElems(elem)
 
         if (childElemIdx >= 0 && childElemIdx < childElems.size) {
@@ -570,9 +570,9 @@ object SaxonNodes {
         // Not very transparent: prefix is "display name" and namespace URI is "string value"
         val prefix = n.getUnderlyingNode.getDisplayName
         val nsUri = n.getUnderlyingNode.getStringValue
-        (prefix -> nsUri)
+        prefix -> nsUri
       }
-      Scope.from(result.to(Map))
+      Scope.from(result.to(SeqMap))
     }
 
     def qname(elem: ElemType): QName = {

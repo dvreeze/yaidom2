@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.core
 
+import scala.collection.immutable.SeqMap
+
 /**
  * Namespace declarations (and undeclarations), typically at the level of one element.
  *
@@ -38,7 +40,7 @@ package eu.cdevreeze.yaidom2.core
  * Declarations.from("book" -> "http://bookstore/book", "auth" -> "http://bookstore/author")
  * }}}
  *
- * The `Declarations` is backed by a map from prefixes (or the empty string for the default namespace) to namespace URIs (or the empty string).
+ * The `Declarations` is backed by a SeqMap from prefixes (or the empty string for the default namespace) to namespace URIs (or the empty string).
  * If the mapped value is the empty string, it is an undeclaration.
  *
  * Prefix 'xml' is not allowed as key in this map. That prefix, mapping to namespace URI 'http://www.w3.org/XML/1998/namespace',
@@ -51,7 +53,7 @@ package eu.cdevreeze.yaidom2.core
  *
  * @author Chris de Vreeze
  */
-final case class Declarations(prefixNamespaceMap: Map[String, String]) {
+final case class Declarations(prefixNamespaceMap: SeqMap[String, String]) {
   import Declarations._
 
   /** Returns true if this Declarations is empty. Faster than comparing this Declarations against the empty Declarations. */
@@ -62,19 +64,19 @@ final case class Declarations(prefixNamespaceMap: Map[String, String]) {
 
   /** Returns an adapted copy of this Declarations, but retaining only the undeclarations, if any */
   def retainingUndeclarations: Declarations = {
-    val m = prefixNamespaceMap.filter { case (pref, ns) => ns == "" }
+    val m = prefixNamespaceMap.filter { case (_, ns) => ns == "" }
     if (m.isEmpty) Declarations.Empty else Declarations(m)
   }
 
   /** Returns an adapted copy of this Declarations, but without any undeclarations, if any */
   def withoutUndeclarations: Declarations = {
-    val m = prefixNamespaceMap.filter { case (pref, ns) => ns != "" }
+    val m = prefixNamespaceMap.filter { case (_, ns) => ns != "" }
     if (m.size == prefixNamespaceMap.size) this else Declarations(m)
   }
 
   /** Returns an adapted copy of this Declarations, but retaining only the default namespace, if any */
   def retainingDefaultNamespace: Declarations = {
-    val m = prefixNamespaceMap.filter { case (pref, ns) => pref == DefaultNsPrefix }
+    val m = prefixNamespaceMap.filter { case (pref, _) => pref == DefaultNsPrefix }
     if (m.isEmpty) Declarations.Empty else Declarations(m)
   }
 
@@ -83,7 +85,15 @@ final case class Declarations(prefixNamespaceMap: Map[String, String]) {
     if (!prefixNamespaceMap.contains(DefaultNsPrefix)) this else Declarations(prefixNamespaceMap - DefaultNsPrefix)
   }
 
-  /** Returns `Declarations(this.prefixNamespaceMap ++ declarations.prefixNamespaceMap)` */
+  /** Returns `declarations.append(this)` */
+  def prepend(declarations: Declarations): Declarations = declarations.append(this)
+
+  /**
+   * Returns `Declarations(this.prefixNamespaceMap ++ declarations.prefixNamespaceMap)`.
+   *
+   * Clearly, if a prefix occurs both in this Declarations object and in the parameter Declarations object, the prefix-namespace
+   * mapping in the parameter Declarations object wins.
+   */
   def append(declarations: Declarations): Declarations = Declarations(this.prefixNamespaceMap ++ declarations.prefixNamespaceMap)
 
   /** Returns `Declarations(this.prefixNamespaceMap -- prefixes)` */
@@ -106,29 +116,29 @@ final case class Declarations(prefixNamespaceMap: Map[String, String]) {
     val defaultNamespaceUndeclared: Boolean = prefixNamespaceMap.get(DefaultNsPrefix).exists(_.isEmpty)
     val defaultNsUndeclaredString = if (defaultNamespaceUndeclared) """xmlns=""""" else ""
     val undeclaredPrefixes: Set[String] = ((prefixNamespaceMap - DefaultNsPrefix) filter (kv => kv._2 == "")).keySet
-    val undeclaredPrefixesString = undeclaredPrefixes map { pref => """xmlns:%s=""""".format(pref) } mkString (" ")
+    val undeclaredPrefixesString = undeclaredPrefixes.map { pref => """xmlns:%s=""""".format(pref) }.mkString(" ")
 
-    List(declaredString, defaultNsUndeclaredString, undeclaredPrefixesString) filterNot { _ == "" } mkString (" ")
+    List(declaredString, defaultNsUndeclaredString, undeclaredPrefixesString).filterNot { _ == "" }.mkString(" ")
   }
 
   private def properDeclarationsToStringInXml: String = {
-    val declaredMap = prefixNamespaceMap filter { case (pref, ns) => ns.length > 0 }
+    val declaredMap = prefixNamespaceMap.filter { case (_, ns) => ns.length > 0 }
     val defaultNsString = if (!declaredMap.contains(DefaultNsPrefix)) "" else """xmlns="%s"""".format(declaredMap(DefaultNsPrefix))
-    val prefixScopeString = (declaredMap - DefaultNsPrefix) map { case (pref, ns) => """xmlns:%s="%s"""".format(pref, ns) } mkString (" ")
-    List(defaultNsString, prefixScopeString) filterNot { _ == "" } mkString (" ")
+    val prefixScopeString = (declaredMap - DefaultNsPrefix).map { case (pref, ns) => """xmlns:%s="%s"""".format(pref, ns) }.mkString(" ")
+    List(defaultNsString, prefixScopeString).filterNot { _ == "" }.mkString(" ")
   }
 }
 
 object Declarations {
 
   /** The "empty" `Declarations` */
-  val Empty = Declarations(Map())
+  val Empty: Declarations = Declarations(SeqMap())
 
   /**
     * Same as the constructor, but removing the 'xml' prefix, if any.
     * Therefore this call is easier to use than the constructor or default `apply` method.
     */
-  def from(m: Map[String, String]): Declarations = {
+  def from(m: SeqMap[String, String]): Declarations = {
     if (m.contains("xml")) {
       require(
         m("xml") == XmlNamespace,
@@ -138,11 +148,11 @@ object Declarations {
   }
 
   /** Returns `from(Map[String, String](m: _*))` */
-  def from(m: (String, String)*): Declarations = from(Map[String, String](m: _*))
+  def from(m: (String, String)*): Declarations = from(SeqMap[String, String](m: _*))
 
   /** Returns a `Declarations` that contains (only) undeclarations for the given prefixes */
   def undeclaring(prefixes: Set[String]): Declarations = {
-    val m = (prefixes map (pref => (pref -> ""))).toMap
+    val m = prefixes.map(pref => pref -> "").to(SeqMap)
     Declarations(m)
   }
 

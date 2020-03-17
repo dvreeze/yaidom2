@@ -16,6 +16,8 @@
 
 package eu.cdevreeze.yaidom2.core
 
+import scala.collection.immutable.SeqMap
+
 /**
  * A holder of a Scope that has no default namespace. It is useful for element creation DSLs, for example.
  *
@@ -84,9 +86,9 @@ final case class PrefixedScope private(scope: Scope) {
       if (ename.namespaceUriOption.contains(Scope.XmlNamespace)) {
         Some(QName("xml", ename.localPart))
       } else {
-        val prefixes: Set[String] = scope.prefixesForNamespace(ename.namespaceUriOption.get).ensuring(_.forall(_.nonEmpty))
+        val prefixes: Seq[String] = scope.prefixesForNamespace(ename.namespaceUriOption.get).ensuring(_.forall(_.nonEmpty))
 
-        val prefixOption: Option[String] = prefixes.toSeq.sorted.headOption
+        val prefixOption: Option[String] = prefixes.lastOption
 
         prefixOption.map { prefix =>
           QName(prefix, ename.localPart)
@@ -103,18 +105,19 @@ final case class PrefixedScope private(scope: Scope) {
   }
 
   /**
-   * Finds an optional prefix for the given namespace. The "smallest" prefix (in string sort order), if any, is returned.
+   * Finds an optional prefix for the given namespace. The last added prefix (in prefix-namespace mapping insertion order), if any, is returned.
+   * For built-in namespace "http://www.w3.org/XML/1998/namespace", prefix "xml" is returned, wrapped in an Option.
    */
   def findPrefixForNamespace(namespace: String): Option[String] = {
     if (namespace == Scope.XmlNamespace) {
       Some("xml")
     } else {
-      scope.prefixesForNamespace(namespace).toSeq.sorted.headOption
+      scope.prefixesForNamespace(namespace).lastOption
     }
   }
 
   /**
-   * Rerurns the equivalent of `findPrefixForNamespace(namespace).get`.
+   * Returns the equivalent of `findPrefixForNamespace(namespace).get`.
    */
   def getPrefixForNamespace(namespace: String): String = {
     findPrefixForNamespace(namespace).getOrElse(sys.error(s"No prefix found for namespace '$namespace' using prefixed scope $this"))
@@ -128,14 +131,33 @@ final case class PrefixedScope private(scope: Scope) {
   /**
    * Calls `PrefixedScope.from(this.scope.append(otherPrefixedScope.scope))`.
    *
+   * Clearly, if a prefix occurs both in this PrefixedScope and in the parameter PrefixedScope, the prefix-namespace mapping in the parameter
+   * PrefixedScope wins for that prefix.
+   *
+   * The resulting PrefixedScope is always a super-scope of the parameter PrefixedScope.
+   *
    * Note that namespaces may get lost due to changed namespace bindings for some prefix, but prefixes never get
    * lost in the result. That's a desirable property when using type PrefixedScope in an element creation DSL, to
    * prevent the occurrence of prefixed namespace undeclarations, which are not allowed in XML 1.0.
+   *
+   * Also note that if method getPrefixForNamespace called on the parameter PrefixedScope for some namespace returns a certain prefix,
+   * the same prefix for that namespace will be returned by a call of method getPrefixForNamespace on the result PrefixedScope.
    */
   def append(otherPrefixedScope: PrefixedScope): PrefixedScope = {
     PrefixedScope.from(this.scope.append(otherPrefixedScope.scope))
       .ensuring(_.superScopeOf(otherPrefixedScope))
   }
+
+  /**
+   * Returns `!conflictsWith(otherPrefixedScope)`.
+   */
+  def doesNotConflictWith(otherPrefixedScope: PrefixedScope): Boolean = scope.doesNotConflictWith(otherPrefixedScope.scope)
+
+  /**
+   * Returns true if there is at least one prefix for which this PrefixedScope and the parameter PrefixedScope disagree
+   * on the namespace.
+   */
+  def conflictsWith(otherPrefixedScope: PrefixedScope): Boolean = scope.conflictsWith(otherPrefixedScope.scope)
 }
 
 object PrefixedScope {
@@ -156,10 +178,10 @@ object PrefixedScope {
   /**
    * Same as `PrefixedScope.from(Scope.from(m))`.
    */
-  def from(m: Map[String, String]): PrefixedScope = {
+  def from(m: SeqMap[String, String]): PrefixedScope = {
     PrefixedScope.from(Scope.from(m))
   }
 
   /** Returns `from(Map[String, String](m: _*))` */
-  def from(m: (String, String)*): PrefixedScope = from(Map[String, String](m: _*))
+  def from(m: (String, String)*): PrefixedScope = from(SeqMap[String, String](m: _*))
 }

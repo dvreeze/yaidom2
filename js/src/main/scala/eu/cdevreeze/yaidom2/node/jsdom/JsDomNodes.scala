@@ -429,7 +429,7 @@ object JsDomNodes {
             None
           }
         }
-        result.toMap
+        result.to(SeqMap)
       }
       Declarations.from(nsMap)
     }
@@ -532,7 +532,7 @@ object JsDomNodes {
       if (navigationPath.isEmpty) {
         Some(elem)
       } else {
-        val childElemIdx: Int = navigationPath(0)
+        val childElemIdx: Int = navigationPath.head
         val childElems: Seq[ElemType] = findAllChildElems(elem)
 
         if (childElemIdx >= 0 && childElemIdx < childElems.size) {

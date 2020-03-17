@@ -113,6 +113,8 @@ object ResolvedElemCreator extends ElemCreationApi {
 
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = elem
 
+  def usingNonConflictingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = elem
+
   implicit class WithCreationApi(val underlyingElem: ResolvedNodes.Elem) {
 
     def creationApi(implicit elemCreator: ResolvedElemCreator.type): Elem = {
@@ -180,6 +182,10 @@ object ResolvedElemCreator extends ElemCreationApi {
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem = {
       elemCreator.usingParentScope(underlyingElem, parentScope).pipe(wrap)
+    }
+
+    def usingNonConflictingParentScope(parentScope: PrefixedScope): ThisElem = {
+      elemCreator.usingNonConflictingParentScope(underlyingElem, parentScope).pipe(wrap)
     }
 
     def underlying: UnderlyingElem = underlyingElem
