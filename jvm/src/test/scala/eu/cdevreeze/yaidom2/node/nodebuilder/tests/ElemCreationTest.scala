@@ -38,12 +38,6 @@ import org.scalatest.FunSuite
 
 class ElemCreationTest extends FunSuite {
 
-  // TODO Remove the old legacy element creation DSL, and improve and enhance the new one.
-  // The new one must be implemented for other element implementations (simple, resolved) as well.
-  // It must be tested well, documented well (also w.r.t. usage best practices, and provable properties), and it must
-  // get methods like pushUpNamespaceDeclarations.
-  // Should the new element creation API become a regular type class?
-
   // TODO Enhance the new element creation API with (pluggable) knowledge about used namespaces in attribute values and element text.
 
   private val processor = new Processor(false)

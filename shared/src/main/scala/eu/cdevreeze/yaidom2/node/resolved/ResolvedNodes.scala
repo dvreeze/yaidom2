@@ -78,7 +78,7 @@ object ResolvedNodes {
       if (navigationPath.isEmpty) {
         Some(self)
       } else {
-        val childElemIdx: Int = navigationPath(0)
+        val childElemIdx: Int = navigationPath.head
         val childElems: Seq[Elem] = findAllChildElems
 
         if (childElemIdx >= 0 && childElemIdx < childElems.size) {
@@ -224,8 +224,8 @@ object ResolvedNodes {
       }
 
       def isNonTextNode(n: Node): Boolean = n match {
-        case t: Text => false
-        case n => true
+        case _: Text => false
+        case _ => true
       }
 
       val doStripWhitespace = findChildElem(_ => true).nonEmpty && children.forall(n => isWhitespaceText(n) || isNonTextNode(n))
@@ -254,14 +254,15 @@ object ResolvedNodes {
     def coalesceAllAdjacentTextAndPostprocess(f: Text => Text): Elem = {
       // Recursive, but not tail-recursive
 
+      @scala.annotation.tailrec
       def accumulate(childNodes: Seq[Node], newChildrenBuffer: mutable.ArrayBuffer[Node]): Unit = {
         if (childNodes.nonEmpty) {
           val head = childNodes.head
 
           head match {
-            case t: Text =>
+            case _: Text =>
               val (textNodes, remainder) = childNodes.span {
-                case t: Text => true
+                case _: Text => true
                 case _ => false
               }
 

@@ -82,7 +82,7 @@ object SimpleNodes {
       if (navigationPath.isEmpty) {
         Some(self)
       } else {
-        val childElemIdx: Int = navigationPath(0)
+        val childElemIdx: Int = navigationPath.head
         val childElems: Seq[Elem] = findAllChildElems
 
         if (childElemIdx >= 0 && childElemIdx < childElems.size) {
@@ -110,7 +110,7 @@ object SimpleNodes {
     override def attrOption(attributeName: EName): Option[String] = {
       // TODO Still too expensive if the Scope has a default namespace, which is stripped to get the attribute scope
       val attributesWithSameLocalName: SeqMap[EName, String] =
-        collectAttributes((attName, attValue) => attName.localPart == attributeName.localPart)
+        collectAttributes((attName, _) => attName.localPart == attributeName.localPart)
 
       attributesWithSameLocalName.get(attributeName)
     }
