@@ -23,7 +23,7 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.queryapi._
 import org.scalajs.dom.experimental.domparser.DOMParser
 import org.scalajs.dom.experimental.domparser.SupportedType
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
  * Test case testing queries on JS-DOM elements, comparing them to native yaidom element query results.
@@ -33,7 +33,7 @@ import org.scalatest.FunSuite
  *
  * @author Chris de Vreeze
  */
-class JsDomElemQueryTest extends FunSuite {
+class JsDomElemQueryTest extends AnyFunSuite {
 
   test("testFindAllChildElems") {
     val docElem = axesSchemaDoc.documentElement

@@ -31,7 +31,7 @@ import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.DocumentApi
 import eu.cdevreeze.yaidom2.queryapi.elemstep.ClarkElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.named
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
  * Query test using a "yaidom dialect" (for so-called XBRL Taxonomy Packages).
@@ -41,7 +41,7 @@ import org.scalatest.FunSuite
  *
  * @author Chris de Vreeze
  */
-trait TpDialectOverClarkElemQueryTest extends FunSuite {
+trait TpDialectOverClarkElemQueryTest extends AnyFunSuite {
 
   import TpDialectOverClarkElemQueryTest._
 
