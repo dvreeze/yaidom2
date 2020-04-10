@@ -99,6 +99,9 @@ object NodeBuilders {
     val prefixedScope: PrefixedScope
   ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
 
+    // TODO Make it easier to update the element name etc.
+    // TODO Give useful error messages below (in the 2 assertions)
+
     assert(Elem.hasElementAndAttributeQNames(name, attributes, prefixedScope)) // TODO Expensive check. Improve performance.
     assert(this.hasNoPrefixedNamespaceUndeclarations) // TODO Expensive check. Improve performance.
 

@@ -32,6 +32,8 @@ import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Text
  */
 final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper) extends ElemCreationApi {
 
+  // TODO Methods extractScope should also take a parentScope (as PrefixedScope)! Also for simple elements.
+
   // TODO Add knowledge about used namespaces (in attribute values and element text)
 
   type NodeType = NodeBuilders.Node
