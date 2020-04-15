@@ -16,11 +16,12 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
-import scala.collection.immutable.SeqMap
-import scala.util.chaining._
-
-import eu.cdevreeze.yaidom2.core.{EName, PrefixedScope}
+import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
+
+import scala.collection.immutable.ListMap
+import scala.util.chaining._
 
 /**
  * "Resolved" element creation API. The methods taking a parent scope ignore that parent scope.
@@ -36,26 +37,26 @@ object ResolvedElemCreator extends ElemCreationApi {
   type ElemType = ResolvedNodes.Elem
 
   def emptyElem(name: EName, parentScope: PrefixedScope): ElemType = {
-    emptyElem(name, SeqMap.empty, parentScope)
+    emptyElem(name, ListMap.empty, parentScope)
   }
 
-  def emptyElem(name: EName, attributes: SeqMap[EName, String], parentScope: PrefixedScope): ElemType = {
+  def emptyElem(name: EName, attributes: ListMap[EName, String], parentScope: PrefixedScope): ElemType = {
     Elem(name, attributes, Vector.empty)
   }
 
   def textElem(name: EName, txt: String, parentScope: PrefixedScope): ElemType = {
-    textElem(name, SeqMap.empty, txt, parentScope)
+    textElem(name, ListMap.empty, txt, parentScope)
   }
 
-  def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType = {
+  def textElem(name: EName, attributes: ListMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType = {
     Elem(name, attributes, Vector(Text(txt)))
   }
 
   def elem(name: EName, children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
-    elem(name, SeqMap.empty, children, parentScope)
+    elem(name, ListMap.empty, children, parentScope)
   }
 
-  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
+  def elem(name: EName, attributes: ListMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
     Elem(name, attributes, children.to(Vector))
   }
 
@@ -91,7 +92,7 @@ object ResolvedElemCreator extends ElemCreationApi {
     withChildren(elem, children(elem).patch(index, Seq.empty, 1))
   }
 
-  def withAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType = {
+  def withAttributes(elem: ElemType, newAttributes: ListMap[EName, String]): ElemType = {
     Elem(elem.name, newAttributes, elem.children)
   }
 
@@ -100,10 +101,10 @@ object ResolvedElemCreator extends ElemCreationApi {
   }
 
   def plusAttributeOption(elem: ElemType, attrName: EName, attrValueOption: Option[String]): ElemType = {
-    plusAttributes(elem, attrValueOption.toSeq.map(v => attrName -> v).to(SeqMap))
+    plusAttributes(elem, attrValueOption.toSeq.map(v => attrName -> v).to(ListMap))
   }
 
-  def plusAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType = {
+  def plusAttributes(elem: ElemType, newAttributes: ListMap[EName, String]): ElemType = {
     Elem(elem.name, elem.attributes.concat(newAttributes), elem.children)
   }
 
@@ -122,9 +123,8 @@ object ResolvedElemCreator extends ElemCreationApi {
     }
   }
 
-  final class Elem(
-                    val underlyingElem: ResolvedNodes.Elem)
-                  (implicit val elemCreator: ResolvedElemCreator.type) extends ElemCreationApi.Elem {
+  final class Elem(val underlyingElem: ResolvedNodes.Elem)(implicit val elemCreator: ResolvedElemCreator.type)
+      extends ElemCreationApi.Elem {
 
     type UnderlyingNode = ResolvedNodes.Node
 
@@ -160,7 +160,7 @@ object ResolvedElemCreator extends ElemCreationApi {
       elemCreator.minusChild(underlyingElem, index).pipe(wrap)
     }
 
-    def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
+    def withAttributes(newAttributes: ListMap[EName, String]): ThisElem = {
       elemCreator.withAttributes(underlyingElem, newAttributes).pipe(wrap)
     }
 
@@ -172,7 +172,7 @@ object ResolvedElemCreator extends ElemCreationApi {
       elemCreator.plusAttributeOption(underlyingElem, attrName, attrValueOption).pipe(wrap)
     }
 
-    def plusAttributes(newAttributes: SeqMap[EName, String]): ThisElem = {
+    def plusAttributes(newAttributes: ListMap[EName, String]): ThisElem = {
       elemCreator.plusAttributes(underlyingElem, newAttributes).pipe(wrap)
     }
 

@@ -18,22 +18,18 @@ package eu.cdevreeze.yaidom2.node.jsdom
 
 import java.net.URI
 
-import scala.annotation.tailrec
-import scala.collection.immutable.ArraySeq
-import scala.collection.immutable.SeqMap
-import scala.collection.mutable
-import scala.reflect.classTag
-
-import eu.cdevreeze.yaidom2.core.Declarations
-import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.core.QName
-import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.core.UnprefixedName
+import eu.cdevreeze.yaidom2.core._
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import org.scalajs.dom
 import org.scalajs.dom.NamedNodeMap
 import org.scalajs.dom.NodeList
+
+import scala.annotation.tailrec
+import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.ListMap
+import scala.collection.mutable
+import scala.reflect.classTag
 
 /**
  * JS-DOM nodes.
@@ -55,6 +51,9 @@ object JsDomNodes {
 
   /**
    * JS-DOM element node, offering the `BackingNodes.Elem` element query API.
+   *
+   * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+   * https://github.com/scala/scala/pull/8854.
    */
   // scalastyle:off number.of.methods
   final case class Elem(jsDomElement: dom.Element) extends CanBeDocumentChild with BackingNodes.Elem {
@@ -123,7 +122,7 @@ object JsDomNodes {
       Elem.name(jsDomElement)
     }
 
-    def attributes: SeqMap[EName, String] = {
+    def attributes: ListMap[EName, String] = {
       Elem.attributes(jsDomElement)
     }
 
@@ -193,7 +192,7 @@ object JsDomNodes {
       Elem.qname(jsDomElement)
     }
 
-    def attributesByQName: SeqMap[QName, String] = {
+    def attributesByQName: ListMap[QName, String] = {
       Elem.attributesByQName(jsDomElement)
     }
 
@@ -350,8 +349,9 @@ object JsDomNodes {
   /**
    * JS-DOM processing instruction node
    */
-  final case class ProcessingInstruction(jsDomProcessingInstruction: dom.ProcessingInstruction) extends CanBeDocumentChild
-    with BackingNodes.ProcessingInstruction {
+  final case class ProcessingInstruction(jsDomProcessingInstruction: dom.ProcessingInstruction)
+      extends CanBeDocumentChild
+      with BackingNodes.ProcessingInstruction {
 
     def target: String = {
       jsDomProcessingInstruction.target
@@ -366,12 +366,12 @@ object JsDomNodes {
 
     def opt(jsDomNode: dom.Node): Option[Node] = {
       jsDomNode match {
-        case e: dom.Element => Some(Elem(e))
-        case t: dom.CDATASection => Some(Text(t))
-        case t: dom.Text => Some(Text(t))
-        case c: dom.Comment => Some(Comment(c))
+        case e: dom.Element                => Some(Elem(e))
+        case t: dom.CDATASection           => Some(Text(t))
+        case t: dom.Text                   => Some(Text(t))
+        case c: dom.Comment                => Some(Comment(c))
         case pi: dom.ProcessingInstruction => Some(ProcessingInstruction(pi))
-        case _ => None
+        case _                             => None
       }
     }
 
@@ -424,12 +424,14 @@ object JsDomNodes {
 
           if (isNamespaceDeclaration(attr)) {
             val result = extractNamespaceDeclaration(attr)
-            Some(result) map { pair => (pair._1.getOrElse(""), pair._2) }
+            Some(result).map { pair =>
+              (pair._1.getOrElse(""), pair._2)
+            }
           } else {
             None
           }
         }
-        result.to(SeqMap)
+        result.to(ListMap)
       }
       Declarations.from(nsMap)
     }
@@ -452,10 +454,10 @@ object JsDomNodes {
 
     def opt(jsDomNode: dom.Node): Option[CanBeDocumentChild] = {
       jsDomNode match {
-        case e: dom.Element => Some(Elem(e))
-        case c: dom.Comment => Some(Comment(c))
+        case e: dom.Element                => Some(Elem(e))
+        case c: dom.Comment                => Some(Comment(c))
         case pi: dom.ProcessingInstruction => Some(ProcessingInstruction(pi))
-        case _ => None
+        case _                             => None
       }
     }
   }
@@ -572,19 +574,21 @@ object JsDomNodes {
       Node.extractEName(elem)
     }
 
-    def attributes(elem: ElemType): SeqMap[EName, String] = {
+    def attributes(elem: ElemType): ListMap[EName, String] = {
       val domAttributes = elem.attributes
 
-      (0 until domAttributes.length).flatMap { i =>
-        val attr = domAttributes.item(i)
+      (0 until domAttributes.length)
+        .flatMap { i =>
+          val attr = domAttributes.item(i)
 
-        if (Node.isNamespaceDeclaration(attr)) {
-          None
-        } else {
-          val ename: EName = Node.extractEName(attr)
-          Some(ename -> attr.value)
+          if (Node.isNamespaceDeclaration(attr)) {
+            None
+          } else {
+            val ename: EName = Node.extractEName(attr)
+            Some(ename -> attr.value)
+          }
         }
-      }.to(SeqMap)
+        .to(ListMap)
     }
 
     def localName(elem: ElemType): String = {
@@ -671,19 +675,21 @@ object JsDomNodes {
       Node.extractQName(elem)
     }
 
-    def attributesByQName(elem: ElemType): SeqMap[QName, String] = {
+    def attributesByQName(elem: ElemType): ListMap[QName, String] = {
       val domAttributes = elem.attributes
 
-      (0 until domAttributes.length).flatMap { i =>
-        val attr = domAttributes.item(i)
+      (0 until domAttributes.length)
+        .flatMap { i =>
+          val attr = domAttributes.item(i)
 
-        if (Node.isNamespaceDeclaration(attr)) {
-          None
-        } else {
-          val qname: QName = Node.extractQName(attr)
-          Some(qname -> attr.value)
+          if (Node.isNamespaceDeclaration(attr)) {
+            None
+          } else {
+            val qname: QName = Node.extractQName(attr)
+            Some(qname -> attr.value)
+          }
         }
-      }.to(SeqMap)
+        .to(ListMap)
     }
 
     def textAsQName(elem: ElemType): QName = {
@@ -691,8 +697,9 @@ object JsDomNodes {
     }
 
     def textAsResolvedQName(elem: ElemType): EName = {
-      scope(elem).resolveQNameOption(textAsQName(elem)).getOrElse(
-        sys.error(s"Could not resolve QName-valued element text ${textAsQName(elem)}, given scope [${scope(elem)}]"))
+      scope(elem)
+        .resolveQNameOption(textAsQName(elem))
+        .getOrElse(sys.error(s"Could not resolve QName-valued element text ${textAsQName(elem)}, given scope [${scope(elem)}]"))
     }
 
     def attrAsQNameOption(elem: ElemType, attributeName: EName): Option[QName] = {
@@ -708,8 +715,7 @@ object JsDomNodes {
     }
 
     def attrAsQName(elem: ElemType, attributeName: EName): QName = {
-      attrAsQNameOption(elem, attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
+      attrAsQNameOption(elem, attributeName).getOrElse(sys.error(s"Missing QName-valued attribute $attributeName"))
     }
 
     def attrAsQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
@@ -724,28 +730,30 @@ object JsDomNodes {
 
     def attrAsResolvedQNameOption(elem: ElemType, attributeName: EName): Option[EName] = {
       attrAsQNameOption(elem, attributeName).map { qn =>
-        scope(elem).resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+        scope(elem)
+          .resolveQNameOption(qn)
+          .getOrElse(sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
       }
     }
 
     def attrAsResolvedQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
       attrAsQNameOption(elem, attributeNamespaceOption, attributeLocalName).map { qn =>
-        scope(elem).resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+        scope(elem)
+          .resolveQNameOption(qn)
+          .getOrElse(sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
       }
     }
 
     def attrAsResolvedQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[EName] = {
       attrAsQNameOption(elem, attributeNamespace, attributeLocalName).map { qn =>
-        scope(elem).resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+        scope(elem)
+          .resolveQNameOption(qn)
+          .getOrElse(sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
       }
     }
 
     def attrAsResolvedQName(elem: ElemType, attributeName: EName): EName = {
-      attrAsResolvedQNameOption(elem, attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
+      attrAsResolvedQNameOption(elem, attributeName).getOrElse(sys.error(s"Missing QName-valued attribute $attributeName"))
     }
 
     def attrAsResolvedQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
@@ -810,10 +818,12 @@ object JsDomNodes {
 
     def ownNavigationPathRelativeToRootElem(elem: ElemType): Seq[Int] = {
       def relativeNavigationPath(e: ElemType): Seq[Int] = {
-        findParentElem(e).map { pe =>
-          // Recursive call
-          relativeNavigationPath(pe).appended(findAllPrecedingSiblingElems(e).size)
-        }.getOrElse(IndexedSeq.empty)
+        findParentElem(e)
+          .map { pe =>
+            // Recursive call
+            relativeNavigationPath(pe).appended(findAllPrecedingSiblingElems(e).size)
+          }
+          .getOrElse(IndexedSeq.empty)
       }
 
       relativeNavigationPath(elem).to(ArraySeq)

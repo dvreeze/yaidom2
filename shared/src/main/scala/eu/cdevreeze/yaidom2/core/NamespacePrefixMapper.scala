@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.core
 
 import java.util.concurrent.atomic.AtomicReference
 
-import scala.collection.immutable.SeqMap
+import scala.collection.immutable.ListMap
 
 /**
  * Mapper from namespaces to prefixes. All prefixes are non-empty strings, so the "default namespace" cannot be expressed in this
@@ -100,26 +100,28 @@ object NamespacePrefixMapper {
    * scenarios do not deal with many thousands of namespaces. Of course this is only true if these prefix generators (or
    * at least their state) are rather global program state.
    */
-  final class CachingPrefixGenerator private(
-    val mappings: AtomicReference[SeqMap[String, String]],
-    val prefixWithoutSeqNr: String) extends NamespacePrefixMapper {
+  final class CachingPrefixGenerator private (val mappings: AtomicReference[ListMap[String, String]], val prefixWithoutSeqNr: String)
+      extends NamespacePrefixMapper {
 
     require(prefixWithoutSeqNr.nonEmpty, s"Empty prefix after removing sequence number not allowed")
 
     def findPrefix(namespace: String): Option[String] = {
-      val prefix: String = mappings.updateAndGet { currMappings: SeqMap[String, String] =>
-        if (currMappings.contains(namespace)) {
-          currMappings
-        } else {
-          val nextPrefix: String = getNextPrefix(currMappings)
-          currMappings.updated(namespace, nextPrefix)
+      val prefix: String = mappings
+        .updateAndGet { currMappings: ListMap[String, String] =>
+          if (currMappings.contains(namespace)) {
+            currMappings
+          } else {
+            val nextPrefix: String = getNextPrefix(currMappings)
+            currMappings.updated(namespace, nextPrefix)
+          }
         }
-      }.apply(namespace).ensuring(_.nonEmpty)
+        .apply(namespace)
+        .ensuring(_.nonEmpty)
 
       Some(prefix)
     }
 
-    private def getNextPrefix(currMappings: SeqMap[String, String]): String = {
+    private def getNextPrefix(currMappings: ListMap[String, String]): String = {
       val lastPrefixOption: Option[String] = currMappings.lastOption.map(_._2)
 
       val lastSeqNrOption: Option[Int] = lastPrefixOption.map { s =>
@@ -134,11 +136,11 @@ object NamespacePrefixMapper {
 
   object CachingPrefixGenerator {
 
-    def newInstance(currentMappings: SeqMap[String, String], prefixStartString: String): CachingPrefixGenerator = {
+    def newInstance(currentMappings: ListMap[String, String], prefixStartString: String): CachingPrefixGenerator = {
       new CachingPrefixGenerator(new AtomicReference(currentMappings), prefixStartString)
     }
 
-    def newInstance(prefixStartString: String): CachingPrefixGenerator = newInstance(SeqMap.empty, prefixStartString)
+    def newInstance(prefixStartString: String): CachingPrefixGenerator = newInstance(ListMap.empty, prefixStartString)
 
     def newInstance(): CachingPrefixGenerator = newInstance("ns")
   }
@@ -158,14 +160,14 @@ object NamespacePrefixMapper {
   /**
    * Returns a CachingPrefixGenerator using the passed mappings as start state.
    */
-  def fallback(currentMappings: SeqMap[String, String]): CachingPrefixGenerator = {
+  def fallback(currentMappings: ListMap[String, String]): CachingPrefixGenerator = {
     CachingPrefixGenerator.newInstance(currentMappings, "ns")
   }
 
   /**
    * Returns a fresh CachingPrefixGenerator.
    */
-  def fallback(): CachingPrefixGenerator = fallback(SeqMap.empty)
+  def fallback(): CachingPrefixGenerator = fallback(ListMap.empty)
 
   /**
    * Returns `layering(Seq(fromMap(mappings), fallback()))`. This NamespacePrefixMapper will never fail to return a prefix.

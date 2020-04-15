@@ -18,12 +18,10 @@ package eu.cdevreeze.yaidom2.node.nodebuilder
 
 import java.net.URI
 
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
@@ -33,6 +31,8 @@ import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.elemstep.ScopedElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
+
+import scala.collection.immutable.ListMap
 
 /**
  * "Creation DSL" nodes and documents.
@@ -70,7 +70,8 @@ object NodeBuilders {
       val docChildren = document.children.collect { case ch: ScopedNodes.CanBeDocumentChild => ch }
 
       val targetDocChildren =
-        docChildren.filter(n => Set[Nodes.NodeKind](Nodes.ElementKind).contains(n.nodeKind))
+        docChildren
+          .filter(n => Set[Nodes.NodeKind](Nodes.ElementKind).contains(n.nodeKind))
           .map(n => Elem.from(n.asInstanceOf[ScopedNodes.Elem])) // TODO Replace this expensive conversion
 
       Document(document.docUriOption, targetDocChildren)
@@ -91,13 +92,18 @@ object NodeBuilders {
 
   /**
    * "Creation DSL" element node, offering the `ScopedNodes.Elem` element query API.
+   *
+   * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+   * https://github.com/scala/scala/pull/8854.
    */
-  final class Elem private[nodebuilder](
-    val name: EName,
-    val attributes: SeqMap[EName, String],
-    val children: Vector[Node], // For querying, ArraySeq would be optimal, but not for (functional) updates
-    val prefixedScope: PrefixedScope
-  ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
+  final class Elem private[nodebuilder] (
+      val name: EName,
+      val attributes: ListMap[EName, String],
+      val children: Vector[Node], // For querying, ArraySeq would be optimal, but not for (functional) updates
+      val prefixedScope: PrefixedScope
+  ) extends CanBeDocumentChild
+      with AbstractScopedElem
+      with AbstractUpdatableElem {
 
     // TODO Make it easier to update the element name etc.
     // TODO Give useful error messages below (in the 2 assertions)
@@ -133,12 +139,13 @@ object NodeBuilders {
      * Returns the attributes by QName. For any attribute name, if prefixed, the prefix is the "minimal" one in string comparison order
      * for the namespace of the attribute EName.
      */
-    def attributesByQName: SeqMap[QName, String] = {
-      attributes.map { case (attrName, attrValue) =>
-        val prefixOption: Option[String] =
-          if (attrName.namespaceUriOption.isEmpty) None else prefixedScope.findPrefixForNamespace(attrName.namespaceUriOption.get)
+    def attributesByQName: ListMap[QName, String] = {
+      attributes.map {
+        case (attrName, attrValue) =>
+          val prefixOption: Option[String] =
+            if (attrName.namespaceUriOption.isEmpty) None else prefixedScope.findPrefixForNamespace(attrName.namespaceUriOption.get)
 
-        QName(prefixOption, attrName.localPart) -> attrValue
+          QName(prefixOption, attrName.localPart) -> attrValue
       }
     }
 
@@ -203,7 +210,8 @@ object NodeBuilders {
         }
       require(
         introducesNoPrefixedNamespaceUndeclarations,
-        s"Not all child elements introduce no (prefixed) namespace undeclarations (current element's scope: $scope)")
+        s"Not all child elements introduce no (prefixed) namespace undeclarations (current element's scope: $scope)"
+      )
 
       new Elem(name, attributes, newChildren.to(Vector), prefixedScope)
     }
@@ -262,7 +270,7 @@ object NodeBuilders {
       val resultChildNodes: Vector[ThisNode] =
         children.map {
           case e: Elem => f(e)
-          case n => n
+          case n       => n
         }
 
       withChildren(resultChildNodes)
@@ -272,7 +280,7 @@ object NodeBuilders {
       val resultChildNodes: Vector[ThisNode] =
         children.flatMap {
           case e: Elem => f(e)
-          case n => Vector(n)
+          case n       => Vector(n)
         }
 
       withChildren(resultChildNodes)
@@ -305,13 +313,13 @@ object NodeBuilders {
     def optionallyFrom(node: ScopedNodes.Node): Option[Node] = node match {
       case e: ScopedNodes.Elem => Elem.optionallyFrom(e)
       case t: ScopedNodes.Text => Some(Text(t.text))
-      case _ => None
+      case _                   => None
     }
 
     def from(node: ScopedNodes.Node): Node = node match {
       case e: ScopedNodes.Elem => Elem.from(e)
       case t: ScopedNodes.Text => Text(t.text)
-      case n => sys.error(s"Not an element or text node: $n")
+      case n                   => sys.error(s"Not an element or text node: $n")
     }
   }
 
@@ -323,7 +331,7 @@ object NodeBuilders {
 
     type TargetElemType = Elem
 
-    def unapply(elem: Elem): Option[(EName, SeqMap[EName, String], Seq[Node], PrefixedScope)] = {
+    def unapply(elem: Elem): Option[(EName, ListMap[EName, String], Seq[Node], PrefixedScope)] = {
       val v = (elem.name, elem.attributes, elem.children, elem.prefixedScope)
       Some(v)
     }
@@ -338,8 +346,8 @@ object NodeBuilders {
 
       def isItselfValid(e: ScopedNodes.Elem): Boolean = {
         PrefixedScope.optionallyFrom(e.scope).nonEmpty &&
-          hasElementAndAttributeQNames(e.name, e.attributes, PrefixedScope.from(e.scope)) && // this should be true anyway
-          e.hasNoPrefixedNamespaceUndeclarations
+        hasElementAndAttributeQNames(e.name, e.attributes, PrefixedScope.from(e.scope)) && // this should be true anyway
+        e.hasNoPrefixedNamespaceUndeclarations
       }
 
       if (allElemsOrSelf.forall(isItselfValid)) {
@@ -355,17 +363,22 @@ object NodeBuilders {
 
       require(
         hasElementAndAttributeQNames(elm.name, elm.attributes, prefixedScope),
-        s"Element ${elm.name} with scope ${elm.scope} is corrupt with respect to naming (the correspondence between QNames and ENames)")
+        s"Element ${elm.name} with scope ${elm.scope} is corrupt with respect to naming (the correspondence between QNames and ENames)"
+      )
 
-      require(elm.hasNoPrefixedNamespaceUndeclarations, s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
+      require(
+        elm.hasNoPrefixedNamespaceUndeclarations,
+        s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
 
       val children = elm.children.collect {
-        case childElm: ScopedNodes.Elem => childElm
+        case childElm: ScopedNodes.Elem  => childElm
         case childText: ScopedNodes.Text => childText
       }
 
       // Recursion, with Node.from and Elem.from being mutually dependent
-      val creationDslChildren = children.map { node => Node.from(node) }
+      val creationDslChildren = children.map { node =>
+        Node.from(node)
+      }
 
       new Elem(elm.name, elm.attributes, creationDslChildren.to(Vector), prefixedScope)
     }
@@ -379,9 +392,9 @@ object NodeBuilders {
      * QName, given the passed simple scope. This is a requirement that has to be fulfilled in order to create an
      * element builder containing this data, and it must hold for all descendant elements as well.
      */
-    def hasElementAndAttributeQNames(elementName: EName, attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
+    def hasElementAndAttributeQNames(elementName: EName, attributes: ListMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
       hasElementQName(elementName, prefixedScope) &&
-        hasAttributeQNames(attributes, prefixedScope)
+      hasAttributeQNames(attributes, prefixedScope)
     }
 
     /**
@@ -394,9 +407,10 @@ object NodeBuilders {
     /**
      * Returns true if the attribute names (as ENames) determine a corresponding QName, given the passed simple scope.
      */
-    def hasAttributeQNames(attributes: SeqMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
-      attributes.forall { case (attrName, _) =>
-        hasQName(attrName, prefixedScope)
+    def hasAttributeQNames(attributes: ListMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
+      attributes.forall {
+        case (attrName, _) =>
+          hasQName(attrName, prefixedScope)
       }
     }
 

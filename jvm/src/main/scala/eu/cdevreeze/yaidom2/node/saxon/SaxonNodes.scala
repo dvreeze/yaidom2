@@ -18,21 +18,21 @@ package eu.cdevreeze.yaidom2.node.saxon
 
 import java.net.URI
 
-import scala.collection.immutable.ArraySeq
-import scala.collection.immutable.SeqMap
-import scala.jdk.OptionConverters._
-import scala.jdk.StreamConverters._
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import net.sf.saxon.s9api.XdmNode
-import net.sf.saxon.s9api.XdmNodeKind
 import net.sf.saxon.s9api.streams.Predicates._
 import net.sf.saxon.s9api.streams.Step
 import net.sf.saxon.s9api.streams.Steps._
+import net.sf.saxon.s9api.XdmNode
+import net.sf.saxon.s9api.XdmNodeKind
+
+import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.ListMap
+import scala.jdk.OptionConverters._
+import scala.jdk.StreamConverters._
 
 /**
  * Saxon-backed nodes.
@@ -58,6 +58,9 @@ object SaxonNodes {
    * Saxon element node, offering the `BackingNodes.Elem` element query API.
    *
    * Creation of this element is cheap, because the only state is the underlying Saxon XdmNode.
+   *
+   * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+   * https://github.com/scala/scala/pull/8854.
    */
   // scalastyle:off number.of.methods
   final case class Elem(xdmNode: XdmNode) extends CanBeDocumentChild with BackingNodes.Elem {
@@ -127,7 +130,7 @@ object SaxonNodes {
       Elem.name(xdmNode)
     }
 
-    def attributes: SeqMap[EName, String] = {
+    def attributes: ListMap[EName, String] = {
       Elem.attributes(xdmNode)
     }
 
@@ -197,7 +200,7 @@ object SaxonNodes {
       Elem.qname(xdmNode)
     }
 
-    def attributesByQName: SeqMap[QName, String] = {
+    def attributesByQName: ListMap[QName, String] = {
       Elem.attributesByQName(xdmNode)
     }
 
@@ -372,11 +375,11 @@ object SaxonNodes {
 
     def opt(xdmNode: XdmNode): Option[Node] = {
       xdmNode.getNodeKind match {
-        case XdmNodeKind.ELEMENT => Some(Elem(xdmNode))
-        case XdmNodeKind.TEXT => Some(Text(xdmNode))
-        case XdmNodeKind.COMMENT => Some(Comment(xdmNode))
+        case XdmNodeKind.ELEMENT                => Some(Elem(xdmNode))
+        case XdmNodeKind.TEXT                   => Some(Text(xdmNode))
+        case XdmNodeKind.COMMENT                => Some(Comment(xdmNode))
         case XdmNodeKind.PROCESSING_INSTRUCTION => Some(ProcessingInstruction(xdmNode))
-        case _ => None
+        case _                                  => None
       }
     }
 
@@ -399,10 +402,10 @@ object SaxonNodes {
 
     def opt(xdmNode: XdmNode): Option[CanBeDocumentChild] = {
       xdmNode.getNodeKind match {
-        case XdmNodeKind.ELEMENT => Some(Elem(xdmNode))
-        case XdmNodeKind.COMMENT => Some(Comment(xdmNode))
+        case XdmNodeKind.ELEMENT                => Some(Elem(xdmNode))
+        case XdmNodeKind.COMMENT                => Some(Comment(xdmNode))
         case XdmNodeKind.PROCESSING_INSTRUCTION => Some(ProcessingInstruction(xdmNode))
-        case _ => None
+        case _                                  => None
       }
     }
   }
@@ -484,9 +487,9 @@ object SaxonNodes {
       Node.extractEName(elem)
     }
 
-    def attributes(elem: ElemType): SeqMap[EName, String] = {
+    def attributes(elem: ElemType): ListMap[EName, String] = {
       val stream = elem.select(attribute())
-      stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue).to(SeqMap)
+      stream.toScala(ArraySeq).map(n => Node.extractEName(n) -> n.getStringValue).to(ListMap)
     }
 
     def localName(elem: ElemType): String = {
@@ -572,16 +575,16 @@ object SaxonNodes {
         val nsUri = n.getUnderlyingNode.getStringValue
         prefix -> nsUri
       }
-      Scope.from(result.to(SeqMap))
+      Scope.from(result.to(ListMap))
     }
 
     def qname(elem: ElemType): QName = {
       Node.extractQName(elem)
     }
 
-    def attributesByQName(elem: ElemType): SeqMap[QName, String] = {
+    def attributesByQName(elem: ElemType): ListMap[QName, String] = {
       val stream = elem.select(attribute())
-      stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue).to(SeqMap)
+      stream.toScala(ArraySeq).map(n => Node.extractQName(n) -> n.getStringValue).to(ListMap)
     }
 
     def textAsQName(elem: ElemType): QName = {
@@ -589,8 +592,9 @@ object SaxonNodes {
     }
 
     def textAsResolvedQName(elem: ElemType): EName = {
-      scope(elem).resolveQNameOption(textAsQName(elem)).getOrElse(
-        sys.error(s"Could not resolve QName-valued element text ${textAsQName(elem)}, given scope [${scope(elem)}]"))
+      scope(elem)
+        .resolveQNameOption(textAsQName(elem))
+        .getOrElse(sys.error(s"Could not resolve QName-valued element text ${textAsQName(elem)}, given scope [${scope(elem)}]"))
     }
 
     def attrAsQNameOption(elem: ElemType, attributeName: EName): Option[QName] = {
@@ -606,8 +610,7 @@ object SaxonNodes {
     }
 
     def attrAsQName(elem: ElemType, attributeName: EName): QName = {
-      attrAsQNameOption(elem, attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
+      attrAsQNameOption(elem, attributeName).getOrElse(sys.error(s"Missing QName-valued attribute $attributeName"))
     }
 
     def attrAsQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): QName = {
@@ -622,28 +625,30 @@ object SaxonNodes {
 
     def attrAsResolvedQNameOption(elem: ElemType, attributeName: EName): Option[EName] = {
       attrAsQNameOption(elem, attributeName).map { qn =>
-        scope(elem).resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+        scope(elem)
+          .resolveQNameOption(qn)
+          .getOrElse(sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
       }
     }
 
     def attrAsResolvedQNameOption(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): Option[EName] = {
       attrAsQNameOption(elem, attributeNamespaceOption, attributeLocalName).map { qn =>
-        scope(elem).resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+        scope(elem)
+          .resolveQNameOption(qn)
+          .getOrElse(sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
       }
     }
 
     def attrAsResolvedQNameOption(elem: ElemType, attributeNamespace: String, attributeLocalName: String): Option[EName] = {
       attrAsQNameOption(elem, attributeNamespace, attributeLocalName).map { qn =>
-        scope(elem).resolveQNameOption(qn).getOrElse(
-          sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
+        scope(elem)
+          .resolveQNameOption(qn)
+          .getOrElse(sys.error(s"Could not resolve QName-valued attribute value $qn, given scope [${scope(elem)}]"))
       }
     }
 
     def attrAsResolvedQName(elem: ElemType, attributeName: EName): EName = {
-      attrAsResolvedQNameOption(elem, attributeName).getOrElse(
-        sys.error(s"Missing QName-valued attribute $attributeName"))
+      attrAsResolvedQNameOption(elem, attributeName).getOrElse(sys.error(s"Missing QName-valued attribute $attributeName"))
     }
 
     def attrAsResolvedQName(elem: ElemType, attributeNamespaceOption: Option[String], attributeLocalName: String): EName = {
@@ -694,10 +699,12 @@ object SaxonNodes {
 
     def ownNavigationPathRelativeToRootElem(elem: ElemType): Seq[Int] = {
       def relativeNavigationPath(e: ElemType): Seq[Int] = {
-        findParentElem(e).map { pe =>
-          // Recursive call
-          relativeNavigationPath(pe).appended(findAllPrecedingSiblingElems(e).size)
-        }.getOrElse(IndexedSeq.empty)
+        findParentElem(e)
+          .map { pe =>
+            // Recursive call
+            relativeNavigationPath(pe).appended(findAllPrecedingSiblingElems(e).size)
+          }
+          .getOrElse(IndexedSeq.empty)
       }
 
       relativeNavigationPath(elem).to(ArraySeq)

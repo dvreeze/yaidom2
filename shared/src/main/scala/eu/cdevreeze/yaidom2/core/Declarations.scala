@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.core
 
-import scala.collection.immutable.SeqMap
+import scala.collection.immutable.ListMap
 
 /**
  * Namespace declarations (and undeclarations), typically at the level of one element.
@@ -51,9 +51,12 @@ import scala.collection.immutable.SeqMap
  * There are no methods for subset relationships on namespace declarations (unlike for class `Scope`).
  * After all, in the presence of namespace undeclarations, such a subset relationship would become a bit unnatural.
  *
+ * Implementation note: this class used a ListMap instead of VectorMap (via the SeqMap API), due to Scala issue
+ * https://github.com/scala/scala/pull/8854.
+ *
  * @author Chris de Vreeze
  */
-final case class Declarations(prefixNamespaceMap: SeqMap[String, String]) {
+final case class Declarations(prefixNamespaceMap: ListMap[String, String]) {
   import Declarations._
 
   /** Returns true if this Declarations is empty. Faster than comparing this Declarations against the empty Declarations. */
@@ -115,8 +118,12 @@ final case class Declarations(prefixNamespaceMap: SeqMap[String, String]) {
     val declaredString = properDeclarationsToStringInXml
     val defaultNamespaceUndeclared: Boolean = prefixNamespaceMap.get(DefaultNsPrefix).exists(_.isEmpty)
     val defaultNsUndeclaredString = if (defaultNamespaceUndeclared) """xmlns=""""" else ""
-    val undeclaredPrefixes: Set[String] = ((prefixNamespaceMap - DefaultNsPrefix) filter (kv => kv._2 == "")).keySet
-    val undeclaredPrefixesString = undeclaredPrefixes.map { pref => """xmlns:%s=""""".format(pref) }.mkString(" ")
+    val undeclaredPrefixes: Set[String] = (prefixNamespaceMap - DefaultNsPrefix).filter(kv => kv._2 == "").keySet
+    val undeclaredPrefixesString = undeclaredPrefixes
+      .map { pref =>
+        """xmlns:%s=""""".format(pref)
+      }
+      .mkString(" ")
 
     List(declaredString, defaultNsUndeclaredString, undeclaredPrefixesString).filterNot { _ == "" }.mkString(" ")
   }
@@ -132,27 +139,25 @@ final case class Declarations(prefixNamespaceMap: SeqMap[String, String]) {
 object Declarations {
 
   /** The "empty" `Declarations` */
-  val Empty: Declarations = Declarations(SeqMap())
+  val Empty: Declarations = Declarations(ListMap())
 
   /**
-    * Same as the constructor, but removing the 'xml' prefix, if any.
-    * Therefore this call is easier to use than the constructor or default `apply` method.
-    */
-  def from(m: SeqMap[String, String]): Declarations = {
+   * Same as the constructor, but removing the 'xml' prefix, if any.
+   * Therefore this call is easier to use than the constructor or default `apply` method.
+   */
+  def from(m: ListMap[String, String]): Declarations = {
     if (m.contains("xml")) {
-      require(
-        m("xml") == XmlNamespace,
-        "The 'xml' prefix must map to 'http://www.w3.org/XML/1998/namespace'")
+      require(m("xml") == XmlNamespace, "The 'xml' prefix must map to 'http://www.w3.org/XML/1998/namespace'")
     }
     Declarations(m - "xml")
   }
 
   /** Returns `from(Map[String, String](m: _*))` */
-  def from(m: (String, String)*): Declarations = from(SeqMap[String, String](m: _*))
+  def from(m: (String, String)*): Declarations = from(ListMap[String, String](m: _*))
 
   /** Returns a `Declarations` that contains (only) undeclarations for the given prefixes */
   def undeclaring(prefixes: Set[String]): Declarations = {
-    val m = prefixes.map(pref => pref -> "").to(SeqMap)
+    val m = prefixes.map(pref => pref -> "").to(ListMap)
     Declarations(m)
   }
 

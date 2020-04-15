@@ -16,15 +16,18 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.PrefixedScope
+
+import scala.collection.immutable.ListMap
 
 /**
  * Element creation API. Typical implementations are rather stable objects that use a NamespacePrefixMapper internally.
  *
  * It is not a type class, although it is easy to turn it into an imaginary type class with a type parameter for the element type.
+ *
+ * Implementation note: this trait used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+ * https://github.com/scala/scala/pull/8854.
  *
  * @author Chris de Vreeze
  */
@@ -36,11 +39,11 @@ trait ElemCreationApi {
 
   def emptyElem(name: EName, parentScope: PrefixedScope): ElemType
 
-  def emptyElem(name: EName, attributes: SeqMap[EName, String], parentScope: PrefixedScope): ElemType
+  def emptyElem(name: EName, attributes: ListMap[EName, String], parentScope: PrefixedScope): ElemType
 
   def textElem(name: EName, txt: String, parentScope: PrefixedScope): ElemType
 
-  def textElem(name: EName, attributes: SeqMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType
+  def textElem(name: EName, attributes: ListMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType
 
   /**
    * Creates an element with the given name and children.
@@ -60,7 +63,7 @@ trait ElemCreationApi {
    *
    * For performance it is best not to pass big child element trees.
    */
-  def elem(name: EName, attributes: SeqMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType
+  def elem(name: EName, attributes: ListMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType
 
   /**
    * Returns all child nodes of the given element.
@@ -123,7 +126,7 @@ trait ElemCreationApi {
    * Internally method usingNonConflictingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0,
    * and to consistently use the same prefix-namespace mappings throughout the XML tree (although new non-conflicting ones may be added in descendants).
    */
-  def withAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType
+  def withAttributes(elem: ElemType, newAttributes: ListMap[EName, String]): ElemType
 
   /**
    * Returns a copy of the given element in which the given attribute has been added.
@@ -138,7 +141,7 @@ trait ElemCreationApi {
   /**
    * Returns a copy of the given element in which the given attributes have been added.
    */
-  def plusAttributes(elem: ElemType, newAttributes: SeqMap[EName, String]): ElemType
+  def plusAttributes(elem: ElemType, newAttributes: ListMap[EName, String]): ElemType
 
   /**
    * Returns a copy of the given element in which the given attribute has been removed, if any.
@@ -177,7 +180,7 @@ object ElemCreationApi {
    * @tparam N The node type
    * @tparam E The element type
    */
-  type Aux[N, E] = ElemCreationApi {type NodeType = N; type ElemType = E}
+  type Aux[N, E] = ElemCreationApi { type NodeType = N; type ElemType = E }
 
   /**
    * OO API exposing most of the ElemCreationApi.
@@ -204,13 +207,13 @@ object ElemCreationApi {
 
     def minusChild(index: Int): ThisElem
 
-    def withAttributes(newAttributes: SeqMap[EName, String]): ThisElem
+    def withAttributes(newAttributes: ListMap[EName, String]): ThisElem
 
     def plusAttribute(attrName: EName, attrValue: String): ThisElem
 
     def plusAttributeOption(attrName: EName, attrValueOption: Option[String]): ThisElem
 
-    def plusAttributes(newAttributes: SeqMap[EName, String]): ThisElem
+    def plusAttributes(newAttributes: ListMap[EName, String]): ThisElem
 
     def minusAttribute(attrName: EName): ThisElem
 
@@ -230,6 +233,6 @@ object ElemCreationApi {
      * @tparam E The underlying element type
      * @tparam W This (wrapper) element type
      */
-    type Aux[N, E, W] = Elem {type UnderlyingNode = N; type UnderlyingElem = E; type ThisElem = W}
+    type Aux[N, E, W] = Elem { type UnderlyingNode = N; type UnderlyingElem = E; type ThisElem = W }
   }
 }

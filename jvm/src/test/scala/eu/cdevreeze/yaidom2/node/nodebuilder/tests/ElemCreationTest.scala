@@ -18,23 +18,19 @@ package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 
 import java.io.File
 
-import scala.collection.immutable.SeqMap
-
-import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.core.NamespacePrefixMapper
-import eu.cdevreeze.yaidom2.core.QName
-import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.core.PrefixedScope
+import eu.cdevreeze.yaidom2.core._
+import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
+import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.named
 import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
+
+import scala.collection.immutable.ListMap
 
 class ElemCreationTest extends AnyFunSuite {
 
@@ -61,7 +57,7 @@ class ElemCreationTest extends AnyFunSuite {
 
   private val GaapNs = "http://xasb.org/gaap"
 
-  private val mappings: SeqMap[String, String] = SeqMap(
+  private val mappings: ListMap[String, String] = ListMap(
     XbrliNs -> "xbrli",
     LinkNs -> "link",
     XLinkNs -> "xlink",
@@ -74,31 +70,28 @@ class ElemCreationTest extends AnyFunSuite {
 
   implicit private val elemCreator: nodebuilder.NodeBuilderCreator = nodebuilder.NodeBuilderCreator(namespacePrefixMapper)
 
-  import nodebuilder.NodeBuilderCreator._
   import elemCreator._
+  import nodebuilder.NodeBuilderCreator._
 
   test("testCreationAndEquivalenceOfXbrlContext") {
     def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
       val scope: PrefixedScope = extractScope(Seq(dimension, member))
 
-      textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope)
-        .creationApi
+      textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope).creationApi
         .plusAttribute(EName.fromLocalName("dimension"), scope.findQName(dimension).get.toString)
         .underlyingElem
     }
 
     val xbrliEntity: nodebuilder.Elem = {
-      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty)
-        .creationApi
+      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi
         .plusChild(
-          textElem(EName(XbrliNs, "identifier"), "1234567890", PrefixedScope.empty)
-            .creationApi
+          textElem(EName(XbrliNs, "identifier"), "1234567890", PrefixedScope.empty).creationApi
             .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
             .underlyingElem)
         .plusChild(emptyElem(EName(XbrliNs, "segment"), PrefixedScope.empty))
         .underlyingElem
         .transformDescendantElems {
-          case e@nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
+          case e @ nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
             e.creationApi
               .plusChild(createExplicitMemberElem(EName(GaapNs, "EntityAxis"), EName(GaapNs, "ABCCompanyDomain")))
               .plusChild(createExplicitMemberElem(EName(GaapNs, "BusinessSegmentAxis"), EName(GaapNs, "ConsolidatedGroupDomain")))
@@ -111,23 +104,24 @@ class ElemCreationTest extends AnyFunSuite {
     }
 
     val xbrliPeriod: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "period"), PrefixedScope.empty)
-        .creationApi
+      emptyElem(EName(XbrliNs, "period"), PrefixedScope.empty).creationApi
         .plusChild(textElem(EName(XbrliNs, "instant"), "2005-12-31", PrefixedScope.empty))
         .underlyingElem
 
     val xbrliContext: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "context"), PrefixedScope.empty)
-        .creationApi
+      emptyElem(EName(XbrliNs, "context"), PrefixedScope.empty).creationApi
         .plusAttribute(EName.fromLocalName("id"), "I-2005")
         .plusChild(xbrliEntity)
         .plusChild(xbrliPeriod)
         .underlyingElem
 
     val originalContext: SaxonNodes.Elem =
-      saxonDocument.documentElement.findChildElem { e =>
-        e.name == EName(XbrliNs, "context") && e.attr("id") == "I-2005"
-      }.get.ensuring(_.qname.prefixOption.isEmpty)
+      saxonDocument.documentElement
+        .findChildElem { e =>
+          e.name == EName(XbrliNs, "context") && e.attr("id") == "I-2005"
+        }
+        .get
+        .ensuring(_.qname.prefixOption.isEmpty)
 
     // The original context may use the default namespace for the xbrli namespace, but equality is not affected
 
@@ -140,33 +134,38 @@ class ElemCreationTest extends AnyFunSuite {
     val schemaRef: nodebuilder.Elem =
       emptyElem(
         EName(LinkNs, "schemaRef"),
-        SeqMap(EName(XLinkNs, "type") -> "simple", EName(XLinkNs, "href") -> "gaap.xsd"),
+        ListMap(EName(XLinkNs, "type") -> "simple", EName(XLinkNs, "href") -> "gaap.xsd"),
         PrefixedScope.empty)
 
     val linkbaseRef: nodebuilder.Elem =
       emptyElem(
         EName(LinkNs, "linkbaseRef"),
-        SeqMap(
+        ListMap(
           EName(XLinkNs, "type") -> "simple",
           EName(XLinkNs, "href") -> "gaap-formula.xml",
-          EName(XLinkNs, "arcrole") -> "http://www.w3.org/1999/xlink/properties/linkbase"),
-        PrefixedScope.empty)
+          EName(XLinkNs, "arcrole") -> "http://www.w3.org/1999/xlink/properties/linkbase"
+        ),
+        PrefixedScope.empty
+      )
 
-    val contexts: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(XbrliNs, "context"))
+    val contexts: Seq[nodebuilder.Elem] = saxonDocument.documentElement
+      .filterChildElems(named(XbrliNs, "context"))
       .map(e => createContext(e))
 
-    val units: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(XbrliNs, "unit"))
+    val units: Seq[nodebuilder.Elem] = saxonDocument.documentElement
+      .filterChildElems(named(XbrliNs, "unit"))
       .map(e => createUnit(e))
 
-    val facts: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(canBeFact)
+    val facts: Seq[nodebuilder.Elem] = saxonDocument.documentElement
+      .filterChildElems(canBeFact)
       .map(e => createFact(e, PrefixedScope.from(mappings.map(_.swap))))
 
-    val footnoteLinks: Seq[nodebuilder.Elem] = saxonDocument.documentElement.filterChildElems(named(LinkNs, "footnoteLink"))
+    val footnoteLinks: Seq[nodebuilder.Elem] = saxonDocument.documentElement
+      .filterChildElems(named(LinkNs, "footnoteLink"))
       .map(e => createFootnoteLink(e))
 
     val xbrlInstance: nodebuilder.Elem =
-      emptyElem(EName(XbrliNs, "xbrl"), PrefixedScope.empty)
-        .creationApi
+      emptyElem(EName(XbrliNs, "xbrl"), PrefixedScope.empty).creationApi
         .plusChild(schemaRef)
         .plusChild(linkbaseRef)
         .plusChildren(contexts)
@@ -180,19 +179,19 @@ class ElemCreationTest extends AnyFunSuite {
       import resolved.ResolvedElemCreator._
 
       rootElem.transformDescendantElemsOrSelf {
-        case e@resolved.Elem(EName(Some(XbrliNs), "xbrl"), _, _) =>
+        case e @ resolved.Elem(EName(Some(XbrliNs), "xbrl"), _, _) =>
           e.creationApi.minusAttribute(EName("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation")).underlying
-        case e@resolved.Elem(EName(Some(XbrliNs), "measure"), _, _) =>
+        case e @ resolved.Elem(EName(Some(XbrliNs), "measure"), _, _) =>
           e.withChildren(Seq(resolved.Text(QName.parse(e.text).localPart)))
         case e => e
       }
     }
 
-    val resolvedOriginalRootElem = transformElementTree(resolved.Elem.from(saxonDocument.documentElement))
-      .removeAllInterElementWhitespace.coalesceAndNormalizeAllText
+    val resolvedOriginalRootElem =
+      transformElementTree(resolved.Elem.from(saxonDocument.documentElement)).removeAllInterElementWhitespace.coalesceAndNormalizeAllText
 
-    val resolvedCreatedRootElem = transformElementTree(resolved.Elem.from(xbrlInstance))
-      .removeAllInterElementWhitespace.coalesceAndNormalizeAllText
+    val resolvedCreatedRootElem =
+      transformElementTree(resolved.Elem.from(xbrlInstance)).removeAllInterElementWhitespace.coalesceAndNormalizeAllText
 
     assertResult(resolvedOriginalRootElem.filterChildElems(named(LinkNs, "schemaRef"))) {
       resolvedCreatedRootElem.filterChildElems(named(LinkNs, "schemaRef"))
@@ -229,21 +228,23 @@ class ElemCreationTest extends AnyFunSuite {
     val originalScope = saxonDocument.documentElement.scope.ensuring(_.defaultNamespaceOption.contains(XbrliNs))
     require(saxonDocument.documentElement.findAllDescendantElems.forall(_.scope == originalScope))
 
-    val targetPrefixedScope = PrefixedScope.ignoringDefaultNamespace(originalScope)
+    val targetPrefixedScope = PrefixedScope
+      .ignoringDefaultNamespace(originalScope)
       .append(PrefixedScope.from("xbrli" -> XbrliNs))
 
     val originalRootElemWithoutDefaultNamespace: SimpleNodes.Elem =
-      SimpleNodes.Elem.from(saxonDocument.documentElement)
-      .transformDescendantElemsOrSelf {
-        case e if e.name == EName(XbrliNs, "measure") =>
-          val text = targetPrefixedScope.findQName(e.textAsResolvedQName).get.toString
-          val textNode = SimpleNodes.text(text)
-          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, Vector(textNode))
-        case e if e.name.namespaceUriOption.contains(XbrliNs) =>
-          new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, e.children)
-        case e =>
-          new SimpleNodes.Elem(e.qname, e.attributesByQName, targetPrefixedScope.scope, e.children)
-      }
+      SimpleNodes.Elem
+        .from(saxonDocument.documentElement)
+        .transformDescendantElemsOrSelf {
+          case e if e.name == EName(XbrliNs, "measure") =>
+            val text = targetPrefixedScope.findQName(e.textAsResolvedQName).get.toString
+            val textNode = SimpleNodes.text(text)
+            new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, Vector(textNode))
+          case e if e.name.namespaceUriOption.contains(XbrliNs) =>
+            new SimpleNodes.Elem(QName("xbrli", e.name.localPart), e.attributesByQName, targetPrefixedScope.scope, e.children)
+          case e =>
+            new SimpleNodes.Elem(e.qname, e.attributesByQName, targetPrefixedScope.scope, e.children)
+        }
 
     require(originalRootElemWithoutDefaultNamespace.findAllDescendantElemsOrSelf.forall(_.scope == targetPrefixedScope.scope))
 
@@ -305,7 +306,11 @@ class ElemCreationTest extends AnyFunSuite {
           val measureEName = e.textAsResolvedQName
           val measureQName = PrefixedScope.from(adaptedScope(e)).findQName(measureEName).get
 
-          new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), Vector(SimpleNodes.text(measureQName.toString)))
+          new SimpleNodes.Elem(
+            QName("xbrli", e.localName),
+            e.attributesByQName,
+            adaptedScope(e),
+            Vector(SimpleNodes.text(measureQName.toString)))
         case e if e.name.namespaceUriOption.contains(XbrliNs) =>
           new SimpleNodes.Elem(QName("xbrli", e.localName), e.attributesByQName, adaptedScope(e), e.children)
         case e =>
@@ -326,10 +331,10 @@ class ElemCreationTest extends AnyFunSuite {
 
     require(
       originalFact.attributes.keySet.subsetOf(Set("contextRef", "unitRef", "decimals", "id").map(EName.fromLocalName)),
-      s"Unexpected attributes in: ${originalFact.name}")
+      s"Unexpected attributes in: ${originalFact.name}"
+    )
 
-    textElem(originalFact.name, originalFact.text, parentScope)
-      .creationApi
+    textElem(originalFact.name, originalFact.text, parentScope).creationApi
       .plusAttribute(EName.fromLocalName("contextRef"), originalFact.attr("contextRef"))
       .plusAttributeOption(EName.fromLocalName("unitRef"), originalFact.attrOption("unitRef"))
       .plusAttributeOption(EName.fromLocalName("decimals"), originalFact.attrOption("decimals"))

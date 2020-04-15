@@ -16,16 +16,19 @@
 
 package eu.cdevreeze.yaidom2.queryapi
 
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
+
+import scala.collection.immutable.ListMap
 
 /**
  * So-called scoped element API. It extends trait `ClarkElemApi`, but it is also aware of qualified names (of elements
  * and attributes), and of in-scope namespaces. Hence the name `ScopedElemApi`. This API knows about XML elements,
  * but it does not know about nodes other than element nodes.
+ *
+ * Implementation note: this class used a ListMap for the attributesByQName instead of VectorMap (via the SeqMap API), due to Scala issue
+ * https://github.com/scala/scala/pull/8854.
  *
  * @author Chris de Vreeze
  */
@@ -37,7 +40,7 @@ trait ScopedElemApi extends ClarkElemApi {
 
   def qname: QName
 
-  def attributesByQName: SeqMap[QName, String]
+  def attributesByQName: ListMap[QName, String]
 
   def textAsQName: QName
 

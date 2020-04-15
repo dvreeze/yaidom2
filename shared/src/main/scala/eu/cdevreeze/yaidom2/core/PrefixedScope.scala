@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.core
 
-import scala.collection.immutable.SeqMap
+import scala.collection.immutable.ListMap
 
 /**
  * A holder of a Scope that has no default namespace. It is useful for element creation DSLs, for example.
@@ -30,7 +30,7 @@ import scala.collection.immutable.SeqMap
  *
  * @author Chris de Vreeze
  */
-final case class PrefixedScope private(scope: Scope) {
+final case class PrefixedScope private (scope: Scope) {
   assert(scope.defaultNamespaceOption.isEmpty)
 
   override def toString: String = scope.toString
@@ -144,7 +144,8 @@ final case class PrefixedScope private(scope: Scope) {
    * the same prefix for that namespace will be returned by a call of method getPrefixForNamespace on the result PrefixedScope.
    */
   def append(otherPrefixedScope: PrefixedScope): PrefixedScope = {
-    PrefixedScope.from(this.scope.append(otherPrefixedScope.scope))
+    PrefixedScope
+      .from(this.scope.append(otherPrefixedScope.scope))
       .ensuring(_.superScopeOf(otherPrefixedScope))
   }
 
@@ -182,10 +183,10 @@ object PrefixedScope {
   /**
    * Same as `PrefixedScope.from(Scope.from(m))`.
    */
-  def from(m: SeqMap[String, String]): PrefixedScope = {
+  def from(m: ListMap[String, String]): PrefixedScope = {
     PrefixedScope.from(Scope.from(m))
   }
 
   /** Returns `from(Map[String, String](m: _*))` */
-  def from(m: (String, String)*): PrefixedScope = from(SeqMap[String, String](m: _*))
+  def from(m: (String, String)*): PrefixedScope = from(ListMap[String, String](m: _*))
 }

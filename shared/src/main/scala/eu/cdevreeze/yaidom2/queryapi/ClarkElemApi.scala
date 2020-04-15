@@ -16,9 +16,9 @@
 
 package eu.cdevreeze.yaidom2.queryapi
 
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.core.EName
+
+import scala.collection.immutable.ListMap
 
 /**
  * Clark element API. It extends trait `ElemApi`, and offers methods to query for element text and element attributes.
@@ -29,6 +29,9 @@ import eu.cdevreeze.yaidom2.core.EName
  * This query API trait has been named after James Clark, who came up with a minimal XML abstraction in which
  * only expanded names (for elements and attributes) occur, and no qualified names.
  *
+ * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+ * https://github.com/scala/scala/pull/8854.
+ *
  * @author Chris de Vreeze
  */
 trait ClarkElemApi extends ElemApi {
@@ -37,7 +40,7 @@ trait ClarkElemApi extends ElemApi {
 
   def name: EName
 
-  def attributes: SeqMap[EName, String]
+  def attributes: ListMap[EName, String]
 
   /**
    * Returns the local name. That is, returns the local part of the name of the element.

@@ -18,10 +18,6 @@ package eu.cdevreeze.yaidom2.node.indexed
 
 import java.net.URI
 
-import scala.collection.immutable.ArraySeq
-import scala.collection.immutable.SeqMap
-import scala.reflect.classTag
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
@@ -30,6 +26,10 @@ import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractBackingElem
+
+import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.ListMap
+import scala.reflect.classTag
 
 /**
  * Native "indexed" nodes.
@@ -53,13 +53,17 @@ object IndexedNodes {
    *
    * The element navigation path is the element's navigation path relative to the underlying root element.
    * Each entry in the element navigation path is a (zero-based) child element index, not a child node index!
+   *
+   * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+   * https://github.com/scala/scala/pull/8854.
    */
-  final class Elem private(
-    val docUriOption: Option[URI],
-    val underlyingRootElem: SimpleNodes.Elem,
-    val elemNavigationPathFromRoot: ArraySeq[Int],
-    val underlyingElem: SimpleNodes.Elem
-  ) extends CanBeDocumentChild with AbstractBackingElem {
+  final class Elem private (
+      val docUriOption: Option[URI],
+      val underlyingRootElem: SimpleNodes.Elem,
+      val elemNavigationPathFromRoot: ArraySeq[Int],
+      val underlyingElem: SimpleNodes.Elem
+  ) extends CanBeDocumentChild
+      with AbstractBackingElem {
 
     type ThisElem = Elem
 
@@ -85,9 +89,11 @@ object IndexedNodes {
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
       underlyingElem.findAllChildElems.zipWithIndex
-        .map { case (e, idx) =>
-          new Elem(docUriOption, underlyingRootElem, elemNavigationPathFromRoot.appended(idx), e)
-        }.filter(p)
+        .map {
+          case (e, idx) =>
+            new Elem(docUriOption, underlyingRootElem, elemNavigationPathFromRoot.appended(idx), e)
+        }
+        .filter(p)
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
@@ -164,7 +170,7 @@ object IndexedNodes {
       underlyingElem.name
     }
 
-    def attributes: SeqMap[EName, String] = {
+    def attributes: ListMap[EName, String] = {
       underlyingElem.attributes
     }
 
@@ -176,7 +182,7 @@ object IndexedNodes {
       underlyingElem.qname
     }
 
-    def attributesByQName: SeqMap[QName, String] = {
+    def attributesByQName: ListMap[QName, String] = {
       underlyingElem.attributesByQName
     }
 
@@ -235,11 +241,11 @@ object IndexedNodes {
     type TargetNodeType = Node
 
     def from(node: BackingNodes.Node): Node = node match {
-      case e: BackingNodes.Elem => Elem.from(e)
-      case t: BackingNodes.Text => Text(t.text, false)
-      case c: BackingNodes.Comment => Comment(c.text)
+      case e: BackingNodes.Elem                   => Elem.from(e)
+      case t: BackingNodes.Text                   => Text(t.text, false)
+      case c: BackingNodes.Comment                => Comment(c.text)
       case pi: BackingNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
-      case n => sys.error(s"Not an element, text, comment or processing instruction node: $n")
+      case n                                      => sys.error(s"Not an element, text, comment or processing instruction node: $n")
     }
   }
 

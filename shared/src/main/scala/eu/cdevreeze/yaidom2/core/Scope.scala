@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.core
 
-import scala.collection.immutable.SeqMap
+import scala.collection.immutable.ListMap
 
 /**
  * Scope mapping prefixes to namespace URIs, as well as holding an optional default namespace. In other words, <em>in-scope
@@ -78,9 +78,12 @@ import scala.collection.immutable.SeqMap
  *
  * This class depends on Declarations, but not the other way around.
  *
+ * Implementation note: this class used a ListMap instead of VectorMap (via the SeqMap API), due to Scala issue
+ * https://github.com/scala/scala/pull/8854.
+ *
  * @author Chris de Vreeze
  */
-final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
+final case class Scope(prefixNamespaceMap: ListMap[String, String]) {
   require(!prefixNamespaceMap.contains("xml"), s"Prefix 'xml' is built-in and must not occur explicitly in the scope")
 
   import Scope._
@@ -104,15 +107,15 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   def withoutDefaultNamespace: Scope = if (defaultNamespaceOption.isEmpty) this else Scope(prefixNamespaceMap - DefaultNsPrefix)
 
   /**
-    * Returns true if the inverse exists, that is, each namespace URI has a unique prefix
-    * (including the empty prefix for the default namespace, if applicable).
-    *
-    * In other words, returns true if the inverse of `toMap` is also a mathematical function, mapping namespace URIs to unique prefixes.
-    *
-    * Invertible scopes offer a one-to-one correspondence between QNames and ENames. This is needed, for example, for `Path`s.
-    * Only if there is such a one-to-one correspondence, the indexes in `Path`s and `PathBuilder`s are stable, when converting
-    * between the two.
-    */
+   * Returns true if the inverse exists, that is, each namespace URI has a unique prefix
+   * (including the empty prefix for the default namespace, if applicable).
+   *
+   * In other words, returns true if the inverse of `toMap` is also a mathematical function, mapping namespace URIs to unique prefixes.
+   *
+   * Invertible scopes offer a one-to-one correspondence between QNames and ENames. This is needed, for example, for `Path`s.
+   * Only if there is such a one-to-one correspondence, the indexes in `Path`s and `PathBuilder`s are stable, when converting
+   * between the two.
+   */
   def isInvertible: Boolean = prefixNamespaceMap.keySet.size == namespaces.size
 
   /** Returns true if this is a subscope of the given parameter `Scope`. A `Scope` is considered subscope of itself. */
@@ -121,7 +124,9 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
     val otherMap = scope.prefixNamespaceMap
 
     thisMap.keySet.subsetOf(otherMap.keySet) && {
-      thisMap.keySet.forall { pref => thisMap(pref) == otherMap(pref) }
+      thisMap.keySet.forall { pref =>
+        thisMap(pref) == otherMap(pref)
+      }
     }
   }
 
@@ -134,7 +139,7 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   /** Returns `Scope.from(this.prefixNamespaceMap.filterKeys(p))`. */
   def filterKeys(p: String => Boolean): Scope = {
     // Method filterKeys deprecated since Scala 2.13.0.
-    Scope.from(this.prefixNamespaceMap.filter { case (pref, _) => p(pref) }.to(SeqMap))
+    Scope.from(this.prefixNamespaceMap.filter { case (pref, _) => p(pref) }.to(ListMap))
   }
 
   /** Returns `this.prefixNamespaceMap.keySet`. */
@@ -149,47 +154,47 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   }
 
   /**
-    * Returns `resolveQNameOption(qname).get`.
-    *
-    * TODO Create type ENameProvider, and use implicit ENameProvider.
-    */
+   * Returns `resolveQNameOption(qname).get`.
+   *
+   * TODO Create type ENameProvider, and use implicit ENameProvider.
+   */
   def resolveQName(qname: QName): EName = {
     resolveQNameOption(qname)
       .getOrElse(sys.error(s"Could not resolve QName '$qname' in scope '${Scope.this}'"))
   }
 
   /**
-    * Tries to resolve the given `QName` against this `Scope`, returning `None` for prefixed names whose prefixes are unknown
-    * to this `Scope`.
-    *
-    * Note that the `subScopeOf` relation keeps the `resolveQNameOption` result the same, provided there is no default namespace.
-    * That is, if `scope1.withoutDefaultNamespace.subScopeOf(scope2.withoutDefaultNamespace)`, then for each QName `qname`
-    * such that `scope1.withoutDefaultNamespace.resolveQNameOption(qname).isDefined`, we have:
-    * {{{
-    * scope1.withoutDefaultNamespace.resolveQNameOption(qname) == scope2.withoutDefaultNamespace.resolveQNameOption(qname)
-    * }}}
-    *
-    * TODO Create type ENameProvider, and use implicit ENameProvider.
-    */
+   * Tries to resolve the given `QName` against this `Scope`, returning `None` for prefixed names whose prefixes are unknown
+   * to this `Scope`.
+   *
+   * Note that the `subScopeOf` relation keeps the `resolveQNameOption` result the same, provided there is no default namespace.
+   * That is, if `scope1.withoutDefaultNamespace.subScopeOf(scope2.withoutDefaultNamespace)`, then for each QName `qname`
+   * such that `scope1.withoutDefaultNamespace.resolveQNameOption(qname).isDefined`, we have:
+   * {{{
+   * scope1.withoutDefaultNamespace.resolveQNameOption(qname) == scope2.withoutDefaultNamespace.resolveQNameOption(qname)
+   * }}}
+   *
+   * TODO Create type ENameProvider, and use implicit ENameProvider.
+   */
   def resolveQNameOption(qname: QName): Option[EName] = {
     qname match {
       case unprefixedName: UnprefixedName if defaultNamespaceOption.isEmpty => Some(EName(None, unprefixedName.localPart))
-      case unprefixedName: UnprefixedName => Some(EName(defaultNamespaceOption, unprefixedName.localPart))
-      case PrefixedName(prefix, localPart) =>
+      case unprefixedName: UnprefixedName                                   => Some(EName(defaultNamespaceOption, unprefixedName.localPart))
+      case PrefixedName(prefix, localPart)                                  =>
         // Thanks to Johan Walters for pointing to a performance bottleneck in previous versions of this code (in yaidom)
         prefix match {
           case "xml" => Some(EName(Some(XmlNamespace), localPart))
-          case "" => None // Quirk to keep old behavior of "allowing" empty prefixes and ignoring them when resolving the name
-          case _ => prefixNamespaceMap.get(prefix).map(nsUri => EName(Some(nsUri), localPart))
+          case ""    => None // Quirk to keep old behavior of "allowing" empty prefixes and ignoring them when resolving the name
+          case _     => prefixNamespaceMap.get(prefix).map(nsUri => EName(Some(nsUri), localPart))
         }
     }
   }
 
   /**
-    * Resolves the given declarations against this `Scope`, returning an "updated" `Scope`.
-    *
-    * Inspired by `java.net.URI`, which has a similar method for URIs.
-    */
+   * Resolves the given declarations against this `Scope`, returning an "updated" `Scope`.
+   *
+   * Inspired by `java.net.URI`, which has a similar method for URIs.
+   */
   def resolve(declarations: Declarations): Scope = {
     if (declarations.isEmpty) {
       this
@@ -204,15 +209,15 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   }
 
   /**
-    * Relativizes the given `Scope` against this `Scope`, returning a `Declarations` object.
-    *
-    * Inspired by `java.net.URI`, which has a similar method for URIs.
-    */
+   * Relativizes the given `Scope` against this `Scope`, returning a `Declarations` object.
+   *
+   * Inspired by `java.net.URI`, which has a similar method for URIs.
+   */
   def relativize(scope: Scope): Declarations = {
     if (Scope.this == scope) {
       Declarations.Empty
     } else {
-      val newlyDeclared: SeqMap[String, String] = scope.prefixNamespaceMap.filter {
+      val newlyDeclared: ListMap[String, String] = scope.prefixNamespaceMap.filter {
         case (pref, ns) =>
           assert(ns.length > 0)
           Scope.this.prefixNamespaceMap.getOrElse(pref, "") != ns
@@ -222,17 +227,19 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
       val undeclarations: Map[String, String] = removed.map(pref => pref -> "").toMap
 
       assert(newlyDeclared.keySet.intersect(removed).isEmpty)
-      val m: SeqMap[String, String] = newlyDeclared ++ undeclarations
+      val m: ListMap[String, String] = newlyDeclared ++ undeclarations
 
       Declarations(m)
     }
   }
 
   /**
-    * Returns the smallest sub-declarations `decl` of `declarations` such that `this.resolve(decl) == this.resolve(declarations)`
-    */
+   * Returns the smallest sub-declarations `decl` of `declarations` such that `this.resolve(decl) == this.resolve(declarations)`
+   */
   def minimize(declarations: Declarations): Declarations = {
-    val declared = declarations.withoutUndeclarations.prefixNamespaceMap.filter { case (pref, ns) => this.prefixNamespaceMap.getOrElse(pref, "") != ns }
+    val declared = declarations.withoutUndeclarations.prefixNamespaceMap.filter {
+      case (pref, ns) => this.prefixNamespaceMap.getOrElse(pref, "") != ns
+    }
     val undeclared = declarations.retainingUndeclarations.prefixNamespaceMap.keySet.intersect(this.prefixNamespaceMap.keySet)
 
     val result = Declarations(declared) ++ Declarations.undeclaring(undeclared)
@@ -269,16 +276,17 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   /** Creates a `String` representation of this `Scope`, as it is shown in XML */
   def toStringInXml: String = {
     val defaultNsString = if (defaultNamespaceOption.isEmpty) "" else """xmlns="%s"""".format(defaultNamespaceOption.get)
-    val prefixScopeString = (prefixNamespaceMap - DefaultNsPrefix).map { case (pref, ns) => """xmlns:%s="%s"""".format(pref, ns) }.mkString(" ")
+    val prefixScopeString =
+      (prefixNamespaceMap - DefaultNsPrefix).map { case (pref, ns) => """xmlns:%s="%s"""".format(pref, ns) }.mkString(" ")
     List(defaultNsString, prefixScopeString).filterNot { _ == "" }.mkString(" ")
   }
 
   /**
-    * Returns the inverse of this Scope, as Map from namespace URIs to collections of prefixes. These prefixes also include
-    * the empty String if this Scope has a default namespace.
-    */
+   * Returns the inverse of this Scope, as Map from namespace URIs to collections of prefixes. These prefixes also include
+   * the empty String if this Scope has a default namespace.
+   */
   def inverse: Map[String, Set[String]] = {
-    val nsPrefixPairs = this.prefixNamespaceMap.toSeq.map { case (prefix, ns) => (ns, prefix) }
+    val nsPrefixPairs = this.prefixNamespaceMap.toSeq.map { case (prefix, ns)                               => (ns, prefix) }
     val nsPrefixPairsGroupedByNs: Map[String, Seq[(String, String)]] = nsPrefixPairs.groupBy { case (ns, _) => ns }
 
     // Method mapValues deprecated since Scala 2.13.0.
@@ -288,36 +296,38 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
         ns -> result.toSet
     }.toMap
 
-    assert(result.values.forall (_.nonEmpty))
+    assert(result.values.forall(_.nonEmpty))
     result
   }
 
   /**
-    * Returns an invertible Scope having the same namespaces but only one prefix per namespace.
-    * If this Scope has a default namespace, the returned Scope possibly has that default namespace
-    * as well.
-    */
+   * Returns an invertible Scope having the same namespaces but only one prefix per namespace.
+   * If this Scope has a default namespace, the returned Scope possibly has that default namespace
+   * as well.
+   */
   def makeInvertible: Scope = {
     // Method mapValues deprecated since Scala 2.13.0.
-    val prefixNsMap = inverse.toSeq.map { case (ns, prefs) => ns -> prefs.head }
-      .map(_.swap).to(SeqMap)
+    val prefixNsMap = inverse.toSeq
+      .map { case (ns, prefs) => ns -> prefs.head }
+      .map(_.swap)
+      .to(ListMap)
 
     Scope.from(prefixNsMap).ensuring(_.isInvertible)
   }
 
   /**
-    * Returns the prefixes for the given namespace URI (in insertion order). The result includes the empty string for the default
-    * namespace, if the default namespace is indeed equal to the passed namespace URI. The result does not include "xml" for the
-    * implicit "xml" namespace (with namespace URI http://www.w3.org/XML/1998/namespace).
-    *
-    * The result, converted to a Set, is equivalent to:
-    * {{{
-    * this.inverse.getOrElse(namespaceUri, Set())
-    * }}}
-    *
-    * This method can be handy when "inserting" an "element" into a parent tree, if one wants to reuse prefixes of the
-    * parent tree.
-    */
+   * Returns the prefixes for the given namespace URI (in insertion order). The result includes the empty string for the default
+   * namespace, if the default namespace is indeed equal to the passed namespace URI. The result does not include "xml" for the
+   * implicit "xml" namespace (with namespace URI http://www.w3.org/XML/1998/namespace).
+   *
+   * The result, converted to a Set, is equivalent to:
+   * {{{
+   * this.inverse.getOrElse(namespaceUri, Set())
+   * }}}
+   *
+   * This method can be handy when "inserting" an "element" into a parent tree, if one wants to reuse prefixes of the
+   * parent tree.
+   */
   def prefixesForNamespace(namespaceUri: String): Seq[String] = {
     require(namespaceUri.nonEmpty, s"Empty namespace URI not allowed")
 
@@ -326,21 +336,21 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   }
 
   /**
-    * Returns one of the prefixes for the given namespace URI, if any, and otherwise falling back to a prefix (or exception)
-    * computed by the 2nd parameter. The result may be the empty string for the default namespace, if
-    * the default namespace is indeed equal to the passed namespace URI. The result is "xml" if the
-    * namespace URI is "http://www.w3.org/XML/1998/namespace".
-    *
-    * If the given namespace is the default namespace, but if there is also a non-empty prefix for the namespace, that
-    * non-empty prefix is returned. Otherwise, if the given namespace is the default namespace, the empty string is returned.
-    * If there are multiple non-empty prefixes for the namespace, the last one (in insertion order) is returned.
-    *
-    * The prefix fallback is only used if `prefixesForNamespace(namespaceUri).isEmpty`. If the fallback prefix conflicts
-    * with an already used prefix (including ""), an exception is thrown.
-    *
-    * This method can be handy when "inserting" an "element" into a parent tree, if one wants to reuse prefixes of the
-    * parent tree.
-    */
+   * Returns one of the prefixes for the given namespace URI, if any, and otherwise falling back to a prefix (or exception)
+   * computed by the 2nd parameter. The result may be the empty string for the default namespace, if
+   * the default namespace is indeed equal to the passed namespace URI. The result is "xml" if the
+   * namespace URI is "http://www.w3.org/XML/1998/namespace".
+   *
+   * If the given namespace is the default namespace, but if there is also a non-empty prefix for the namespace, that
+   * non-empty prefix is returned. Otherwise, if the given namespace is the default namespace, the empty string is returned.
+   * If there are multiple non-empty prefixes for the namespace, the last one (in insertion order) is returned.
+   *
+   * The prefix fallback is only used if `prefixesForNamespace(namespaceUri).isEmpty`. If the fallback prefix conflicts
+   * with an already used prefix (including ""), an exception is thrown.
+   *
+   * This method can be handy when "inserting" an "element" into a parent tree, if one wants to reuse prefixes of the
+   * parent tree.
+   */
   def prefixForNamespace(namespaceUri: String, getFallbackPrefix: () => String): String = {
     require(namespaceUri.nonEmpty, s"Empty namespace URI not allowed")
 
@@ -366,22 +376,22 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
   }
 
   /**
-    * Convenience method, returning the equivalent of:
-    * {{{
-    * this.resolve(
-    *   Declarations.from(prefixForNamespace(namespaceUri, getFallbackPrefix) -> namespaceUri))
-    * }}}
-    *
-    * If the namespace is "http://www.w3.org/XML/1998/namespace", this Scope is returned.
-    *
-    * If the fallback prefix is used and conflicts with an already used prefix (including ""), an exception is thrown,
-    * as documented for method `prefixForNamespace`.
-    *
-    * The following property holds:
-    * {{{
-    * this.subScopeOf(this.includingNamespace(namespaceUri, getFallbackPrefix))
-    * }}}
-    */
+   * Convenience method, returning the equivalent of:
+   * {{{
+   * this.resolve(
+   *   Declarations.from(prefixForNamespace(namespaceUri, getFallbackPrefix) -> namespaceUri))
+   * }}}
+   *
+   * If the namespace is "http://www.w3.org/XML/1998/namespace", this Scope is returned.
+   *
+   * If the fallback prefix is used and conflicts with an already used prefix (including ""), an exception is thrown,
+   * as documented for method `prefixForNamespace`.
+   *
+   * The following property holds:
+   * {{{
+   * this.subScopeOf(this.includingNamespace(namespaceUri, getFallbackPrefix))
+   * }}}
+   */
   def includingNamespace(namespaceUri: String, getFallbackPrefix: () => String): Scope = {
     require(namespaceUri.nonEmpty, s"Empty namespace URI not allowed")
 
@@ -416,23 +426,21 @@ final case class Scope(prefixNamespaceMap: SeqMap[String, String]) {
 object Scope {
 
   /** The "empty" `Scope` */
-  val Empty: Scope = Scope(SeqMap())
+  val Empty: Scope = Scope(ListMap())
 
   /**
-    * Same as the constructor, but removing the 'xml' prefix, if any.
-    * Therefore this call is easier to use than the constructor or default `apply` method.
-    */
-  def from(m: SeqMap[String, String]): Scope = {
+   * Same as the constructor, but removing the 'xml' prefix, if any.
+   * Therefore this call is easier to use than the constructor or default `apply` method.
+   */
+  def from(m: ListMap[String, String]): Scope = {
     if (m.contains("xml")) {
-      require(
-        m("xml") == XmlNamespace,
-        "The 'xml' prefix must map to 'http://www.w3.org/XML/1998/namespace'")
+      require(m("xml") == XmlNamespace, "The 'xml' prefix must map to 'http://www.w3.org/XML/1998/namespace'")
     }
     Scope(m - "xml")
   }
 
   /** Returns `from(Map[String, String](m: _*))` */
-  def from(m: (String, String)*): Scope = from(SeqMap[String, String](m: _*))
+  def from(m: (String, String)*): Scope = from(ListMap[String, String](m: _*))
 
   val DefaultNsPrefix = ""
 

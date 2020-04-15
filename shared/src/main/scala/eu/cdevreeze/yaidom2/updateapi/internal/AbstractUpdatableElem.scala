@@ -16,11 +16,11 @@
 
 package eu.cdevreeze.yaidom2.updateapi.internal
 
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.Nodes
 import eu.cdevreeze.yaidom2.updateapi.UpdatableElemApi
+
+import scala.collection.immutable.ListMap
 
 /**
  * Abstract partially implemented UpdatableElemApi, for re-usable (but overridable) partial element implementations in yaidom2.
@@ -41,7 +41,9 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem]
 
   def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = {
-    updateChildElems(Set(navigationStep)) { (elm, _) => f(elm) }
+    updateChildElems(Set(navigationStep)) { (elm, _) =>
+      f(elm)
+    }
   }
 
   def updateChildElem(navigationStep: Int, newElem: ThisElem): ThisElem = {
@@ -49,7 +51,9 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def updateChildElemWithNodeSeq(navigationStep: Int)(f: ThisElem => Seq[ThisNode]): ThisElem = {
-    updateChildElemsWithNodeSeq(Set(navigationStep)) { (elm, _) => f(elm) }
+    updateChildElemsWithNodeSeq(Set(navigationStep)) { (elm, _) =>
+      f(elm)
+    }
   }
 
   def updateChildElemWithNodeSeq(navigationStep: Int, newNodes: Seq[ThisNode]): ThisElem = {
@@ -57,7 +61,9 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def updateDescendantElemOrSelf(navigationPath: Seq[Int])(f: ThisElem => ThisElem): ThisElem = {
-    updateDescendantElemsOrSelf(Set(navigationPath)) { (elm, _) => f(elm) }
+    updateDescendantElemsOrSelf(Set(navigationPath)) { (elm, _) =>
+      f(elm)
+    }
   }
 
   def updateDescendantElemOrSelf(navigationPath: Seq[Int], newElem: ThisElem): ThisElem = {
@@ -65,7 +71,9 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def updateDescendantElemWithNodeSeq(navigationPath: Seq[Int])(f: ThisElem => Seq[ThisNode]): ThisElem = {
-    updateDescendantElemsWithNodeSeq(Set(navigationPath)) { (elm, _) => f(elm) }
+    updateDescendantElemsWithNodeSeq(Set(navigationPath)) { (elm, _) =>
+      f(elm)
+    }
   }
 
   def updateDescendantElemWithNodeSeq(navigationPath: Seq[Int], newNodes: Seq[ThisNode]): ThisElem = {
@@ -73,30 +81,28 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def updateChildElems(navigationSteps: Set[Int])(f: (ThisElem, Int) => ThisElem): ThisElem = {
-    val stepToNodeIndex: SeqMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
+    val stepToNodeIndex: ListMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
 
-    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(children) { case (accChildren, (step, nodeIndex)) =>
-      require(
-        accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem],
-        s"Expected element but got ${accChildren(nodeIndex)}")
+    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(children) {
+      case (accChildren, (step, nodeIndex)) =>
+        require(accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem], s"Expected element but got ${accChildren(nodeIndex)}")
 
-      val childElem = accChildren(nodeIndex).asInstanceOf[ThisElem]
-      accChildren.updated(nodeIndex, f(childElem, step))
+        val childElem = accChildren(nodeIndex).asInstanceOf[ThisElem]
+        accChildren.updated(nodeIndex, f(childElem, step))
     }
 
     withChildren(newChildren)
   }
 
   def updateChildElemsWithNodeSeq(navigationSteps: Set[Int])(f: (ThisElem, Int) => Seq[ThisNode]): ThisElem = {
-    val stepToNodeIndex: SeqMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
+    val stepToNodeIndex: ListMap[Int, Int] = getStepToChildNodeIndexMapReversed(navigationSteps)
 
-    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(children) { case (accChildren, (step, nodeIndex)) =>
-      require(
-        accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem],
-        s"Expected element but got ${accChildren(nodeIndex)}")
+    val newChildren: Seq[ThisNode] = stepToNodeIndex.foldLeft(children) {
+      case (accChildren, (step, nodeIndex)) =>
+        require(accChildren(nodeIndex).isInstanceOf[AbstractUpdatableElem], s"Expected element but got ${accChildren(nodeIndex)}")
 
-      val childElem = accChildren(nodeIndex).asInstanceOf[ThisElem]
-      accChildren.patch(nodeIndex, f(childElem, step), 1)
+        val childElem = accChildren(nodeIndex).asInstanceOf[ThisElem]
+        accChildren.patch(nodeIndex, f(childElem, step), 1)
     }
 
     withChildren(newChildren)
@@ -137,22 +143,23 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   /**
    * Computes a mapping from navigation steps (child element indexes) to child node indexes, sorted in reverse document order.
    */
-  protected def getStepToChildNodeIndexMapReversed(navigationSteps: Set[Int]): SeqMap[Int, Int] = {
+  protected def getStepToChildNodeIndexMapReversed(navigationSteps: Set[Int]): ListMap[Int, Int] = {
     var result = List.empty[(Int, Int)]
     var step = 0
 
-    children.zipWithIndex.foreach { case (ch, nodeIndex) =>
-      ch match {
-        case _: Nodes.Elem =>
-          if (navigationSteps.contains(step)) {
-            result = (step, nodeIndex) :: result
-          }
-          step += 1
-        case _: Nodes.Node =>
-      }
+    children.zipWithIndex.foreach {
+      case (ch, nodeIndex) =>
+        ch match {
+          case _: Nodes.Elem =>
+            if (navigationSteps.contains(step)) {
+              result = (step, nodeIndex) :: result
+            }
+            step += 1
+          case _: Nodes.Node =>
+        }
     }
 
-    result.to(SeqMap)
+    result.to(ListMap)
   }
 
   /**
@@ -167,7 +174,8 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
    *
    * For efficiency it is best to pass only small sets of navigation paths.
    */
-  protected def updateDescendantElemsOrSelfWithNodeSeq(navigationPaths: Set[Seq[Int]])(f: (ThisElem, Seq[Int]) => Seq[ThisNode]): Seq[ThisNode] = {
+  protected def updateDescendantElemsOrSelfWithNodeSeq(navigationPaths: Set[Seq[Int]])(
+      f: (ThisElem, Seq[Int]) => Seq[ThisNode]): Seq[ThisNode] = {
     val navigationPathsByFirstStep: Map[Int, Set[Seq[Int]]] =
       navigationPaths.filter(_.nonEmpty).groupBy(_.head)
 
@@ -187,5 +195,5 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
 
 object AbstractUpdatableElem {
 
-  type Aux[N, E] = AbstractUpdatableElem {type ThisNode = N; type ThisElem = E}
+  type Aux[N, E] = AbstractUpdatableElem { type ThisNode = N; type ThisElem = E }
 }

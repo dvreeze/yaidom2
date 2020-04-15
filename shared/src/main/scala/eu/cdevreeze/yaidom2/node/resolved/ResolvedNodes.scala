@@ -16,15 +16,15 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
-import scala.collection.immutable.SeqMap
-import scala.collection.mutable
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractClarkElem
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
+
+import scala.collection.immutable.ListMap
+import scala.collection.mutable
 
 /**
  * "Resolved" nodes.
@@ -47,12 +47,17 @@ object ResolvedNodes {
 
   /**
    * "Resolved" element node, offering the `ClarkNodes.Elem` element query API.
+   *
+   * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+   * https://github.com/scala/scala/pull/8854.
    */
   final case class Elem(
-    name: EName,
-    attributes: SeqMap[EName, String],
-    children: Vector[Node]  // For querying, ArraySeq would be optimal, but not for (functional) updates
-  ) extends CanBeDocumentChild with AbstractClarkElem with AbstractUpdatableElem {
+      name: EName,
+      attributes: ListMap[EName, String],
+      children: Vector[Node] // For querying, ArraySeq would be optimal, but not for (functional) updates
+  ) extends CanBeDocumentChild
+      with AbstractClarkElem
+      with AbstractUpdatableElem {
 
     type ThisElem = Elem
 
@@ -67,11 +72,11 @@ object ResolvedNodes {
     }
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      children.collect { case e@Elem(_, _, _) if p(e) => e }
+      children.collect { case e @ Elem(_, _, _) if p(e) => e }
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      children.collectFirst { case e@Elem(_, _, _) if p(e) => e }
+      children.collectFirst { case e @ Elem(_, _, _) if p(e) => e }
     }
 
     def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
@@ -174,7 +179,7 @@ object ResolvedNodes {
       val resultChildNodes: Vector[ThisNode] =
         children.map {
           case e: Elem => f(e)
-          case n => n
+          case n       => n
         }
 
       withChildren(resultChildNodes)
@@ -184,7 +189,7 @@ object ResolvedNodes {
       val resultChildNodes: Vector[ThisNode] =
         children.flatMap {
           case e: Elem => f(e)
-          case n => Vector(n)
+          case n       => Vector(n)
         }
 
       withChildren(resultChildNodes)
@@ -220,12 +225,12 @@ object ResolvedNodes {
     def removeAllInterElementWhitespace: Elem = {
       def isWhitespaceText(n: Node): Boolean = n match {
         case t: Text if t.text.trim.isEmpty => true
-        case _ => false
+        case _                              => false
       }
 
       def isNonTextNode(n: Node): Boolean = n match {
         case _: Text => false
-        case _ => true
+        case _       => true
       }
 
       val doStripWhitespace = findChildElem(_ => true).nonEmpty && children.forall(n => isWhitespaceText(n) || isNonTextNode(n))
@@ -263,7 +268,7 @@ object ResolvedNodes {
             case _: Text =>
               val (textNodes, remainder) = childNodes.span {
                 case _: Text => true
-                case _ => false
+                case _       => false
               }
 
               val combinedText: String = textNodes.collect { case t: Text => t.text }.mkString("")
@@ -334,7 +339,7 @@ object ResolvedNodes {
     def from(node: ClarkNodes.Node): Node = node match {
       case e: ClarkNodes.Elem => Elem.from(e)
       case t: ClarkNodes.Text => Text(t.text)
-      case n => sys.error(s"Not an element or text node: $n")
+      case n                  => sys.error(s"Not an element or text node: $n")
     }
   }
 
@@ -344,11 +349,13 @@ object ResolvedNodes {
 
     def from(elm: ClarkNodes.Elem): Elem = {
       val children = elm.children.collect {
-        case childElm: ClarkNodes.Elem => childElm
+        case childElm: ClarkNodes.Elem  => childElm
         case childText: ClarkNodes.Text => childText
       }
       // Recursion, with Node.from and Elem.from being mutually dependent
-      val resolvedChildren = children.map { node => Node.from(node) }
+      val resolvedChildren = children.map { node =>
+        Node.from(node)
+      }
 
       Elem(elm.name, elm.attributes, resolvedChildren.to(Vector))
     }

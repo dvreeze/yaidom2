@@ -16,14 +16,14 @@
 
 package eu.cdevreeze.yaidom2.dialect
 
-import scala.collection.immutable.ArraySeq
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
+
+import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.ListMap
 
 /**
  * General partly implementation of "dialect Scoped elements". This makes implementing each dialect (as Scoped
@@ -132,7 +132,7 @@ trait AbstractDialectScopedElem extends ScopedNodes.Elem {
     underlyingElem.namespaceAsString
   }
 
-  def attributes: SeqMap[EName, String] = {
+  def attributes: ListMap[EName, String] = {
     underlyingElem.attributes
   }
 
@@ -190,7 +190,7 @@ trait AbstractDialectScopedElem extends ScopedNodes.Elem {
     underlyingElem.qname
   }
 
-  def attributesByQName: SeqMap[QName, String] = {
+  def attributesByQName: ListMap[QName, String] = {
     underlyingElem.attributesByQName
   }
 

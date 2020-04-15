@@ -16,12 +16,12 @@
 
 package eu.cdevreeze.yaidom2.dialect
 
-import scala.collection.immutable.ArraySeq
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
+
+import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.ListMap
 
 /**
  * General partly implementation of "dialect Clark elements". This makes implementing each dialect (as Clark
@@ -127,7 +127,7 @@ trait AbstractDialectClarkElem extends ClarkNodes.Elem {
     underlyingElem.namespaceAsString
   }
 
-  def attributes: SeqMap[EName, String] = {
+  def attributes: ListMap[EName, String] = {
     underlyingElem.attributes
   }
 

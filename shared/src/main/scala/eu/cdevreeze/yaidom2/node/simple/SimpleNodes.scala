@@ -16,8 +16,6 @@
 
 package eu.cdevreeze.yaidom2.node.simple
 
-import scala.collection.immutable.SeqMap
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
@@ -26,6 +24,8 @@ import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
+
+import scala.collection.immutable.ListMap
 
 /**
  * "Simple" nodes.
@@ -48,13 +48,18 @@ object SimpleNodes {
 
   /**
    * "Simple" element node, offering the `ScopedNodes.Elem` element query API.
+   *
+   * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
+   * https://github.com/scala/scala/pull/8854.
    */
   final class Elem(
-    val qname: QName,
-    val attributesByQName: SeqMap[QName, String],
-    val scope: Scope,
-    val children: Vector[Node]  // For querying, ArraySeq would be optimal, but not for (functional) updates
-  ) extends CanBeDocumentChild with AbstractScopedElem with AbstractUpdatableElem {
+      val qname: QName,
+      val attributesByQName: ListMap[QName, String],
+      val scope: Scope,
+      val children: Vector[Node] // For querying, ArraySeq would be optimal, but not for (functional) updates
+  ) extends CanBeDocumentChild
+      with AbstractScopedElem
+      with AbstractUpdatableElem {
 
     // TODO Requirements on constructor parameters
 
@@ -71,11 +76,11 @@ object SimpleNodes {
     }
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
-      children.collect { case e@Elem(_, _, _, _) if p(e) => e }
+      children.collect { case e @ Elem(_, _, _, _) if p(e) => e }
     }
 
     def findChildElem(p: ThisElem => Boolean): Option[ThisElem] = {
-      children.collectFirst { case e@Elem(_, _, _, _) if p(e) => e }
+      children.collectFirst { case e @ Elem(_, _, _, _) if p(e) => e }
     }
 
     def findDescendantElemOrSelf(navigationPath: Seq[Int]): Option[ThisElem] = {
@@ -95,11 +100,12 @@ object SimpleNodes {
     }
 
     def name: EName = {
-      scope.resolveQNameOption(qname)
+      scope
+        .resolveQNameOption(qname)
         .getOrElse(sys.error(s"Element name '$qname' should resolve to an EName in scope [$scope]"))
     }
 
-    def attributes: SeqMap[EName, String] = {
+    def attributes: ListMap[EName, String] = {
       collectAttributes((_, _) => true)
     }
 
@@ -109,7 +115,7 @@ object SimpleNodes {
 
     override def attrOption(attributeName: EName): Option[String] = {
       // TODO Still too expensive if the Scope has a default namespace, which is stripped to get the attribute scope
-      val attributesWithSameLocalName: SeqMap[EName, String] =
+      val attributesWithSameLocalName: ListMap[EName, String] =
         collectAttributes((attName, _) => attName.localPart == attributeName.localPart)
 
       attributesWithSameLocalName.get(attributeName)
@@ -199,7 +205,7 @@ object SimpleNodes {
       val resultChildNodes: Vector[ThisNode] =
         children.map {
           case e: Elem => f(e)
-          case n => n
+          case n       => n
         }
 
       withChildren(resultChildNodes)
@@ -209,7 +215,7 @@ object SimpleNodes {
       val resultChildNodes: Vector[ThisNode] =
         children.flatMap {
           case e: Elem => f(e)
-          case n => Vector(n)
+          case n       => Vector(n)
         }
 
       withChildren(resultChildNodes)
@@ -231,20 +237,22 @@ object SimpleNodes {
 
     def attributeScope: Scope = scope.withoutDefaultNamespace
 
-    def withAttributesByQName(newAttributesByQName: SeqMap[QName, String]): ThisElem = {
+    def withAttributesByQName(newAttributesByQName: ListMap[QName, String]): ThisElem = {
       new Elem(qname, newAttributesByQName, scope, children)
     }
 
     // Private methods
 
-    private def collectAttributes(p: (QName, String) => Boolean): SeqMap[EName, String] = {
+    private def collectAttributes(p: (QName, String) => Boolean): ListMap[EName, String] = {
       val attrScope = attributeScope
 
-      attributesByQName.collect { case (attQName, attValue) if p(attQName, attValue) =>
-        val attEName = attrScope.resolveQNameOption(attQName)
-          .getOrElse(sys.error(s"Attribute name '$attQName' should resolve to an EName in scope [$attrScope]"))
+      attributesByQName.collect {
+        case (attQName, attValue) if p(attQName, attValue) =>
+          val attEName = attrScope
+            .resolveQNameOption(attQName)
+            .getOrElse(sys.error(s"Attribute name '$attQName' should resolve to an EName in scope [$attrScope]"))
 
-        attEName -> attValue
+          attEName -> attValue
       }
     }
   }
@@ -272,21 +280,21 @@ object SimpleNodes {
     type TargetNodeType = Node
 
     def from(node: ScopedNodes.Node): Node = node match {
-      case e: ScopedNodes.Elem => Elem.from(e)
-      case t: ScopedNodes.Text => Text(t.text, isCData = false)
-      case c: ScopedNodes.Comment => Comment(c.text)
+      case e: ScopedNodes.Elem                   => Elem.from(e)
+      case t: ScopedNodes.Text                   => Text(t.text, isCData = false)
+      case c: ScopedNodes.Comment                => Comment(c.text)
       case pi: ScopedNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
-      case n => sys.error(s"Not an element, text, comment or processing instruction node: $n")
+      case n                                     => sys.error(s"Not an element, text, comment or processing instruction node: $n")
     }
   }
 
   object CanBeDocumentChild {
 
     def from(node: ScopedNodes.CanBeDocumentChild): CanBeDocumentChild = node match {
-      case e: ScopedNodes.Elem => Elem.from(e)
-      case c: ScopedNodes.Comment => Comment(c.text)
+      case e: ScopedNodes.Elem                   => Elem.from(e)
+      case c: ScopedNodes.Comment                => Comment(c.text)
       case pi: ScopedNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
-      case n => sys.error(s"Not an element, comment or processing instruction node: $n")
+      case n                                     => sys.error(s"Not an element, comment or processing instruction node: $n")
     }
   }
 
@@ -298,20 +306,22 @@ object SimpleNodes {
 
     type TargetElemType = Elem
 
-    def unapply(elem: Elem): Option[(QName, SeqMap[QName, String], Scope, Seq[Node])] = {
+    def unapply(elem: Elem): Option[(QName, ListMap[QName, String], Scope, Seq[Node])] = {
       val v = (elem.qname, elem.attributesByQName, elem.scope, elem.children)
       Some(v)
     }
 
     def from(elm: ScopedNodes.Elem): Elem = {
       val children = elm.children.collect {
-        case childElm: ScopedNodes.Elem => childElm
-        case childText: ScopedNodes.Text => childText
-        case childComment: ScopedNodes.Comment => childComment
+        case childElm: ScopedNodes.Elem                                    => childElm
+        case childText: ScopedNodes.Text                                   => childText
+        case childComment: ScopedNodes.Comment                             => childComment
         case childProcessingInstruction: ScopedNodes.ProcessingInstruction => childProcessingInstruction
       }
       // Recursion, with Node.from and Elem.from being mutually dependent
-      val simpleChildren = children.map { node => Node.from(node) }
+      val simpleChildren = children.map { node =>
+        Node.from(node)
+      }
 
       new Elem(elm.qname, elm.attributesByQName, elm.scope, simpleChildren.to(Vector))
     }

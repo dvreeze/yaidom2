@@ -22,10 +22,10 @@ import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.updateapi.propertytests.UpdatableElemApiSpecification
 
-import scala.collection.immutable.SeqMap
+import scala.collection.immutable.ListMap
 
 class ResolvedElemUpdateApiSpecification
-  extends DefaultUpdatableElemApiSpecificationDataProvider[resolved.Node, resolved.Elem]("Resolved-UpdatableElemApi")
+    extends DefaultUpdatableElemApiSpecificationDataProvider[resolved.Node, resolved.Elem]("Resolved-UpdatableElemApi")
     with UpdatableElemApiSpecification[resolved.Node, resolved.Elem] {
 
   protected def convertSaxonElemToElem(e: saxon.Elem): resolved.Elem = {
@@ -34,16 +34,17 @@ class ResolvedElemUpdateApiSpecification
 
   protected def updateElem(e: resolved.Elem): resolved.Elem = {
     e.copy(attributes = e.attributes + (EName.fromLocalName("testAttribute") -> "test"))
-      .copy(children = e.children.appended(
-        resolved.Elem(EName.fromLocalName("test-element"), SeqMap.empty, Vector(resolved.Text("test")))))
+      .copy(
+        children = e.children.appended(resolved.Elem(EName.fromLocalName("test-element"), ListMap.empty, Vector(resolved.Text("test")))))
   }
 
   protected def updateElemToNodeSeq(e: resolved.Elem): Seq[resolved.Node] = {
     Seq(
       e.copy(attributes = e.attributes + (EName.fromLocalName("testAttribute") -> "test"))
-        .copy(children = e.children.appended(
-          resolved.Elem(EName.fromLocalName("test-element"), SeqMap.empty, Vector(resolved.Text("test"))))),
+        .copy(
+          children = e.children.appended(resolved.Elem(EName.fromLocalName("test-element"), ListMap.empty, Vector(resolved.Text("test"))))),
       resolved.Text("addedText"),
-      resolved.Elem(EName.fromLocalName("other-test-element"), SeqMap.empty, Vector(resolved.Text("test2"))))
+      resolved.Elem(EName.fromLocalName("other-test-element"), ListMap.empty, Vector(resolved.Text("test2")))
+    )
   }
 }
