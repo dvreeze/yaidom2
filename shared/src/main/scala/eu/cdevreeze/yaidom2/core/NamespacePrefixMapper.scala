@@ -73,6 +73,18 @@ object NamespacePrefixMapper {
     }
   }
 
+  object NamespacePrefixMap {
+
+    /**
+     * Creates a NamespacePrefixMap from a mapping from prefixes to namespaces. Note that prefixes may get lost this way.
+     */
+    def fromPrefixToNamespaceMap(prefixNamespaceMap: Map[String, String]): NamespacePrefixMap = {
+      val mappings: Map[String, String] = prefixNamespaceMap.map(_.swap)
+
+      NamespacePrefixMap(mappings)
+    }
+  }
+
   /**
    * Layered NamespacePrefixMapper, repeatedly falling back to the next layer if no mapping has been found.
    */
@@ -151,6 +163,13 @@ object NamespacePrefixMapper {
   def fromMap(mappings: Map[String, String]): NamespacePrefixMap = NamespacePrefixMap(mappings)
 
   /**
+   * Returns a NamespacePrefixMapper from a Map from prefixes to namespaces.
+   */
+  def fromPrefixToNamespaceMap(prefixNamespaceMap: Map[String, String]): NamespacePrefixMap = {
+    NamespacePrefixMap.fromPrefixToNamespaceMap(prefixNamespaceMap)
+  }
+
+  /**
    * Returns a layered NamespacePrefixMapper, that repeatedly falls back to the next layer if no mapping has been found.
    */
   def layering(namespacePrefixMappings: Seq[NamespacePrefixMapper]): LayeredNamespacePrefixMapper = {
@@ -176,5 +195,9 @@ object NamespacePrefixMapper {
    */
   def fromMapWithFallback(mappings: Map[String, String]): NamespacePrefixMapper = {
     layering(Seq(fromMap(mappings), fallback()))
+  }
+
+  def fromPrefixToNamespaceMapWithFallback(prefixNamespaceMap: Map[String, String]): NamespacePrefixMapper = {
+    layering(Seq(fromPrefixToNamespaceMap(prefixNamespaceMap), fallback()))
   }
 }

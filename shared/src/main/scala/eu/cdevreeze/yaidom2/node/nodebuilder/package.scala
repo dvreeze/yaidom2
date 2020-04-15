@@ -35,6 +35,10 @@ package object nodebuilder {
 
   type Text = NodeBuilders.Text
 
+  type Comment = NodeBuilders.Comment
+
+  type ProcessingInstruction = NodeBuilders.ProcessingInstruction
+
   val Document = NodeBuilders.Document
 
   val Node = NodeBuilders.Node

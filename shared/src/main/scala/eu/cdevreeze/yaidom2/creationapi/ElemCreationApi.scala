@@ -24,6 +24,9 @@ import scala.collection.immutable.ListMap
 /**
  * Element creation API. Typical implementations are rather stable objects that use a NamespacePrefixMapper internally.
  *
+ * To turn namespaces into prefixes, and therefore ENames into QNames, the parent PrefixedScope (if any) is first consulted,
+ * falling back to a NamespacePrefixMapper, if one is used.
+ *
  * It is not a type class, although it is easy to turn it into an imaginary type class with a type parameter for the element type.
  *
  * Implementation note: this trait used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue

@@ -19,11 +19,11 @@ package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 import java.io.File
 
 import eu.cdevreeze.yaidom2.core._
-import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
-import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
+import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
+import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.named
@@ -74,8 +74,10 @@ class ElemCreationTest extends AnyFunSuite {
   import nodebuilder.NodeBuilderCreator._
 
   test("testCreationAndEquivalenceOfXbrlContext") {
+    val prefixedScopeUtil = new PrefixedScopeUtil(namespacePrefixMapper)
+
     def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
-      val scope: PrefixedScope = extractScope(Seq(dimension, member))
+      val scope: PrefixedScope = prefixedScopeUtil.extractScope(Seq(dimension, member), PrefixedScope.empty)
 
       textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope).creationApi
         .plusAttribute(EName.fromLocalName("dimension"), scope.findQName(dimension).get.toString)
