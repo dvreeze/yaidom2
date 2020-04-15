@@ -106,10 +106,13 @@ object NodeBuilders {
       with AbstractUpdatableElem {
 
     // TODO Make it easier to update the element name etc.
-    // TODO Give useful error messages below (in the 2 assertions)
 
-    assert(Elem.hasElementAndAttributeQNames(name, attributes, prefixedScope)) // TODO Expensive check. Improve performance.
-    assert(this.hasNoPrefixedNamespaceUndeclarations) // TODO Expensive check. Improve performance.
+    // TODO These are expensive checks. Improve performance if possible.
+    assert(
+      Elem.hasElementAndAttributeQNames(name, attributes, prefixedScope),
+      s"No QName(s) for element name '$name' and/or attribute names (scope: $prefixedScope)"
+    )
+    assert(this.hasNoPrefixedNamespaceUndeclarations, s"Prefixed namespace undeclarations found but not allowed, for element '$name''")
 
     type ThisElem = Elem
 
@@ -304,6 +307,16 @@ object NodeBuilders {
    */
   final case class Text(text: String) extends Node with ScopedNodes.Text
 
+  /**
+   * "Creation DSL" comment node
+   */
+  final case class Comment(text: String) extends CanBeDocumentChild with ScopedNodes.Comment
+
+  /**
+   * "Creation DSL" processing instruction
+   */
+  final case class ProcessingInstruction(target: String, data: String) extends CanBeDocumentChild with ScopedNodes.ProcessingInstruction
+
   // Companion objects
 
   object Node extends ScopedNodeFactories.NodeFactory {
@@ -311,15 +324,19 @@ object NodeBuilders {
     type TargetNodeType = Node
 
     def optionallyFrom(node: ScopedNodes.Node): Option[Node] = node match {
-      case e: ScopedNodes.Elem => Elem.optionallyFrom(e)
-      case t: ScopedNodes.Text => Some(Text(t.text))
-      case _                   => None
+      case e: ScopedNodes.Elem                   => Elem.optionallyFrom(e)
+      case t: ScopedNodes.Text                   => Some(Text(t.text))
+      case c: ScopedNodes.Comment                => Some(Comment(c.text))
+      case pi: ScopedNodes.ProcessingInstruction => Some(ProcessingInstruction(pi.target, pi.data))
+      case _                                     => None
     }
 
     def from(node: ScopedNodes.Node): Node = node match {
-      case e: ScopedNodes.Elem => Elem.from(e)
-      case t: ScopedNodes.Text => Text(t.text)
-      case n                   => sys.error(s"Not an element or text node: $n")
+      case e: ScopedNodes.Elem                   => Elem.from(e)
+      case t: ScopedNodes.Text                   => Text(t.text)
+      case c: ScopedNodes.Comment                => Comment(c.text)
+      case pi: ScopedNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
+      case n                                     => sys.error(s"Not an element, text, comment or PI node: $n")
     }
   }
 
@@ -371,8 +388,10 @@ object NodeBuilders {
         s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
 
       val children = elm.children.collect {
-        case childElm: ScopedNodes.Elem  => childElm
-        case childText: ScopedNodes.Text => childText
+        case childElm: ScopedNodes.Elem                 => childElm
+        case childText: ScopedNodes.Text                => childText
+        case childComment: ScopedNodes.Comment          => childComment
+        case childPi: ScopedNodes.ProcessingInstruction => childPi
       }
 
       // Recursion, with Node.from and Elem.from being mutually dependent
