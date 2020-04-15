@@ -266,7 +266,35 @@ object NodeBuilderCreator {
       nodeBuilderCreator.usingNonConflictingParentScope(underlyingElem, parentScope).pipe(wrap)
     }
 
+    // Taking the own PrefixedScope as parent scope
+
+    def withChildrenFunction(newChildrenFunction: PrefixedScope => Seq[UnderlyingNode]): ThisElem = {
+      withChildren(newChildrenFunction(prefixedScope))
+    }
+
+    def plusChildFunction(childFunction: PrefixedScope => UnderlyingNode): ThisElem = {
+      plusChild(childFunction(prefixedScope))
+    }
+
+    def plusChildOptionFunction(childOptionFunction: PrefixedScope => Option[UnderlyingNode]): ThisElem = {
+      plusChildOption(childOptionFunction(prefixedScope))
+    }
+
+    def plusChildFunction(index: Int, childFunction: PrefixedScope => UnderlyingNode): ThisElem = {
+      plusChild(index, childFunction(prefixedScope))
+    }
+
+    def plusChildOptionFunction(index: Int, childOptionFunction: PrefixedScope => Option[UnderlyingNode]): ThisElem = {
+      plusChildOption(index, childOptionFunction(prefixedScope))
+    }
+
+    def plusChildrenFunction(childSeqFunction: PrefixedScope => Seq[UnderlyingNode]): ThisElem = {
+      plusChildren(childSeqFunction(prefixedScope))
+    }
+
     def underlying: UnderlyingElem = underlyingElem
+
+    def prefixedScope: PrefixedScope = underlying.prefixedScope
 
     private def wrap(underlyingElem: UnderlyingElem): ThisElem = {
       new Elem(underlyingElem)(nodeBuilderCreator)

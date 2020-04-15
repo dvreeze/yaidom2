@@ -76,8 +76,8 @@ class ElemCreationTest extends AnyFunSuite {
   test("testCreationAndEquivalenceOfXbrlContext") {
     val prefixedScopeUtil = new PrefixedScopeUtil(namespacePrefixMapper)
 
-    def createExplicitMemberElem(dimension: EName, member: EName): nodebuilder.Elem = {
-      val scope: PrefixedScope = prefixedScopeUtil.extractScope(Seq(dimension, member), PrefixedScope.empty)
+    def createExplicitMemberElem(dimension: EName, member: EName, parentScope: PrefixedScope): nodebuilder.Elem = {
+      val scope: PrefixedScope = prefixedScopeUtil.extractScope(Seq(dimension, member), parentScope)
 
       textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope).creationApi
         .plusAttribute(EName.fromLocalName("dimension"), scope.findQName(dimension).get.toString)
@@ -86,20 +86,24 @@ class ElemCreationTest extends AnyFunSuite {
 
     val xbrliEntity: nodebuilder.Elem = {
       emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi
-        .plusChild(
-          textElem(EName(XbrliNs, "identifier"), "1234567890", PrefixedScope.empty).creationApi
+        .plusChildFunction { ps =>
+          textElem(EName(XbrliNs, "identifier"), "1234567890", ps).creationApi
             .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
-            .underlyingElem)
-        .plusChild(emptyElem(EName(XbrliNs, "segment"), PrefixedScope.empty))
+            .underlyingElem
+        }
+        .plusChildFunction(ps => emptyElem(EName(XbrliNs, "segment"), ps))
         .underlyingElem
         .transformDescendantElems {
           case e @ nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
             e.creationApi
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "EntityAxis"), EName(GaapNs, "ABCCompanyDomain")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "BusinessSegmentAxis"), EName(GaapNs, "ConsolidatedGroupDomain")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "VerificationAxis"), EName(GaapNs, "UnqualifiedOpinionMember")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "PremiseAxis"), EName(GaapNs, "ActualMember")))
-              .plusChild(createExplicitMemberElem(EName(GaapNs, "ReportDateAxis"), EName(GaapNs, "ReportedAsOfMarch182008Member")))
+              .plusChildFunction(ps => createExplicitMemberElem(EName(GaapNs, "EntityAxis"), EName(GaapNs, "ABCCompanyDomain"), ps))
+              .plusChildFunction(ps =>
+                createExplicitMemberElem(EName(GaapNs, "BusinessSegmentAxis"), EName(GaapNs, "ConsolidatedGroupDomain"), ps))
+              .plusChildFunction(ps =>
+                createExplicitMemberElem(EName(GaapNs, "VerificationAxis"), EName(GaapNs, "UnqualifiedOpinionMember"), ps))
+              .plusChildFunction(ps => createExplicitMemberElem(EName(GaapNs, "PremiseAxis"), EName(GaapNs, "ActualMember"), ps))
+              .plusChildFunction(ps =>
+                createExplicitMemberElem(EName(GaapNs, "ReportDateAxis"), EName(GaapNs, "ReportedAsOfMarch182008Member"), ps))
               .underlyingElem
           case e => e
         }
