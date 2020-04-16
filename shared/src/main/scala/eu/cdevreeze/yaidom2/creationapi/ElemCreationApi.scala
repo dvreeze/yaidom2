@@ -33,6 +33,13 @@ import scala.collection.immutable.ListMap
  * as per method ScopedElemApi.containsNoConflictingScopes. Then this element creation API tends to retain that property,
  * instead of throwing exceptions.
  *
+ * Sometimes we need to enhance the Scope using methods like usingNonConflictingParentScope to add namespaces used in attribute
+ * values or element text. Knowledge about namespace usage (in attribute values and element text) is typically encoded in DocumentENameExtractor
+ * instances, and we need those (or something similar in spirit) to extract the extra used namespaces before adding the namespaces using
+ * methods like usingNonConflictingParentScope. Note that a DocumentENameExtractor expects a BackingNodes.Elem, so we might
+ * first have to turn the "node builder API" element into an "indexed" element (containing relevant ancestry), before using
+ * the DocumentENameExtractor. Obviously some utility functions need to be written to make that easier.
+ *
  * Implementation note: this trait used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
  * https://github.com/scala/scala/pull/8854.
  *

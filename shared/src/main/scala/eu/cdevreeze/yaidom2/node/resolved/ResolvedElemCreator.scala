@@ -30,8 +30,6 @@ import scala.util.chaining._
  */
 object ResolvedElemCreator extends ElemCreationApi {
 
-  // TODO Add knowledge about used namespaces (in attribute values and element text)
-
   type NodeType = ResolvedNodes.Node
 
   type ElemType = ResolvedNodes.Elem

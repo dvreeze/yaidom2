@@ -34,8 +34,6 @@ import scala.util.chaining._
  */
 final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) extends ElemCreationApi {
 
-  // TODO Add knowledge about used namespaces (in attribute values and element text)
-
   type NodeType = SimpleNodes.Node
 
   type ElemType = SimpleNodes.Elem
