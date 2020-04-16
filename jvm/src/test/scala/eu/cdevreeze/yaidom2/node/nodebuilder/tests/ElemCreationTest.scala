@@ -39,8 +39,6 @@ class ElemCreationTest extends AnyFunSuite {
   private def inputXmlFileOnClasspath: String = "/test-xml/sample-xbrl-instance.xml"
 
   private def saxonDocument: saxon.Document = {
-    val docBuilder = processor.newDocumentBuilder()
-
     val file = new File(classOf[XbrlNodeBuildersElemQueryTest].getResource(inputXmlFileOnClasspath).toURI)
     saxon.Document.parse(file, processor)
   }
