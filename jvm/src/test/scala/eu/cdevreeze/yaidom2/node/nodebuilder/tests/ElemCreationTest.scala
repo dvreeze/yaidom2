@@ -34,8 +34,6 @@ import scala.collection.immutable.ListMap
 
 class ElemCreationTest extends AnyFunSuite {
 
-  // TODO Enhance the new element creation API with (pluggable) knowledge about used namespaces in attribute values and element text.
-
   private val processor = new Processor(false)
 
   private def inputXmlFileOnClasspath: String = "/test-xml/sample-xbrl-instance.xml"
@@ -44,9 +42,7 @@ class ElemCreationTest extends AnyFunSuite {
     val docBuilder = processor.newDocumentBuilder()
 
     val file = new File(classOf[XbrlNodeBuildersElemQueryTest].getResource(inputXmlFileOnClasspath).toURI)
-    val doc = docBuilder.build(file)
-
-    saxon.Document(doc)
+    saxon.Document.parse(file, processor)
   }
 
   private val XbrliNs = "http://www.xbrl.org/2003/instance"
@@ -111,7 +107,7 @@ class ElemCreationTest extends AnyFunSuite {
 
     val xbrliPeriod: nodebuilder.Elem =
       emptyElem(EName(XbrliNs, "period"), PrefixedScope.empty).creationApi
-        .plusChild(textElem(EName(XbrliNs, "instant"), "2005-12-31", PrefixedScope.empty))
+        .plusChildFunction(ps => textElem(EName(XbrliNs, "instant"), "2005-12-31", ps))
         .underlyingElem
 
     val xbrliContext: nodebuilder.Elem =
