@@ -112,6 +112,10 @@ object ResolvedElemCreator extends ElemCreationApi {
     Elem(elem.name, elem.attributes.removed(attrName), elem.children)
   }
 
+  def withName(elem: ElemType, newName: EName): ElemType = {
+    Elem(newName, elem.attributes, elem.children)
+  }
+
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = elem
 
   def usingNonConflictingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = elem
@@ -178,6 +182,10 @@ object ResolvedElemCreator extends ElemCreationApi {
 
     def minusAttribute(attrName: EName): ThisElem = {
       elemCreator.minusAttribute(underlyingElem, attrName).pipe(wrap)
+    }
+
+    def withName(newName: EName): ThisElem = {
+      elemCreator.withName(underlyingElem, newName).pipe(wrap)
     }
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem = {

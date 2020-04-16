@@ -185,6 +185,15 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.children)
   }
 
+  def withName(elem: ElemType, newName: EName): ElemType = {
+    val enhancedScope: PrefixedScope = extractScope(newName, PrefixedScope.from(elem.scope.withoutDefaultNamespace))
+    require(elem.scope.doesNotConflictWith(enhancedScope.scope), s"Conflicting scopes '${elem.scope}' and '$enhancedScope'")
+    val scope: Scope = elem.scope.append(enhancedScope.scope)
+    val prefixedScope: PrefixedScope = PrefixedScope.from(scope.withoutDefaultNamespace)
+
+    new Elem(prefixedScope.getQName(newName), elem.attributesByQName, scope, elem.children)
+  }
+
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {
     usingParentScope(elem, parentScope.scope)
   }
@@ -302,6 +311,10 @@ object SimpleElemCreator {
 
     def minusAttribute(attrName: EName): ThisElem = {
       elemCreator.minusAttribute(underlyingElem, attrName).pipe(wrap)
+    }
+
+    def withName(newName: EName): ThisElem = {
+      elemCreator.withName(underlyingElem, newName).pipe(wrap)
     }
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem = {

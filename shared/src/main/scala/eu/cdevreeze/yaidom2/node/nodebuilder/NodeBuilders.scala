@@ -105,8 +105,6 @@ object NodeBuilders {
       with AbstractScopedElem
       with AbstractUpdatableElem {
 
-    // TODO Make it easier to update the element name etc.
-
     // TODO These are expensive checks. Improve performance if possible.
     assert(
       Elem.hasElementAndAttributeQNames(name, attributes, prefixedScope),

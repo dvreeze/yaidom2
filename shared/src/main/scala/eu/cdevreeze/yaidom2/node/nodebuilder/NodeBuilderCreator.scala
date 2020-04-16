@@ -154,6 +154,13 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     new Elem(elem.name, elem.attributes.removed(attrName), elem.children, elem.prefixedScope)
   }
 
+  def withName(elem: ElemType, newName: EName): ElemType = {
+    val enhancedScope: PrefixedScope = extractScope(newName, elem.prefixedScope)
+    require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
+
+    new Elem(newName, elem.attributes, elem.children, enhancedScope)
+  }
+
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {
     val currentScope: PrefixedScope = parentScope.append(elem.prefixedScope)
     // Recursive calls
@@ -256,6 +263,10 @@ object NodeBuilderCreator {
 
     def minusAttribute(attrName: EName): ThisElem = {
       nodeBuilderCreator.minusAttribute(underlyingElem, attrName).pipe(wrap)
+    }
+
+    def withName(newName: EName): ThisElem = {
+      nodeBuilderCreator.withName(underlyingElem, newName).pipe(wrap)
     }
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem = {

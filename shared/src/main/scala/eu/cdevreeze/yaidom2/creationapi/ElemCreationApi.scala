@@ -29,6 +29,10 @@ import scala.collection.immutable.ListMap
  *
  * It is not a type class, although it is easy to turn it into an imaginary type class with a type parameter for the element type.
  *
+ * We should strive to work as much as possible with collections of element trees that contain no mutually conflicting scopes anywhere,
+ * as per method ScopedElemApi.containsNoConflictingScopes. Then this element creation API tends to retain that property,
+ * instead of throwing exceptions.
+ *
  * Implementation note: this trait used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
  * https://github.com/scala/scala/pull/8854.
  *
@@ -153,6 +157,11 @@ trait ElemCreationApi {
   def minusAttribute(elem: ElemType, attrName: EName): ElemType
 
   /**
+   * Returns a copy of the given element in which the element name has been changed.
+   */
+  def withName(elem: ElemType, newName: EName): ElemType
+
+  /**
    * Recursively appends each element's scope to the parent scope, thus preventing the occurrence of prefixed namespace undeclarations
    * throughout the XML tree. After all, XML 1.0 does not allow any prefixed namespace undeclarations.
    *
@@ -219,6 +228,8 @@ object ElemCreationApi {
     def plusAttributes(newAttributes: ListMap[EName, String]): ThisElem
 
     def minusAttribute(attrName: EName): ThisElem
+
+    def withName(newName: EName): ThisElem
 
     def usingParentScope(parentScope: PrefixedScope): ThisElem
 
