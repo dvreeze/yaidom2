@@ -31,8 +31,8 @@ import scala.util.chaining._
  *
  * The more the NamespacePrefixMapper and parent scopes (in several functions below) agree on namespace-prefix mappings,
  * the less chance there is that conflicts (prefixes mapping to different namespaces) occur, and the fewer corresponding
- * exceptions will be thrown by these functions. We should strive to work as much as possible with element trees that
- * contain no mutually conflicting scopes anywhere.
+ * exceptions will be thrown by these functions. We should strive to work as much as possible with collections of element trees that
+ * contain no mutually conflicting scopes anywhere, as per method ScopedElemApi.containsNoConflictingScopes.
  *
  * @author Chris de Vreeze
  */

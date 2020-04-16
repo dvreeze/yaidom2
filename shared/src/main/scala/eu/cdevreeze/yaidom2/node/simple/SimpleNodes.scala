@@ -273,7 +273,6 @@ object SimpleNodes {
   final case class ProcessingInstruction(target: String, data: String) extends CanBeDocumentChild with ScopedNodes.ProcessingInstruction
 
   // Next the functional query API
-  // TODO ElemCreationApi (using invertible Scope as state)
 
   object Node extends ScopedNodeFactories.NodeFactory {
 
