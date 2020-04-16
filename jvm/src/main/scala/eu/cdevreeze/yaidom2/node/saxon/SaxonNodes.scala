@@ -16,6 +16,9 @@
 
 package eu.cdevreeze.yaidom2.node.saxon
 
+import java.io.File
+import java.io.OutputStream
+import java.io.Writer
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.core.EName
@@ -26,6 +29,7 @@ import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import net.sf.saxon.s9api.streams.Predicates._
 import net.sf.saxon.s9api.streams.Step
 import net.sf.saxon.s9api.streams.Steps._
+import net.sf.saxon.s9api.Serializer
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
 
@@ -331,6 +335,22 @@ object SaxonNodes {
     def select(step: ElemStep[Elem]): Seq[Elem] = {
       // Implemented directly, instead of in terms of Elem.select.
       step(this)
+    }
+
+    // Other methods
+
+    // JVM-only, but so is Saxon itself
+
+    def newSerializer(stream: OutputStream): Serializer = {
+      xdmNode.getProcessor.newSerializer(stream)
+    }
+
+    def newSerializer(writer: Writer): Serializer = {
+      xdmNode.getProcessor.newSerializer(writer)
+    }
+
+    def newSerializer(file: File): Serializer = {
+      xdmNode.getProcessor.newSerializer(file)
     }
   }
 

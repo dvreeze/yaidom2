@@ -28,13 +28,20 @@ import org.xml.sax.helpers.AttributesImpl
 /**
  * SAX event producers for Scoped nodes and documents.
  *
+ * This object can be used for XML serialization of (different kinds of) yaidom2 documents or elements. To that end
+ * we could start with a SAXTransformerFactory (typically a TransformerFactory can be down-cast to a SAXTransformerFactory),
+ * and call its (no-argument) newTransformerHandler method. The resulting TransformerHandler is then the ContentHandler that
+ * can be passed to the methods below, after configuring it (with methods like setResult and setSystemId).
+ *
  * @author Chris de Vreeze
  */
 object SaxEventProducers {
 
   def produceEventsForDocument(doc: ScopedDocumentApi, contentHandler: ContentHandler): Unit = {
     contentHandler.startDocument()
-    doc.children.foreach { ch => produceEventsForNode(ch, Scope.Empty, contentHandler) }
+    doc.children.foreach { ch =>
+      produceEventsForNode(ch, Scope.Empty, contentHandler)
+    }
     contentHandler.endDocument()
   }
 
@@ -84,8 +91,8 @@ object SaxEventProducers {
   }
 
   private def produceEventsForProcessingInstruction(
-    processingInstruction: ScopedNodes.ProcessingInstruction,
-    contentHandler: ContentHandler): Unit = {
+      processingInstruction: ScopedNodes.ProcessingInstruction,
+      contentHandler: ContentHandler): Unit = {
 
     contentHandler.processingInstruction(processingInstruction.target, processingInstruction.data)
   }

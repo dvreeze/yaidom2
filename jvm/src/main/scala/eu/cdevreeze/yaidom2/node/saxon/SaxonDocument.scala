@@ -16,17 +16,25 @@
 
 package eu.cdevreeze.yaidom2.node.saxon
 
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.Writer
 import java.net.URI
+
+import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
+import javax.xml.transform.Source
+import javax.xml.transform.stream.StreamSource
+import net.sf.saxon.s9api.streams.Predicates.isElement
+import net.sf.saxon.s9api.streams.Steps.child
+import net.sf.saxon.s9api.Processor
+import net.sf.saxon.s9api.Serializer
+import net.sf.saxon.s9api.XdmNode
+import net.sf.saxon.s9api.XdmNodeKind
 
 import scala.collection.immutable.ArraySeq
 import scala.jdk.OptionConverters._
 import scala.jdk.StreamConverters._
-
-import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
-import net.sf.saxon.s9api.XdmNode
-import net.sf.saxon.s9api.XdmNodeKind
-import net.sf.saxon.s9api.streams.Predicates.isElement
-import net.sf.saxon.s9api.streams.Steps.child
 
 /**
  * Document holding a SaxonNodes.Elem.
@@ -34,9 +42,7 @@ import net.sf.saxon.s9api.streams.Steps.child
  * @author Chris de Vreeze
  */
 final case class SaxonDocument(xdmNode: XdmNode) extends BackingDocumentApi {
-  require(
-    xdmNode.getNodeKind == XdmNodeKind.DOCUMENT,
-    s"Expected document but got node of kind ${xdmNode.getNodeKind}")
+  require(xdmNode.getNodeKind == XdmNodeKind.DOCUMENT, s"Expected document but got node of kind ${xdmNode.getNodeKind}")
 
   type NodeType = SaxonNodes.Node
 
@@ -56,5 +62,44 @@ final case class SaxonDocument(xdmNode: XdmNode) extends BackingDocumentApi {
   def documentElement: ElemType = {
     val stream = xdmNode.select(child().where(n => isElement.test(n)))
     stream.findFirst.toScala.map(n => SaxonNodes.Elem(n)).get
+  }
+
+  // JVM-only, but so is Saxon itself
+
+  def newSerializer(stream: OutputStream): Serializer = {
+    xdmNode.getProcessor.newSerializer(stream)
+  }
+
+  def newSerializer(writer: Writer): Serializer = {
+    xdmNode.getProcessor.newSerializer(writer)
+  }
+
+  def newSerializer(file: File): Serializer = {
+    xdmNode.getProcessor.newSerializer(file)
+  }
+}
+
+object SaxonDocument {
+
+  // JVM-only, but so is Saxon itself
+
+  def parse(f: File, processor: Processor): SaxonDocument = {
+    val xdmNode: XdmNode = processor.newDocumentBuilder().build(f)
+    SaxonDocument(xdmNode)
+  }
+
+  def parse(src: Source, processor: Processor): SaxonDocument = {
+    val xdmNode: XdmNode = processor.newDocumentBuilder().build(src)
+    SaxonDocument(xdmNode)
+  }
+
+  def parse(is: InputStream, processor: Processor): SaxonDocument = {
+    val xdmNode: XdmNode = processor.newDocumentBuilder().build(new StreamSource(is))
+    SaxonDocument(xdmNode)
+  }
+
+  def parse(is: InputStream, docUri: URI, processor: Processor): SaxonDocument = {
+    val xdmNode: XdmNode = processor.newDocumentBuilder().build(new StreamSource(is, docUri.toString))
+    SaxonDocument(xdmNode)
   }
 }
