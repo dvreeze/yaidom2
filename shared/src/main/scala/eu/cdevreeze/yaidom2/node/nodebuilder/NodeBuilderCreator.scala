@@ -53,7 +53,7 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(name +: attributes.keys.toIndexedSeq, parentScope)
     require(parentScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '$parentScope' and '$enhancedScope'")
 
-    new Elem(name, attributes, Vector.empty, enhancedScope)
+    new Elem(name, attributes, enhancedScope, Vector.empty)
   }
 
   def textElem(name: EName, txt: String, parentScope: PrefixedScope): ElemType = {
@@ -64,7 +64,7 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(name +: attributes.keys.toIndexedSeq, parentScope)
     require(parentScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '$parentScope' and '$enhancedScope'")
 
-    new Elem(name, attributes, Vector(Text(txt)), enhancedScope)
+    new Elem(name, attributes, enhancedScope, Vector(Text(txt)))
   }
 
   def elem(name: EName, children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
@@ -75,7 +75,7 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(name +: attributes.keys.toIndexedSeq, parentScope)
     require(parentScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '$parentScope' and '$enhancedScope'")
 
-    new Elem(name, attributes, children.map(ch => nodeUsingNonConflictingParentScope(ch, enhancedScope)).to(Vector), enhancedScope)
+    new Elem(name, attributes, enhancedScope, children.map(ch => nodeUsingNonConflictingParentScope(ch, enhancedScope)).to(Vector))
   }
 
   def children(elem: ElemType): Seq[NodeType] = elem.children
@@ -84,16 +84,16 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     new Elem(
       elem.name,
       elem.attributes,
-      newChildren.map(ch => nodeUsingNonConflictingParentScope(ch, elem.prefixedScope)).to(Vector),
-      elem.prefixedScope)
+      elem.prefixedScope,
+      newChildren.map(ch => nodeUsingNonConflictingParentScope(ch, elem.prefixedScope)).to(Vector))
   }
 
   def plusChild(elem: ElemType, child: NodeType): ElemType = {
     new Elem(
       elem.name,
       elem.attributes,
-      elem.children.appended(nodeUsingNonConflictingParentScope(child, elem.prefixedScope)),
-      elem.prefixedScope)
+      elem.prefixedScope,
+      elem.children.appended(nodeUsingNonConflictingParentScope(child, elem.prefixedScope)))
   }
 
   def plusChildOption(elem: ElemType, childOption: Option[NodeType]): ElemType = {
@@ -114,8 +114,8 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     new Elem(
       elem.name,
       elem.attributes,
-      elem.children.appendedAll(childSeq.map(ch => nodeUsingNonConflictingParentScope(ch, elem.prefixedScope))),
-      elem.prefixedScope)
+      elem.prefixedScope,
+      elem.children.appendedAll(childSeq.map(ch => nodeUsingNonConflictingParentScope(ch, elem.prefixedScope))))
   }
 
   def minusChild(elem: ElemType, index: Int): ElemType = {
@@ -127,14 +127,14 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(newAttributes.keys.toSeq, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(elem.name, newAttributes, elem.children, enhancedScope)
+    new Elem(elem.name, newAttributes, enhancedScope, elem.children)
   }
 
   def plusAttribute(elem: ElemType, attrName: EName, attrValue: String): ElemType = {
     val enhancedScope: PrefixedScope = extractScope(attrName, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(elem.name, elem.attributes.updated(attrName, attrValue), elem.children, enhancedScope)
+    new Elem(elem.name, elem.attributes.updated(attrName, attrValue), enhancedScope, elem.children)
   }
 
   def plusAttributeOption(elem: ElemType, attrName: EName, attrValueOption: Option[String]): ElemType = {
@@ -145,27 +145,27 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(newAttributes.keys.toSeq, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(elem.name, elem.attributes.concat(newAttributes), elem.children, enhancedScope)
+    new Elem(elem.name, elem.attributes.concat(newAttributes), enhancedScope, elem.children)
   }
 
   def minusAttribute(elem: ElemType, attrName: EName): ElemType = {
-    new Elem(elem.name, elem.attributes.removed(attrName), elem.children, elem.prefixedScope)
+    new Elem(elem.name, elem.attributes.removed(attrName), elem.prefixedScope, elem.children)
   }
 
   def withName(elem: ElemType, newName: EName): ElemType = {
     val enhancedScope: PrefixedScope = extractScope(newName, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(newName, elem.attributes, elem.children, enhancedScope)
+    new Elem(newName, elem.attributes, enhancedScope, elem.children)
   }
 
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {
     val currentScope: PrefixedScope = parentScope.append(elem.prefixedScope)
     // Recursive calls
-    new Elem(elem.name, elem.attributes, elem.children.map {
+    new Elem(elem.name, elem.attributes, currentScope, elem.children.map {
       case che: Elem => usingParentScope(che, currentScope)
       case n         => n
-    }, currentScope)
+    })
   }
 
   def nodeUsingParentScope(node: NodeType, parentScope: PrefixedScope): NodeType = {
@@ -179,10 +179,10 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     require(parentScope.doesNotConflictWith(elem.prefixedScope), s"Conflicting scopes '$parentScope' and '${elem.prefixedScope}'")
     val currentScope: PrefixedScope = parentScope.append(elem.prefixedScope)
     // Recursive calls
-    new Elem(elem.name, elem.attributes, elem.children.map {
+    new Elem(elem.name, elem.attributes, currentScope, elem.children.map {
       case che: Elem => usingNonConflictingParentScope(che, currentScope)
       case n         => n
-    }, currentScope)
+    })
   }
 
   def nodeUsingNonConflictingParentScope(node: NodeType, parentScope: PrefixedScope): NodeType = {

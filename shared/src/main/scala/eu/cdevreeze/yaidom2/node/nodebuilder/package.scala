@@ -25,7 +25,7 @@ package eu.cdevreeze.yaidom2.node
  */
 package object nodebuilder {
 
-  type Document = NodeBuilders.Document
+  type Document = NodeBuilderDocument
 
   type Node = NodeBuilders.Node
 
@@ -39,7 +39,7 @@ package object nodebuilder {
 
   type ProcessingInstruction = NodeBuilders.ProcessingInstruction
 
-  val Document = NodeBuilders.Document
+  val Document = NodeBuilderDocument
 
   val Node = NodeBuilders.Node
 

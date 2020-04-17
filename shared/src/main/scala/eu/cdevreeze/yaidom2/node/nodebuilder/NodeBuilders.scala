@@ -16,17 +16,12 @@
 
 package eu.cdevreeze.yaidom2.node.nodebuilder
 
-import java.net.URI
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.Nodes
-import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.elemstep.ScopedElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
@@ -40,43 +35,6 @@ import scala.collection.immutable.ListMap
  * @author Chris de Vreeze
  */
 object NodeBuilders {
-
-  /**
-   * Document holding a NodeBuilders.Elem.
-   */
-  final case class Document(docUriOption: Option[URI], children: Seq[CanBeDocumentChild]) extends ScopedDocumentApi {
-    require(
-      children.collect { case e: Elem => e }.size == 1,
-      s"A document must have precisely 1 document element but found ${children.collect { case e: Elem => e }.size} ones")
-
-    type NodeType = Node
-
-    type CanBeDocumentChildType = CanBeDocumentChild
-
-    type ElemType = Elem
-
-    def documentElement: ElemType = children.collectFirst { case e: Elem => e }.get
-  }
-
-  object Document extends ScopedDocumentFactory {
-
-    type TargetDocumentType = Document
-
-    def apply(docUriOption: Option[URI], documentElement: Elem): Document = {
-      apply(docUriOption, Seq(documentElement))
-    }
-
-    def from(document: ScopedDocumentApi): Document = {
-      val docChildren = document.children.collect { case ch: ScopedNodes.CanBeDocumentChild => ch }
-
-      val targetDocChildren =
-        docChildren
-          .filter(n => Set[Nodes.NodeKind](Nodes.ElementKind).contains(n.nodeKind))
-          .map(n => Elem.from(n.asInstanceOf[ScopedNodes.Elem])) // TODO Replace this expensive conversion
-
-      Document(document.docUriOption, targetDocChildren)
-    }
-  }
 
   // First the OO query API
 
@@ -99,8 +57,8 @@ object NodeBuilders {
   final class Elem private[nodebuilder] (
       val name: EName,
       val attributes: ListMap[EName, String],
-      val children: Vector[Node], // For querying, ArraySeq would be optimal, but not for (functional) updates
-      val prefixedScope: PrefixedScope
+      val prefixedScope: PrefixedScope,
+      val children: Vector[Node] // For querying, ArraySeq would be optimal, but not for (functional) updates
   ) extends CanBeDocumentChild
       with AbstractScopedElem
       with AbstractUpdatableElem {
@@ -216,7 +174,7 @@ object NodeBuilders {
         s"Not all child elements introduce no (prefixed) namespace undeclarations (current element's scope: $scope)"
       )
 
-      new Elem(name, attributes, newChildren.to(Vector), prefixedScope)
+      new Elem(name, attributes, prefixedScope, newChildren.to(Vector))
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
@@ -399,7 +357,7 @@ object NodeBuilders {
         Node.from(node)
       }
 
-      new Elem(elm.name, elm.attributes, creationDslChildren.to(Vector), prefixedScope)
+      new Elem(elm.name, elm.attributes, prefixedScope, creationDslChildren.to(Vector))
     }
 
     // Constraints on element builders (besides the use of PrefixedScopes only)
