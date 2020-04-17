@@ -54,6 +54,10 @@ final class PrefixedScopeUtil(val namespacePrefixMapper: NamespacePrefixMapper) 
    * PrefixedScope (through method PrefixedScope.findPrefixForNamespace), and if not found, then by using the NamespacePrefixMapper.
    *
    * This function throws an exception if neither parent PrefixedScope nor the NamespaceMapper have a prefix for some namespace.
+   * It also throws an exception if the resulting PrefixedScope would conflict with the given parent PrefixedScope,
+   * due to a changed prefix-namespace mapping.
+   *
+   * It is guaranteed that the resulting PrefixedScope is a super-scope of the passed parent PrefixedScope.
    *
    * Note that this method is also very suitable for filling a PrefixedScope from the NamespaceMapper, by passing an empty
    * PrefixedScope as 2nd parameter.
@@ -66,6 +70,8 @@ final class PrefixedScopeUtil(val namespacePrefixMapper: NamespacePrefixMapper) 
       }
       .to(ListMap)
 
-    parentScope.append(PrefixedScope.from(prefixNamespaceMap))
+    val resultScope = parentScope.append(PrefixedScope.from(prefixNamespaceMap))
+    require(parentScope.doesNotConflictWith(resultScope), s"Conflicting scopes '$parentScope' and '$resultScope'")
+    resultScope.ensuring(_.superScopeOf(parentScope))
   }
 }

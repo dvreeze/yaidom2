@@ -275,30 +275,46 @@ object NodeBuilderCreator {
       nodeBuilderCreator.usingNonConflictingParentScope(underlyingElem, parentScope).pipe(wrap)
     }
 
-    // Taking the own PrefixedScope as parent scope
+    // Passing this element as function parameter
 
-    def withChildrenFunction(newChildrenFunction: PrefixedScope => Seq[UnderlyingNode]): ThisElem = {
-      withChildren(newChildrenFunction(prefixedScope))
+    def withChildren(newChildrenFactory: ThisElem => Seq[UnderlyingNode]): ThisElem = {
+      withChildren(newChildrenFactory(this))
     }
 
-    def plusChildFunction(childFunction: PrefixedScope => UnderlyingNode): ThisElem = {
-      plusChild(childFunction(prefixedScope))
+    def plusChild(childFactory: ThisElem => UnderlyingNode): ThisElem = {
+      plusChild(childFactory(this))
     }
 
-    def plusChildOptionFunction(childOptionFunction: PrefixedScope => Option[UnderlyingNode]): ThisElem = {
-      plusChildOption(childOptionFunction(prefixedScope))
+    def plusChildOption(childOptionFactory: ThisElem => Option[UnderlyingNode]): ThisElem = {
+      plusChildOption(childOptionFactory(this))
     }
 
-    def plusChildFunction(index: Int, childFunction: PrefixedScope => UnderlyingNode): ThisElem = {
-      plusChild(index, childFunction(prefixedScope))
+    def plusChild(index: Int, childFactory: ThisElem => UnderlyingNode): ThisElem = {
+      plusChild(index, childFactory(this))
     }
 
-    def plusChildOptionFunction(index: Int, childOptionFunction: PrefixedScope => Option[UnderlyingNode]): ThisElem = {
-      plusChildOption(index, childOptionFunction(prefixedScope))
+    def plusChildOption(index: Int, childOptionFactory: ThisElem => Option[UnderlyingNode]): ThisElem = {
+      plusChildOption(index, childOptionFactory(this))
     }
 
-    def plusChildrenFunction(childSeqFunction: PrefixedScope => Seq[UnderlyingNode]): ThisElem = {
-      plusChildren(childSeqFunction(prefixedScope))
+    def plusChildren(childSeqFactory: ThisElem => Seq[UnderlyingNode]): ThisElem = {
+      plusChildren(childSeqFactory(this))
+    }
+
+    def withAttributes(newAttributesFactory: ThisElem => ListMap[EName, String]): ThisElem = {
+      withAttributes(newAttributesFactory(this))
+    }
+
+    def plusAttribute(attrName: EName, attrValueFactory: ThisElem => String): ThisElem = {
+      plusAttribute(attrName, attrValueFactory(this))
+    }
+
+    def plusAttributeOption(attrName: EName, attrValueOptionFactory: ThisElem => Option[String]): ThisElem = {
+      plusAttributeOption(attrName, attrValueOptionFactory(this))
+    }
+
+    def plusAttributes(newAttributesFactory: ThisElem => ListMap[EName, String]): ThisElem = {
+      plusAttributes(newAttributesFactory(this))
     }
 
     def underlying: UnderlyingElem = underlyingElem

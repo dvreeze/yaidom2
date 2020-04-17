@@ -80,24 +80,24 @@ class ElemCreationTest extends AnyFunSuite {
 
     val xbrliEntity: nodebuilder.Elem = {
       emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi
-        .plusChildFunction { ps =>
-          textElem(EName(XbrliNs, "identifier"), "1234567890", ps).creationApi
+        .plusChild { e =>
+          textElem(EName(XbrliNs, "identifier"), "1234567890", e.prefixedScope).creationApi
             .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
             .underlyingElem
         }
-        .plusChildFunction(ps => emptyElem(EName(XbrliNs, "segment"), ps))
+        .plusChild(e => emptyElem(EName(XbrliNs, "segment"), e.prefixedScope))
         .underlyingElem
         .transformDescendantElems {
           case e @ nodebuilder.Elem(EName(Some(XbrliNs), "segment"), _, _, _) =>
             e.creationApi
-              .plusChildFunction(ps => createExplicitMemberElem(EName(GaapNs, "EntityAxis"), EName(GaapNs, "ABCCompanyDomain"), ps))
-              .plusChildFunction(ps =>
-                createExplicitMemberElem(EName(GaapNs, "BusinessSegmentAxis"), EName(GaapNs, "ConsolidatedGroupDomain"), ps))
-              .plusChildFunction(ps =>
-                createExplicitMemberElem(EName(GaapNs, "VerificationAxis"), EName(GaapNs, "UnqualifiedOpinionMember"), ps))
-              .plusChildFunction(ps => createExplicitMemberElem(EName(GaapNs, "PremiseAxis"), EName(GaapNs, "ActualMember"), ps))
-              .plusChildFunction(ps =>
-                createExplicitMemberElem(EName(GaapNs, "ReportDateAxis"), EName(GaapNs, "ReportedAsOfMarch182008Member"), ps))
+              .plusChild(e => createExplicitMemberElem(EName(GaapNs, "EntityAxis"), EName(GaapNs, "ABCCompanyDomain"), e.prefixedScope))
+              .plusChild(e =>
+                createExplicitMemberElem(EName(GaapNs, "BusinessSegmentAxis"), EName(GaapNs, "ConsolidatedGroupDomain"), e.prefixedScope))
+              .plusChild(e =>
+                createExplicitMemberElem(EName(GaapNs, "VerificationAxis"), EName(GaapNs, "UnqualifiedOpinionMember"), e.prefixedScope))
+              .plusChild(e => createExplicitMemberElem(EName(GaapNs, "PremiseAxis"), EName(GaapNs, "ActualMember"), e.prefixedScope))
+              .plusChild(e =>
+                createExplicitMemberElem(EName(GaapNs, "ReportDateAxis"), EName(GaapNs, "ReportedAsOfMarch182008Member"), e.prefixedScope))
               .underlyingElem
           case e => e
         }
@@ -105,7 +105,7 @@ class ElemCreationTest extends AnyFunSuite {
 
     val xbrliPeriod: nodebuilder.Elem =
       emptyElem(EName(XbrliNs, "period"), PrefixedScope.empty).creationApi
-        .plusChildFunction(ps => textElem(EName(XbrliNs, "instant"), "2005-12-31", ps))
+        .plusChild(e => textElem(EName(XbrliNs, "instant"), "2005-12-31", e.prefixedScope))
         .underlyingElem
 
     val xbrliContext: nodebuilder.Elem =

@@ -127,7 +127,8 @@ object NodeBuilders {
     def scope: Scope = prefixedScope.scope
 
     /**
-     * Returns the QName. If prefixed, the prefix is the "minimal" one in string comparison order for the namespace of the EName.
+     * Returns the QName. If prefixed, the prefix is the last one (in insertion order) for the namespace of the EName.
+     * That is, if prefixed the prefix is found with expression `prefixedScope.findPrefixForNamespace(name.namespaceUriOption.get)`.
      */
     def qname: QName = {
       val prefixOption: Option[String] =
@@ -137,8 +138,9 @@ object NodeBuilders {
     }
 
     /**
-     * Returns the attributes by QName. For any attribute name, if prefixed, the prefix is the "minimal" one in string comparison order
-     * for the namespace of the attribute EName.
+     * Returns the attributes by QName. For any attribute name, if prefixed, the prefix is the last one (in insertion order)
+     * for the namespace of the attribute EName. That is, if prefixed, they are found with expression
+     * `prefixedScope.findPrefixForNamespace(attrName.namespaceUriOption.get)`.
      */
     def attributesByQName: ListMap[QName, String] = {
       attributes.map {
