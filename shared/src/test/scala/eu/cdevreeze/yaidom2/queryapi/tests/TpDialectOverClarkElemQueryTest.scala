@@ -19,19 +19,17 @@ package eu.cdevreeze.yaidom2.queryapi.tests
 import java.net.URI
 import java.time.LocalDate
 
-import scala.collection.immutable.ArraySeq
-import scala.reflect.ClassTag
-
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.dialect.AbstractDialectClarkElem
 import eu.cdevreeze.yaidom2.node.resolved
-import eu.cdevreeze.yaidom2.queryapi.ElemStep
-import eu.cdevreeze.yaidom2.queryapi.ClarkDocumentApi
-import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
-import eu.cdevreeze.yaidom2.queryapi.DocumentApi
+import eu.cdevreeze.yaidom2.queryapi._
 import eu.cdevreeze.yaidom2.queryapi.elemstep.ClarkElemStepFactory
-import eu.cdevreeze.yaidom2.queryapi.named
+import eu.cdevreeze.yaidom2.queryapi.internal.AbstractSubtypeAwareElem
 import org.scalatest.funsuite.AnyFunSuite
+
+import scala.collection.immutable.ArraySeq
+import scala.reflect.ClassTag
+import scala.reflect.classTag
 
 /**
  * Query test using a "yaidom dialect" (for so-called XBRL Taxonomy Packages).
@@ -52,8 +50,12 @@ trait TpDialectOverClarkElemQueryTest extends AnyFunSuite {
   test("testQueryEntrypoints") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
-      .flatMap(_.filterChildElems(named(TpNameEName))).map(_.text).toSet) {
+    assertResult(
+      rootElem
+        .filterDescendantElems(named(TpEntryPointEName))
+        .flatMap(_.filterChildElems(named(TpNameEName)))
+        .map(_.text)
+        .toSet) {
 
       taxoPackage.findAllEntryPoints.flatMap(_.findAllNames).map(_.value).toSet
     }
@@ -62,8 +64,10 @@ trait TpDialectOverClarkElemQueryTest extends AnyFunSuite {
   test("testEquivalenceOfEntrypointQueries") {
     val taxoPackage = TaxonomyPackage(rootElem)
 
-    assertResult(rootElem.filterDescendantElems(named(TpEntryPointEName))
-      .map(e => resolved.Elem.from(e))) {
+    assertResult(
+      rootElem
+        .filterDescendantElems(named(TpEntryPointEName))
+        .map(e => resolved.Elem.from(e))) {
 
       taxoPackage.findAllEntryPoints.map(e => resolved.Elem.from(e))
     }
@@ -133,14 +137,14 @@ object TpDialectOverClarkElemQueryTest {
   def havingType[T: ClassTag]: ClarkNodes.Elem => Boolean = {
     {
       case e: T => true
-      case e => false
+      case e    => false
     }
   }
 
   def where[T: ClassTag](p: T => Boolean): ClarkNodes.Elem => Boolean = {
     {
       case e: T if p(e) => true
-      case e => false
+      case e            => false
     }
   }
 
@@ -148,28 +152,28 @@ object TpDialectOverClarkElemQueryTest {
 
   val TpNs = "http://xbrl.org/2016/taxonomy-package"
 
-  val TpTaxonomyPackageEName = EName(TpNs, "taxonomyPackage")
-  val TpIdentifierEName = EName(TpNs, "identifier")
-  val TpVersionEName = EName(TpNs, "version")
-  val TpLicenseEName = EName(TpNs, "license")
-  val TpPublisherEName = EName(TpNs, "publisher")
-  val TpPublisherURLEName = EName(TpNs, "publisherURL")
-  val TpPublisherCountryEName = EName(TpNs, "publisherCountry")
-  val TpPublicationDateEName = EName(TpNs, "publicationDate")
-  val TpEntryPointsEName = EName(TpNs, "entryPoints")
-  val TpEntryPointEName = EName(TpNs, "entryPoint")
-  val TpSupersededTaxonomyPackagesEName = EName(TpNs, "supersededTaxonomyPackages")
-  val TpVersioningReportsEName = EName(TpNs, "versioningReports")
-  val TpEntryPointDocumentEName = EName(TpNs, "entryPointDocument")
-  val TpLanguagesEName = EName(TpNs, "languages")
-  val TpTaxonomyPackageRefEName = EName(TpNs, "taxonomyPackageRef")
-  val TpVersioningReportEName = EName(TpNs, "versioningReport")
-  val TpNameEName = EName(TpNs, "name")
-  val TpDescriptionEName = EName(TpNs, "description")
-  val TpLanguageEName = EName(TpNs, "language")
+  val TpTaxonomyPackageEName: EName = EName(TpNs, "taxonomyPackage")
+  val TpIdentifierEName: EName = EName(TpNs, "identifier")
+  val TpVersionEName: EName = EName(TpNs, "version")
+  val TpLicenseEName: EName = EName(TpNs, "license")
+  val TpPublisherEName: EName = EName(TpNs, "publisher")
+  val TpPublisherURLEName: EName = EName(TpNs, "publisherURL")
+  val TpPublisherCountryEName: EName = EName(TpNs, "publisherCountry")
+  val TpPublicationDateEName: EName = EName(TpNs, "publicationDate")
+  val TpEntryPointsEName: EName = EName(TpNs, "entryPoints")
+  val TpEntryPointEName: EName = EName(TpNs, "entryPoint")
+  val TpSupersededTaxonomyPackagesEName: EName = EName(TpNs, "supersededTaxonomyPackages")
+  val TpVersioningReportsEName: EName = EName(TpNs, "versioningReports")
+  val TpEntryPointDocumentEName: EName = EName(TpNs, "entryPointDocument")
+  val TpLanguagesEName: EName = EName(TpNs, "languages")
+  val TpTaxonomyPackageRefEName: EName = EName(TpNs, "taxonomyPackageRef")
+  val TpVersioningReportEName: EName = EName(TpNs, "versioningReport")
+  val TpNameEName: EName = EName(TpNs, "name")
+  val TpDescriptionEName: EName = EName(TpNs, "description")
+  val TpLanguageEName: EName = EName(TpNs, "language")
 
-  val HrefEName = EName.fromLocalName("href")
-  val NameEName = EName.fromLocalName("name")
+  val HrefEName: EName = EName.fromLocalName("href")
+  val NameEName: EName = EName.fromLocalName("name")
 
   final case class TpDocument(underlyingDoc: ClarkDocumentApi) extends DocumentApi {
     require(underlyingDoc.documentElement.name == TpTaxonomyPackageEName, s"Expected TaxonomyPackage document element")
@@ -203,7 +207,7 @@ object TpDialectOverClarkElemQueryTest {
    * Note that this TP element can work with any underlying `ClarkNodes.Elem` element,
    * using its "raw" type, thus making the API easy to use.
    */
-  sealed trait TpElem extends AbstractDialectClarkElem with TpCanBeDocumentChild {
+  sealed trait TpElem extends AbstractDialectClarkElem with AbstractSubtypeAwareElem with TpCanBeDocumentChild {
 
     type ThisElem = TpElem
 
@@ -242,79 +246,115 @@ object TpDialectOverClarkElemQueryTest {
     override def findTopmostElemsOrSelf(p: ThisElem => Boolean): Seq[ThisElem] = super.findTopmostElemsOrSelf(p)
 
     override def getDescendantElemOrSelf(navigationPath: Seq[Int]): ThisElem = super.getDescendantElemOrSelf(navigationPath)
+
+    override def filterChildElemsOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Seq[B] =
+      super.filterChildElemsOfType(subtype)(p)
+
+    override def findAllChildElemsOfType[B <: ThisElem](subtype: ClassTag[B]): Seq[B] =
+      super.findAllChildElemsOfType(subtype)
+
+    override def findChildElemOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Option[B] =
+      super.findChildElemOfType(subtype)(p)
+
+    override def findFirstChildElemOfType[B <: ThisElem](subtype: ClassTag[B]): Option[B] =
+      super.findFirstChildElemOfType(subtype)
+
+    override def filterDescendantElemsOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Seq[B] =
+      super.filterDescendantElemsOfType(subtype)(p)
+
+    override def findAllDescendantElemsOfType[B <: ThisElem](subtype: ClassTag[B]): Seq[B] =
+      super.findAllDescendantElemsOfType(subtype)
+
+    override def findDescendantElemOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Option[B] =
+      super.findDescendantElemOfType(subtype)(p)
+
+    override def filterDescendantElemsOrSelfOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Seq[B] =
+      super.filterDescendantElemsOrSelfOfType(subtype)(p)
+
+    override def findAllDescendantElemsOrSelfOfType[B <: ThisElem](subtype: ClassTag[B]): Seq[B] =
+      super.findAllDescendantElemsOrSelfOfType(subtype)
+
+    override def findDescendantElemOrSelfOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Option[B] =
+      super.findDescendantElemOrSelfOfType(subtype)(p)
+
+    override def findTopmostElemsOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Seq[B] =
+      super.findTopmostElemsOfType(subtype)(p)
+
+    override def findTopmostElemsOrSelfOfType[B <: ThisElem](subtype: ClassTag[B])(p: B => Boolean): Seq[B] =
+      super.findTopmostElemsOrSelfOfType(subtype)(p)
   }
 
   final case class TaxonomyPackage(underlyingElem: ClarkNodes.Elem) extends TpElem {
 
     def findAllEntryPoints: Seq[EntryPoint] = {
-      filterDescendantElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
+      findAllDescendantElemsOfType(classTag[EntryPoint])
     }
 
     def filterEntryPoints(p: EntryPoint => Boolean): Seq[EntryPoint] = {
-      filterDescendantElems(where[EntryPoint](p)).collect { case e: EntryPoint => e }
+      filterDescendantElemsOfType(classTag[EntryPoint])(p)
     }
 
     def findEntryPoint(p: EntryPoint => Boolean): Option[EntryPoint] = {
-      findDescendantElem(where[EntryPoint](p)).toList.collectFirst { case e: EntryPoint => e }
+      findDescendantElemOfType(classTag[EntryPoint])(p)
     }
 
     def getEntryPoint(p: EntryPoint => Boolean): EntryPoint = {
-      findDescendantElem(where[EntryPoint](p)).toList.collectFirst { case e: EntryPoint => e }
+      findDescendantElemOfType(classTag[EntryPoint])(p)
         .getOrElse(sys.error(s"Missing entryPoint obeying the given predicate"))
     }
 
     // Child elements
 
     def getIdentifier: Identifier = {
-      findChildElem(havingType[Identifier]).toList.collectFirst { case e: Identifier => e }.get
+      findFirstChildElemOfType(classTag[Identifier]).get
     }
 
     def findAllDocumentationGroups: Seq[DocumentationGroup] = {
-      filterChildElems(havingType[DocumentationGroup]).collect { case e: DocumentationGroup => e }
+      findAllChildElemsOfType(classTag[DocumentationGroup])
     }
 
     def findAllNames: Seq[Name] = {
-      filterChildElems(havingType[Name]).collect { case e: Name => e }
+      findAllChildElemsOfType(classTag[Name])
     }
 
     def findAllDescriptions: Seq[Description] = {
-      filterChildElems(havingType[Description]).collect { case e: Description => e }
+      findAllChildElemsOfType(classTag[Description])
     }
 
     def findVersion: Option[Version] = {
-      findChildElem(havingType[Version]).toList.collectFirst { case e: Version => e }
+      findFirstChildElemOfType(classTag[Version])
     }
 
     def findLicense: Option[License] = {
-      findChildElem(havingType[License]).toList.collectFirst { case e: License => e }
+      findFirstChildElemOfType(classTag[License])
     }
 
     def findAllPublishers: Seq[Publisher] = {
-      filterChildElems(havingType[Publisher]).collect { case e: Publisher => e }
+      findAllChildElemsOfType(classTag[Publisher])
     }
 
     def findPublisherUrl: Option[PublisherUrl] = {
-      findChildElem(havingType[PublisherUrl]).toList.collectFirst { case e: PublisherUrl => e }
+      findFirstChildElemOfType(classTag[PublisherUrl])
     }
 
     def findPublisherCountry: Option[PublisherCountry] = {
-      findChildElem(havingType[PublisherCountry]).toList.collectFirst { case e: PublisherCountry => e }
+      findFirstChildElemOfType(classTag[PublisherCountry])
     }
 
     def findPublicationDate: Option[PublicationDate] = {
-      findChildElem(havingType[PublicationDate]).toList.collectFirst { case e: PublicationDate => e }
+      findFirstChildElemOfType(classTag[PublicationDate])
     }
 
     def findEntryPointsElem: Option[EntryPointsElem] = {
-      findChildElem(havingType[EntryPointsElem]).toList.collectFirst { case e: EntryPointsElem => e }
+      findFirstChildElemOfType(classTag[EntryPointsElem])
     }
 
     def findSupersededTaxonomyPackagesElem: Option[SupersededTaxonomyPackagesElem] = {
-      findChildElem(havingType[SupersededTaxonomyPackagesElem]).toList.collectFirst { case e: SupersededTaxonomyPackagesElem => e }
+      findFirstChildElemOfType(classTag[SupersededTaxonomyPackagesElem])
     }
 
     def findVersioningReportsElem: Option[VersioningReportsElem] = {
-      findChildElem(havingType[VersioningReportsElem]).toList.collectFirst { case e: VersioningReportsElem => e }
+      findFirstChildElemOfType(classTag[VersioningReportsElem])
     }
   }
 
@@ -376,21 +416,21 @@ object TpDialectOverClarkElemQueryTest {
   final case class EntryPointsElem(underlyingElem: ClarkNodes.Elem) extends TpElem {
 
     def findAllEntryPoints: Seq[EntryPoint] = {
-      filterChildElems(havingType[EntryPoint]).collect { case e: EntryPoint => e }
+      findAllChildElemsOfType(classTag[EntryPoint])
     }
   }
 
   final case class SupersededTaxonomyPackagesElem(underlyingElem: ClarkNodes.Elem) extends TpElem {
 
     def findAllTaxonomyPackageRefs: Seq[TaxonomyPackageRef] = {
-      filterChildElems(havingType[TaxonomyPackageRef]).collect { case e: TaxonomyPackageRef => e }
+      findAllChildElemsOfType(classTag[TaxonomyPackageRef])
     }
   }
 
   final case class VersioningReportsElem(underlyingElem: ClarkNodes.Elem) extends TpElem {
 
     def findAllVersioningReports: Seq[VersioningReport] = {
-      filterChildElems(havingType[VersioningReport]).collect { case e: VersioningReport => e }
+      findAllChildElemsOfType(classTag[VersioningReport])
     }
   }
 
@@ -401,27 +441,27 @@ object TpDialectOverClarkElemQueryTest {
     }
 
     def findAllDocumentationGroups: Seq[DocumentationGroup] = {
-      filterChildElems(havingType[DocumentationGroup]).collect { case e: DocumentationGroup => e }
+      findAllChildElemsOfType(classTag[DocumentationGroup])
     }
 
     def findAllNames: Seq[Name] = {
-      filterChildElems(havingType[Name]).collect { case e: Name => e }
+      findAllChildElemsOfType(classTag[Name])
     }
 
     def findAllDescriptions: Seq[Description] = {
-      filterChildElems(havingType[Description]).collect { case e: Description => e }
+      findAllChildElemsOfType(classTag[Description])
     }
 
     def findVersion: Option[Version] = {
-      findChildElem(havingType[Version]).toList.collectFirst { case e: Version => e }
+      findFirstChildElemOfType(classTag[Version])
     }
 
     def findAllEntryPointDocuments: Seq[EntryPointDocument] = {
-      filterChildElems(havingType[EntryPointDocument]).collect { case e: EntryPointDocument => e }
+      findAllChildElemsOfType(classTag[EntryPointDocument])
     }
 
     def findLanguagesElem: Option[LanguagesElem] = {
-      findChildElem(havingType[LanguagesElem]).toList.collectFirst { case e: LanguagesElem => e }
+      findFirstChildElemOfType(classTag[LanguagesElem])
     }
   }
 
@@ -437,7 +477,7 @@ object TpDialectOverClarkElemQueryTest {
 
   final case class LanguagesElem(underlyingElem: ClarkNodes.Elem) extends TpElem {
 
-    def findAllLanguages: Seq[Language] = filterChildElems(havingType[Language]).collect { case e: Language => e }
+    def findAllLanguages: Seq[Language] = findAllChildElemsOfType(classTag[Language])
   }
 
   final case class Language(underlyingElem: ClarkNodes.Elem) extends TpElem {
@@ -463,7 +503,7 @@ object TpDialectOverClarkElemQueryTest {
       underlyingNode match {
         case e: ClarkNodes.Elem => Some(TpElem(e))
         case t: ClarkNodes.Text => Some(TpText(t.text))
-        case _ => None
+        case _                  => None
       }
     }
   }
@@ -477,25 +517,63 @@ object TpDialectOverClarkElemQueryTest {
     // Fast construction using Map taking element name as key
 
     private val constructors: Map[EName, ClarkNodes.Elem => TpElem] = Map(
-      TpTaxonomyPackageEName -> { e => new TaxonomyPackage(e) },
-      TpIdentifierEName -> { e => Identifier(e) },
-      TpVersionEName -> { e => Version(e) },
-      TpLicenseEName -> { e => License(e) },
-      TpPublisherEName -> { e => Publisher(e) },
-      TpPublisherURLEName -> { e => PublisherUrl(e) },
-      TpPublisherCountryEName -> { e => PublisherCountry(e) },
-      TpPublicationDateEName -> { e => PublicationDate(e) },
-      TpEntryPointsEName -> { e => EntryPointsElem(e) },
-      TpEntryPointEName -> { e => EntryPoint(e) },
-      TpSupersededTaxonomyPackagesEName -> { e => SupersededTaxonomyPackagesElem(e) },
-      TpVersioningReportsEName -> { e => VersioningReportsElem(e) },
-      TpEntryPointDocumentEName -> { e => EntryPointDocument(e) },
-      TpLanguagesEName -> { e => LanguagesElem(e) },
-      TpTaxonomyPackageRefEName -> { e => TaxonomyPackageRef(e) },
-      TpVersioningReportEName -> { e => VersioningReport(e) },
-      TpNameEName -> { e => Name(e) },
-      TpDescriptionEName -> { e => Description(e) },
-      TpLanguageEName -> { e => Language(e) },
+      TpTaxonomyPackageEName -> { e =>
+        new TaxonomyPackage(e)
+      },
+      TpIdentifierEName -> { e =>
+        Identifier(e)
+      },
+      TpVersionEName -> { e =>
+        Version(e)
+      },
+      TpLicenseEName -> { e =>
+        License(e)
+      },
+      TpPublisherEName -> { e =>
+        Publisher(e)
+      },
+      TpPublisherURLEName -> { e =>
+        PublisherUrl(e)
+      },
+      TpPublisherCountryEName -> { e =>
+        PublisherCountry(e)
+      },
+      TpPublicationDateEName -> { e =>
+        PublicationDate(e)
+      },
+      TpEntryPointsEName -> { e =>
+        EntryPointsElem(e)
+      },
+      TpEntryPointEName -> { e =>
+        EntryPoint(e)
+      },
+      TpSupersededTaxonomyPackagesEName -> { e =>
+        SupersededTaxonomyPackagesElem(e)
+      },
+      TpVersioningReportsEName -> { e =>
+        VersioningReportsElem(e)
+      },
+      TpEntryPointDocumentEName -> { e =>
+        EntryPointDocument(e)
+      },
+      TpLanguagesEName -> { e =>
+        LanguagesElem(e)
+      },
+      TpTaxonomyPackageRefEName -> { e =>
+        TaxonomyPackageRef(e)
+      },
+      TpVersioningReportEName -> { e =>
+        VersioningReport(e)
+      },
+      TpNameEName -> { e =>
+        Name(e)
+      },
+      TpDescriptionEName -> { e =>
+        Description(e)
+      },
+      TpLanguageEName -> { e =>
+        Language(e)
+      },
     )
   }
 
