@@ -25,6 +25,7 @@ import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractBackingElem
 
 import scala.collection.immutable.ArraySeq
@@ -265,6 +266,12 @@ object IndexedNodes {
       val elemNavigationPathFromRoot: ArraySeq[Int] = elm.ownNavigationPathRelativeToRootElem.to(ArraySeq)
 
       of(docUriOption, simpleRootElem, elemNavigationPathFromRoot)
+    }
+
+    def from(docUriOption: Option[URI], elm: ScopedNodes.Elem): Elem = {
+      val simpleRootElem = SimpleNodes.Elem.from(elm)
+
+      ofRoot(docUriOption, simpleRootElem)
     }
 
     /**

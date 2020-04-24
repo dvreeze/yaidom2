@@ -16,13 +16,17 @@
 
 package eu.cdevreeze.yaidom2.node.saxon
 
+import java.net.URI
+
+import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
+import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
 import eu.cdevreeze.yaidom2.jaxp.SaxEventProducers
 import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
-import net.sf.saxon.event.ReceivingContentHandler
+import eu.cdevreeze.yaidom2.queryapi.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import net.sf.saxon.s9api.Processor
-import net.sf.saxon.s9api.XdmNode
-import net.sf.saxon.tree.tiny.TinyBuilder
+import org.xml.sax.ContentHandler
 
 /**
  * Saxon document and node producers, from any backing document or node.
@@ -31,43 +35,77 @@ import net.sf.saxon.tree.tiny.TinyBuilder
  */
 object SaxonProducers {
 
+  def documentProducer(processor: Processor): DocumentProducer = new DocumentProducer(processor)
+
+  def elemProducer(processor: Processor): ElemProducer = new ElemProducer(processor)
+
   /**
-   * SaxonDocument factory from backing documents. The factory constructor takes a Saxon Processor, which must
-   * use the tiny tree model under the hood.
+   * SaxonDocument factory from backing documents. The factory constructor takes a Saxon Processor.
    */
   final class DocumentProducer(val processor: Processor) extends BackingDocumentFactory {
 
     type TargetDocumentType = SaxonDocument
 
     def from(document: BackingDocumentApi): SaxonDocument = {
-      // See http://saxon-xslt-and-xquery-processor.13853.n7.nabble.com/Constructing-a-tiny-tree-from-SAX-events-td5192.html.
-      // The idea is that yaidom2 can convert a backing document to SAX events pushed on any SAX handler, and that the
-      // SAX handler used here is a Saxon ReceivingContentHandler, which uses a Saxon TinyBuilder as Saxon Receiver.
+      document match {
+        case doc: SaxonDocument =>
+          doc
+        case doc =>
+          val saxonDocBuilder = processor.newDocumentBuilder()
+          saxonDocBuilder.setBaseURI(doc.docUriOption.getOrElse(new URI("")))
+          val buildingContentHandler = saxonDocBuilder.newBuildingContentHandler()
 
-      val pipe = processor.getUnderlyingConfiguration.makePipelineConfiguration()
-
-      val builder = new TinyBuilder(pipe)
-
-      if (document.docUriOption.isDefined) {
-        builder.setSystemId(document.docUriOption.get.toString)
+          SaxEventProducers.produceEventsForDocument(doc, buildingContentHandler)
+          SaxonDocument(buildingContentHandler.getDocumentNode)
       }
-
-      val receivingContentHandler = new ReceivingContentHandler()
-      receivingContentHandler.setPipelineConfiguration(pipe)
-      receivingContentHandler.setReceiver(builder)
-
-      SaxEventProducers.produceEventsForDocument(document, receivingContentHandler)
-
-      val nodeInfo = builder.getCurrentRoot
-
-      if (document.docUriOption.isDefined) {
-        require(
-          nodeInfo.getSystemId == document.docUriOption.get.toString,
-          s"Expected document URI '${document.docUriOption.get}' but encountered document URI '${nodeInfo.getSystemId}'")
-      }
-
-      val saxonDoc = SaxonDocument(new XdmNode(nodeInfo))
-      saxonDoc
     }
   }
+
+  /**
+   * SaxonNodes.Elem factory from backing elements. The factory constructor takes a Saxon Processor.
+   * This element producer should be used only for document elements of a document.
+   */
+  final class ElemProducer(val processor: Processor) extends BackingNodeFactories.ElemFactory {
+
+    type TargetElemType = SaxonNodes.Elem
+
+    def from(elm: BackingNodes.Elem): SaxonNodes.Elem = {
+      elm match {
+        case elm: SaxonNodes.Elem =>
+          elm
+        case elm =>
+          val saxonDocBuilder = processor.newDocumentBuilder()
+          saxonDocBuilder.setBaseURI(elm.docUri)
+          val buildingContentHandler = saxonDocBuilder.newBuildingContentHandler()
+
+          produceEventsForRootElem(elm, buildingContentHandler)
+          SaxonDocument(buildingContentHandler.getDocumentNode).documentElement
+      }
+    }
+
+    /**
+     * Creates a SaxonNodes.Elem from the given optional document URI and ScopedNodes.Elem.
+     * Typically the element should be the document element of a document.
+     */
+    def from(docUriOption: Option[URI], elm: ScopedNodes.Elem): SaxonNodes.Elem = {
+      val saxonDocBuilder = processor.newDocumentBuilder()
+      docUriOption.foreach(docUri => saxonDocBuilder.setBaseURI(docUri))
+      val buildingContentHandler = saxonDocBuilder.newBuildingContentHandler()
+
+      produceEventsForRootElem(elm, buildingContentHandler)
+      SaxonDocument(buildingContentHandler.getDocumentNode).documentElement
+    }
+
+    /**
+     * Alternative to method SaxEventProducers.produceEventsForElem for root elements that works for Saxon, in that
+     * startDocument and endDocument calls are made.
+     */
+    private def produceEventsForRootElem(elem: ScopedNodes.Elem, contentHandler: ContentHandler): Unit = {
+      contentHandler.startDocument()
+      SaxEventProducers.produceEventsForElem(elem, Scope.Empty, contentHandler)
+      contentHandler.endDocument()
+    }
+  }
+
+  // No BackingNodeFactories.NodeFactory implementation
 }
