@@ -9,7 +9,7 @@
 
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalaVer = "2.13.1"
+val scalaVer = "2.13.2"
 val crossScalaVer = Seq(scalaVer)
 
 lazy val commonSettings = Seq(
@@ -64,11 +64,11 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings(
     // By all means, override this version of Saxon if needed, possibly with a Saxon-EE release!
 
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-5",
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-7",
 
     libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.3" % "test",
 
-    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.9.0")
+    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.10.0")
   )
   .jsSettings(
     // Do we need this jsEnv?
@@ -78,7 +78,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     Test / parallelExecution := false,
 
-    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.9.0")
+    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.10.0")
   )
 
 lazy val yaidom2JVM = yaidom2.jvm
