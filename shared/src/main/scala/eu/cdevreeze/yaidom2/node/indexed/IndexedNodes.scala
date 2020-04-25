@@ -220,6 +220,13 @@ object IndexedNodes {
         }
       }
     }
+
+    // Other methods
+
+    def asRoot: ThisElem = {
+      new Elem(docUriOption, underlyingElem, ArraySeq.empty, underlyingElem)
+        .ensuring(e => e.underlyingRootElem.getDescendantElemOrSelf(ArraySeq.empty) == e.underlyingElem)
+    }
   }
 
   /**
@@ -268,6 +275,10 @@ object IndexedNodes {
       of(docUriOption, simpleRootElem, elemNavigationPathFromRoot)
     }
 
+    /**
+     * Creates an indexed element from the given document URI and ScopedNodes.Elem, which is treated as a document element
+     * (whether or not it has an ancestry).
+     */
     def from(docUriOption: Option[URI], elm: ScopedNodes.Elem): Elem = {
       val simpleRootElem = SimpleNodes.Elem.from(elm)
 

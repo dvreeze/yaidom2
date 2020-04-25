@@ -16,10 +16,7 @@
 
 package eu.cdevreeze.yaidom2.creationapi
 
-import java.net.URI
-
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
-import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 
 /**
  * Factory APIs for Backing nodes.
@@ -39,8 +36,10 @@ object BackingNodeFactories {
 
     type TargetElemType <: BackingNodes.Elem
 
+    /**
+     * Creates an element of type TargetElemType from the passed "backing element". Depending on the implementation,
+     * this must be a document element or not.
+     */
     def from(elem: BackingNodes.Elem): TargetElemType
-
-    def from(docUriOption: Option[URI], elem: ScopedNodes.Elem): TargetElemType
   }
 }

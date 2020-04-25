@@ -69,6 +69,10 @@ object SaxonProducers {
 
     type TargetElemType = SaxonNodes.Elem
 
+    /**
+     * Creates a SaxonNodes.Elem from the given BackingNodes.Elem.
+     * The passed element should be the document element of a document.
+     */
     def from(elm: BackingNodes.Elem): SaxonNodes.Elem = {
       elm match {
         case elm: SaxonNodes.Elem =>
@@ -85,7 +89,7 @@ object SaxonProducers {
 
     /**
      * Creates a SaxonNodes.Elem from the given optional document URI and ScopedNodes.Elem.
-     * Typically the element should be the document element of a document.
+     * The passed element should be the document element of a document.
      */
     def from(docUriOption: Option[URI], elm: ScopedNodes.Elem): SaxonNodes.Elem = {
       val saxonDocBuilder = processor.newDocumentBuilder()
