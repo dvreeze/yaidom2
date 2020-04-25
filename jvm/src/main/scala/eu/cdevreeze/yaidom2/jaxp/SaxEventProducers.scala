@@ -45,6 +45,12 @@ object SaxEventProducers {
     contentHandler.endDocument()
   }
 
+  def produceEventsForDocumentFromRootElem(rootElem: ScopedNodes.Elem, contentHandler: ContentHandler): Unit = {
+    contentHandler.startDocument()
+    produceEventsForElem(rootElem, Scope.Empty, contentHandler)
+    contentHandler.endDocument()
+  }
+
   def produceEventsForElem(elem: ScopedNodes.Elem, parentScope: Scope, contentHandler: ContentHandler): Unit = {
     val namespaces: Declarations = parentScope.relativize(elem.scope)
     val namespacesMap = namespaces.prefixNamespaceMap

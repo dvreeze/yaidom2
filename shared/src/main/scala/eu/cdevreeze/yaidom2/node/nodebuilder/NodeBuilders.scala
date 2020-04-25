@@ -23,7 +23,6 @@ import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
-import eu.cdevreeze.yaidom2.queryapi.elemstep.ScopedElemStepFactory
 import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
@@ -397,15 +396,5 @@ object NodeBuilders {
     def hasQName(ename: EName, prefixedScope: PrefixedScope): Boolean = {
       prefixedScope.findQName(ename).nonEmpty
     }
-  }
-
-  // The element step factory class
-
-  /**
-   * ElemStep factory API for creation DSL elements.
-   */
-  object ElemSteps extends ScopedElemStepFactory {
-
-    type ElemType = Elem
   }
 }

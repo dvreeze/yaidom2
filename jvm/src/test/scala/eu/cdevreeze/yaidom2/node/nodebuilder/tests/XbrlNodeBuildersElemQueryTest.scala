@@ -18,17 +18,17 @@ package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 
 import java.io.File
 
-import scala.collection.immutable.ArraySeq
-import scala.jdk.StreamConverters._
-
+import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.queryapi.tests.XbrlScopedElemQueryTest
 import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.streams.Steps.child
 import net.sf.saxon.s9api.streams.Steps.descendant
+
+import scala.collection.immutable.ArraySeq
+import scala.jdk.StreamConverters._
 
 class XbrlNodeBuildersElemQueryTest extends XbrlScopedElemQueryTest[nodebuilder.Elem] {
 
@@ -36,7 +36,7 @@ class XbrlNodeBuildersElemQueryTest extends XbrlScopedElemQueryTest[nodebuilder.
     nodebuilder.Document.from(saxonDocument).documentElement
   }
 
-  protected val elemStepFactory: nodebuilder.NodeBuilders.ElemSteps.type = nodebuilder.NodeBuilders.ElemSteps
+  protected val elemStepFactory: nodebuilder.NodeBuilderElemSteps.type = nodebuilder.NodeBuilderElemSteps
 
   private val processor = new Processor(false)
 
@@ -66,11 +66,14 @@ class XbrlNodeBuildersElemQueryTest extends XbrlScopedElemQueryTest[nodebuilder.
       }
 
     val expectedDimensionalContexts =
-      saxonRootElem.xdmNode.select {
-        descendant(XbrliNs, "context").where {
-          (e: XdmNode) => e.select(child(XbrliNs, "entity").`then`(descendant(XbrldiNs, "explicitMember"))).exists
+      saxonRootElem.xdmNode
+        .select {
+          descendant(XbrliNs, "context").where { (e: XdmNode) =>
+            e.select(child(XbrliNs, "entity").`then`(descendant(XbrldiNs, "explicitMember"))).exists
+          }
         }
-      }.toScala(ArraySeq).map(n => saxon.Elem(n))
+        .toScala(ArraySeq)
+        .map(n => saxon.Elem(n))
 
     assertResult(true) {
       dimensionalContexts.size >= 10

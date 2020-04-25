@@ -16,21 +16,21 @@
 
 package eu.cdevreeze.yaidom2.node.nodebuilder.propertytests
 
+import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilderElemSteps
 import eu.cdevreeze.yaidom2.node.DefaultElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.node.nodebuilder
-import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders
+import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.queryapi.propertytests.ScopedElemApiSpecification
 
 class NodeBuildersElemApiSpecification
-  extends DefaultElemApiSpecificationDataProvider[nodebuilder.Elem]("NodeBuilders-ScopedElemApi")
+    extends DefaultElemApiSpecificationDataProvider[nodebuilder.Elem]("NodeBuilders-ScopedElemApi")
     with ScopedElemApiSpecification[nodebuilder.Node, nodebuilder.Elem] {
 
   protected def convertSaxonElemToElem(e: saxon.Elem): nodebuilder.Elem = {
     nodebuilder.Elem.from(e)
   }
 
-  protected val elemStepFactory: NodeBuilders.ElemSteps.type = NodeBuilders.ElemSteps
+  protected val elemStepFactory: NodeBuilderElemSteps.type = NodeBuilderElemSteps
 
   protected override def rootElemPaths: Seq[String] = {
     Seq(

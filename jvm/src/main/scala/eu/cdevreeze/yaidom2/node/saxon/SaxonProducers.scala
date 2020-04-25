@@ -18,7 +18,6 @@ package eu.cdevreeze.yaidom2.node.saxon
 
 import java.net.URI
 
-import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
 import eu.cdevreeze.yaidom2.jaxp.SaxEventProducers
@@ -37,7 +36,20 @@ object SaxonProducers {
 
   def documentProducer(processor: Processor): DocumentProducer = new DocumentProducer(processor)
 
-  def elemProducer(processor: Processor): ElemProducer = new ElemProducer(processor)
+  def elementProducer(processor: Processor): ElemProducer = new ElemProducer(processor)
+
+  /**
+   * Creates a SaxonDocument from a SaxonNodes.Elem document element. This is an somewhat expensive call.
+   */
+  def makeDocument(docElem: SaxonNodes.Elem): SaxonDocument = {
+    val processor = docElem.xdmNode.getProcessor
+    val saxonDocBuilder = processor.newDocumentBuilder()
+    docElem.docUriOption.foreach(docUri => saxonDocBuilder.setBaseURI(docUri))
+    val buildingContentHandler = saxonDocBuilder.newBuildingContentHandler()
+
+    produceEventsForDocumentFromRootElem(docElem, buildingContentHandler)
+    SaxonDocument(buildingContentHandler.getDocumentNode)
+  }
 
   /**
    * SaxonDocument factory from backing documents. The factory constructor takes a Saxon Processor.
@@ -82,7 +94,7 @@ object SaxonProducers {
           saxonDocBuilder.setBaseURI(elm.docUri)
           val buildingContentHandler = saxonDocBuilder.newBuildingContentHandler()
 
-          produceEventsForRootElem(elm, buildingContentHandler)
+          produceEventsForDocumentFromRootElem(elm, buildingContentHandler)
           SaxonDocument(buildingContentHandler.getDocumentNode).documentElement
       }
     }
@@ -96,19 +108,16 @@ object SaxonProducers {
       docUriOption.foreach(docUri => saxonDocBuilder.setBaseURI(docUri))
       val buildingContentHandler = saxonDocBuilder.newBuildingContentHandler()
 
-      produceEventsForRootElem(elm, buildingContentHandler)
+      produceEventsForDocumentFromRootElem(elm, buildingContentHandler)
       SaxonDocument(buildingContentHandler.getDocumentNode).documentElement
     }
+  }
 
-    /**
-     * Alternative to method SaxEventProducers.produceEventsForElem for root elements that works for Saxon, in that
-     * startDocument and endDocument calls are made.
-     */
-    private def produceEventsForRootElem(elem: ScopedNodes.Elem, contentHandler: ContentHandler): Unit = {
-      contentHandler.startDocument()
-      SaxEventProducers.produceEventsForElem(elem, Scope.Empty, contentHandler)
-      contentHandler.endDocument()
-    }
+  /**
+   * Calls method `SaxEventProducers.produceEventsForDocumentFromRootElem`.
+   */
+  private def produceEventsForDocumentFromRootElem(elem: ScopedNodes.Elem, contentHandler: ContentHandler): Unit = {
+    SaxEventProducers.produceEventsForDocumentFromRootElem(elem, contentHandler)
   }
 
   // No BackingNodeFactories.NodeFactory implementation
