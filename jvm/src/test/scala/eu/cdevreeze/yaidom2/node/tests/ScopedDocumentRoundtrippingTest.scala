@@ -29,8 +29,10 @@ import eu.cdevreeze.yaidom2.jaxp.DocumentSerializer
 import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilderCreator
 import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.node.resolved
+import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.node.saxon.SaxonDocument
 import eu.cdevreeze.yaidom2.node.saxon.SaxonProducers
+import eu.cdevreeze.yaidom2.node.saxon.SaxonSerializer
 import eu.cdevreeze.yaidom2.queryapi._
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
@@ -56,6 +58,34 @@ abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], 
 
     val bos = new ByteArrayOutputStream()
     docSerializer.serializeDocument(doc, new StreamResult(bos), Codec.UTF8.toString)
+    val xmlString = new String(bos.toByteArray, Codec.UTF8.toString)
+
+    val parsedDoc: SaxonDocument =
+      SaxonProducers
+        .parser(processor)
+        .parse(new ByteArrayInputStream(xmlString.getBytes(Codec.UTF8.toString)), doc.docUriOption.getOrElse(new URI("")))
+
+    assertResult(resolved.Elem.from(doc.documentElement)) {
+      resolved.Elem.from(parsedDoc.documentElement)
+    }
+
+    val convertedDoc: D = documentFactory.from(parsedDoc)
+
+    assertResult(resolved.Elem.from(doc.documentElement)) {
+      resolved.Elem.from(convertedDoc.documentElement)
+    }
+  }
+
+  test("testRoundtrippingViaSaxon") {
+    assertResult(true) {
+      doc.documentElement.findAllDescendantElemsOrSelf.size >= 10
+    }
+
+    val saxonDoc: saxon.Document =
+      SaxonProducers.makeDocument(SaxonProducers.elementProducer(processor).from(doc.docUriOption, doc.documentElement))
+
+    val bos = new ByteArrayOutputStream()
+    SaxonSerializer.serialize(saxonDoc, bos)
     val xmlString = new String(bos.toByteArray, Codec.UTF8.toString)
 
     val parsedDoc: SaxonDocument =
