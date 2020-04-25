@@ -16,19 +16,26 @@
 
 package eu.cdevreeze.yaidom2.node.saxon
 
+import java.io.File
+import java.io.InputStream
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
 import eu.cdevreeze.yaidom2.creationapi.BackingNodeFactories
+import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.jaxp.SaxEventProducers
 import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
+import javax.xml.transform.Source
+import javax.xml.transform.stream.StreamSource
 import net.sf.saxon.s9api.Processor
+import net.sf.saxon.s9api.XdmNode
 import org.xml.sax.ContentHandler
 
 /**
- * Saxon document and node producers, from any backing document or node.
+ * Saxon document and node producers, from any backing document or node. Also, Saxon document parsers.
  *
  * @author Chris de Vreeze
  */
@@ -37,6 +44,8 @@ object SaxonProducers {
   def documentProducer(processor: Processor): DocumentProducer = new DocumentProducer(processor)
 
   def elementProducer(processor: Processor): ElemProducer = new ElemProducer(processor)
+
+  def parser(processor: Processor): Parser = new Parser(processor)
 
   /**
    * Creates a SaxonDocument from a SaxonNodes.Elem document element. This is an somewhat expensive call.
@@ -52,6 +61,32 @@ object SaxonProducers {
   }
 
   /**
+   * Parser of Saxon documents
+   */
+  final class Parser(val processor: Processor) {
+
+    def parse(f: File): SaxonDocument = {
+      val xdmNode: XdmNode = processor.newDocumentBuilder().build(f)
+      SaxonDocument(xdmNode)
+    }
+
+    def parse(src: Source): SaxonDocument = {
+      val xdmNode: XdmNode = processor.newDocumentBuilder().build(src)
+      SaxonDocument(xdmNode)
+    }
+
+    def parse(is: InputStream): SaxonDocument = {
+      val xdmNode: XdmNode = processor.newDocumentBuilder().build(new StreamSource(is))
+      SaxonDocument(xdmNode)
+    }
+
+    def parse(is: InputStream, docUri: URI): SaxonDocument = {
+      val xdmNode: XdmNode = processor.newDocumentBuilder().build(new StreamSource(is, docUri.toString))
+      SaxonDocument(xdmNode)
+    }
+  }
+
+  /**
    * SaxonDocument factory from backing documents. The factory constructor takes a Saxon Processor.
    */
   final class DocumentProducer(val processor: Processor) extends BackingDocumentFactory {
@@ -64,11 +99,23 @@ object SaxonProducers {
           doc
         case doc =>
           val saxonDocBuilder = processor.newDocumentBuilder()
-          saxonDocBuilder.setBaseURI(doc.docUriOption.getOrElse(new URI("")))
+          doc.docUriOption.foreach(docUri => saxonDocBuilder.setBaseURI(docUri))
           val buildingContentHandler = saxonDocBuilder.newBuildingContentHandler()
 
           SaxEventProducers.produceEventsForDocument(doc, buildingContentHandler)
           SaxonDocument(buildingContentHandler.getDocumentNode)
+      }
+    }
+
+    def asScopedDocumentFactory: ScopedDocumentFactoryView.type = ScopedDocumentFactoryView
+
+    object ScopedDocumentFactoryView extends ScopedDocumentFactory {
+
+      override type TargetDocumentType = SaxonDocument
+
+      override def from(doc: ScopedDocumentApi): SaxonDocument = {
+        // Losing top-level comments and PIs!
+        makeDocument(elementProducer(processor).from(doc.docUriOption, doc.documentElement))
       }
     }
   }

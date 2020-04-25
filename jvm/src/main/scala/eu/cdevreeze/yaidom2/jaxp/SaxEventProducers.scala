@@ -28,11 +28,6 @@ import org.xml.sax.helpers.AttributesImpl
 /**
  * SAX event producers for Scoped nodes and documents.
  *
- * This object can be used for XML serialization of (different kinds of) yaidom2 documents or elements. To that end
- * we could start with a SAXTransformerFactory (typically a TransformerFactory can be down-cast to a SAXTransformerFactory),
- * and call its (no-argument) newTransformerHandler method. The resulting TransformerHandler is then the ContentHandler that
- * can be passed to the methods below, after configuring it (with methods like setResult and setSystemId).
- *
  * @author Chris de Vreeze
  */
 object SaxEventProducers {

@@ -17,20 +17,16 @@
 package eu.cdevreeze.yaidom2.node.saxon
 
 import java.io.File
-import java.io.InputStream
 import java.io.OutputStream
 import java.io.Writer
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
-import javax.xml.transform.Source
-import javax.xml.transform.stream.StreamSource
-import net.sf.saxon.s9api.streams.Predicates.isElement
-import net.sf.saxon.s9api.streams.Steps.child
-import net.sf.saxon.s9api.Processor
 import net.sf.saxon.s9api.Serializer
 import net.sf.saxon.s9api.XdmNode
 import net.sf.saxon.s9api.XdmNodeKind
+import net.sf.saxon.s9api.streams.Predicates.isElement
+import net.sf.saxon.s9api.streams.Steps.child
 
 import scala.collection.immutable.ArraySeq
 import scala.jdk.OptionConverters._
@@ -76,30 +72,5 @@ final case class SaxonDocument(xdmNode: XdmNode) extends BackingDocumentApi {
 
   def newSerializer(file: File): Serializer = {
     xdmNode.getProcessor.newSerializer(file)
-  }
-}
-
-object SaxonDocument {
-
-  // JVM-only, but so is Saxon itself
-
-  def parse(f: File, processor: Processor): SaxonDocument = {
-    val xdmNode: XdmNode = processor.newDocumentBuilder().build(f)
-    SaxonDocument(xdmNode)
-  }
-
-  def parse(src: Source, processor: Processor): SaxonDocument = {
-    val xdmNode: XdmNode = processor.newDocumentBuilder().build(src)
-    SaxonDocument(xdmNode)
-  }
-
-  def parse(is: InputStream, processor: Processor): SaxonDocument = {
-    val xdmNode: XdmNode = processor.newDocumentBuilder().build(new StreamSource(is))
-    SaxonDocument(xdmNode)
-  }
-
-  def parse(is: InputStream, docUri: URI, processor: Processor): SaxonDocument = {
-    val xdmNode: XdmNode = processor.newDocumentBuilder().build(new StreamSource(is, docUri.toString))
-    SaxonDocument(xdmNode)
   }
 }

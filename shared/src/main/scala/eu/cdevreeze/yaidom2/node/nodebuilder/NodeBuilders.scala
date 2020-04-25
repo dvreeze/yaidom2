@@ -331,6 +331,11 @@ object NodeBuilders {
       }
     }
 
+    /**
+     * Returns a copy of the passed element as "creation DSL" element.
+     * If the passed element does not meet the requirements of "creation DSL" elements, an exception is thrown.
+     * Such requirements include the absence of any default namespace, the absence of namespace undeclarations, etc.
+     */
     def from(elm: ScopedNodes.Elem): Elem = {
       require(elm.scope.defaultNamespaceOption.isEmpty, s"Not a scope without default namespace: ${elm.scope}")
       val prefixedScope = PrefixedScope.from(elm.scope)

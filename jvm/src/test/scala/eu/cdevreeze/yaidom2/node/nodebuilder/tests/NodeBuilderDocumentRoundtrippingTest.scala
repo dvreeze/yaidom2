@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package eu.cdevreeze.yaidom2.creationapi
+package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 
-import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
+import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
+import eu.cdevreeze.yaidom2.node.nodebuilder
+import eu.cdevreeze.yaidom2.node.tests.ScopedDocumentRoundtrippingTest
 
-/**
- * Factory API for Backing documents.
- *
- * @author Chris de Vreeze
- */
-trait BackingDocumentFactory {
+class NodeBuilderDocumentRoundtrippingTest extends ScopedDocumentRoundtrippingTest[nodebuilder.Elem, nodebuilder.Document] {
 
-  type TargetDocumentType <: BackingDocumentApi
-
-  def from(doc: BackingDocumentApi): TargetDocumentType
-}
-
-object BackingDocumentFactory {
-
-  type Aux[D] = BackingDocumentFactory {
-    type TargetDocumentType = D
+  protected def doc: nodebuilder.Document = {
+    nodeBuilderDoc
   }
+
+  protected val documentFactory: ScopedDocumentFactory.Aux[nodebuilder.Document] = nodebuilder.Document
 }

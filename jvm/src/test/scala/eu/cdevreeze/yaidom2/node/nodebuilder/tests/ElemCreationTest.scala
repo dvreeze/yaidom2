@@ -23,6 +23,7 @@ import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
 import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
+import eu.cdevreeze.yaidom2.node.saxon.SaxonProducers
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
@@ -40,7 +41,7 @@ class ElemCreationTest extends AnyFunSuite {
 
   private def saxonDocument: saxon.Document = {
     val file = new File(classOf[XbrlNodeBuildersElemQueryTest].getResource(inputXmlFileOnClasspath).toURI)
-    saxon.Document.parse(file, processor)
+    SaxonProducers.parser(processor).parse(file)
   }
 
   private val XbrliNs = "http://www.xbrl.org/2003/instance"

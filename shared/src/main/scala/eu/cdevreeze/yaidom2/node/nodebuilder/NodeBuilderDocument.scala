@@ -50,6 +50,11 @@ object NodeBuilderDocument extends ScopedDocumentFactory {
     apply(docUriOption, Seq(documentElement))
   }
 
+  /**
+   * Returns a copy of the passed document as "creation DSL" document.
+   * If the document element of the passed document does not meet the requirements of "creation DSL" elements, an exception is thrown.
+   * Such requirements include the absence of any default namespace, the absence of namespace undeclarations, etc.
+   */
   def from(document: ScopedDocumentApi): NodeBuilderDocument = {
     val docChildren = document.children.collect { case ch: ScopedNodes.CanBeDocumentChild => ch }
 

@@ -29,3 +29,10 @@ trait ClarkDocumentFactory {
 
   def from(doc: ClarkDocumentApi): TargetDocumentType
 }
+
+object ClarkDocumentFactory {
+
+  type Aux[D] = ClarkDocumentFactory {
+    type TargetDocumentType = D
+  }
+}

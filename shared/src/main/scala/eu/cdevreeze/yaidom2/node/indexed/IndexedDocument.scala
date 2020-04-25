@@ -19,9 +19,12 @@ package eu.cdevreeze.yaidom2.node.indexed
 import java.net.URI
 
 import eu.cdevreeze.yaidom2.creationapi.BackingDocumentFactory
+import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
+import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.node.simple.SimpleDocument
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
+import eu.cdevreeze.yaidom2.queryapi.ScopedDocumentApi
 
 /**
  * Document holding a IndexedNodes.Elem.
@@ -31,7 +34,8 @@ import eu.cdevreeze.yaidom2.queryapi.BackingDocumentApi
 final case class IndexedDocument(children: Seq[IndexedNodes.CanBeDocumentChild]) extends BackingDocumentApi {
   require(
     children.collect { case e: IndexedNodes.Elem => e }.size == 1,
-    s"A document must have precisely 1 document element but found ${children.collect { case e: IndexedNodes.Elem => e }.size} ones")
+    s"A document must have precisely 1 document element but found ${children.collect { case e: IndexedNodes.Elem => e }.size} ones"
+  )
 
   type NodeType = IndexedNodes.Node
 
@@ -57,8 +61,8 @@ object IndexedDocument extends BackingDocumentFactory {
 
     val targetChildren: Seq[IndexedNodes.CanBeDocumentChild] = simpleDocument.children
       .map {
-        case e: SimpleNodes.Elem => IndexedNodes.Elem.ofRoot(docUriOption, e)
-        case c: SimpleNodes.Comment => IndexedNodes.Comment(c.text)
+        case e: SimpleNodes.Elem                   => IndexedNodes.Elem.ofRoot(docUriOption, e)
+        case c: SimpleNodes.Comment                => IndexedNodes.Comment(c.text)
         case pi: SimpleNodes.ProcessingInstruction => IndexedNodes.ProcessingInstruction(pi.target, pi.data)
       }
 
@@ -67,5 +71,16 @@ object IndexedDocument extends BackingDocumentFactory {
 
   def from(document: BackingDocumentApi): IndexedDocument = {
     of(SimpleDocument.from(document))
+  }
+
+  def asScopedDocumentFactory: ScopedDocumentFactoryView.type = ScopedDocumentFactoryView
+
+  object ScopedDocumentFactoryView extends ScopedDocumentFactory {
+
+    override type TargetDocumentType = IndexedDocument
+
+    override def from(doc: ScopedDocumentApi): IndexedDocument = {
+      IndexedDocument.of(simple.Document.from(doc))
+    }
   }
 }

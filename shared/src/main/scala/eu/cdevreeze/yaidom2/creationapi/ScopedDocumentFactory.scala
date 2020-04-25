@@ -29,3 +29,10 @@ trait ScopedDocumentFactory {
 
   def from(doc: ScopedDocumentApi): TargetDocumentType
 }
+
+object ScopedDocumentFactory {
+
+  type Aux[D] = ScopedDocumentFactory {
+    type TargetDocumentType = D
+  }
+}
