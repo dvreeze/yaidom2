@@ -67,7 +67,7 @@ object NodeBuilders {
       Elem.hasElementAndAttributeQNames(name, attributes, prefixedScope),
       s"No QName(s) for element name '$name' and/or attribute names (scope: $prefixedScope)"
     )
-    assert(this.hasNoPrefixedNamespaceUndeclarations, s"Prefixed namespace undeclarations found but not allowed, for element '$name''")
+    assert(this.childNodesNaveNoPrefixedNamespaceUndeclarations, s"Prefixed namespace undeclarations found but not allowed, for element '$name''")
 
     type ThisElem = Elem
 
@@ -83,29 +83,31 @@ object NodeBuilders {
 
     def scope: Scope = prefixedScope.scope
 
+    // Note that for nodebuilder elements (unlike for simple elements), ENames (for element name and attribute names) are leading,
+    // whereas QNames are derived from the EName and PrefixedScope (taking the last optional prefix in insertion order).
+    // Hence the state of an element contains ENames and not QNames.
+
     /**
      * Returns the QName. If prefixed, the prefix is the last one (in insertion order) for the namespace of the EName.
      * That is, if prefixed the prefix is found with expression `prefixedScope.findPrefixForNamespace(name.namespaceUriOption.get)`.
+     *
+     * In other words, returns `prefixedScope.getQName(name)`.
      */
     def qname: QName = {
-      val prefixOption: Option[String] =
-        if (name.namespaceUriOption.isEmpty) None else prefixedScope.findPrefixForNamespace(name.namespaceUriOption.get)
-
-      QName(prefixOption, name.localPart)
+      prefixedScope.getQName(name)
     }
 
     /**
      * Returns the attributes by QName. For any attribute name, if prefixed, the prefix is the last one (in insertion order)
      * for the namespace of the attribute EName. That is, if prefixed, they are found with expression
      * `prefixedScope.findPrefixForNamespace(attrName.namespaceUriOption.get)`.
+     *
+     * In other words, for each attribute name attrName, the attribute QName is `prefixedScope.getQName(attrName)`.
      */
     def attributesByQName: ListMap[QName, String] = {
       attributes.map {
         case (attrName, attrValue) =>
-          val prefixOption: Option[String] =
-            if (attrName.namespaceUriOption.isEmpty) None else prefixedScope.findPrefixForNamespace(attrName.namespaceUriOption.get)
-
-          QName(prefixOption, attrName.localPart) -> attrValue
+          prefixedScope.getQName(attrName) -> attrValue
       }
     }
 
@@ -321,7 +323,7 @@ object NodeBuilders {
       def isItselfValid(e: ScopedNodes.Elem): Boolean = {
         PrefixedScope.optionallyFrom(e.scope).nonEmpty &&
         hasElementAndAttributeQNames(e.name, e.attributes, PrefixedScope.from(e.scope)) && // this should be true anyway
-        e.hasNoPrefixedNamespaceUndeclarations
+        e.childNodesNaveNoPrefixedNamespaceUndeclarations
       }
 
       if (allElemsOrSelf.forall(isItselfValid)) {
@@ -346,7 +348,7 @@ object NodeBuilders {
       )
 
       require(
-        elm.hasNoPrefixedNamespaceUndeclarations,
+        elm.childNodesNaveNoPrefixedNamespaceUndeclarations,
         s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
 
       val children = elm.children.collect {

@@ -50,7 +50,7 @@ object ScopedNodes {
      * Returns true if the Scopes of the child elements are such that no (prefixed) namespace undeclarations are needed.
      * This is a requirement for namespaces in XML 1.0 (ignoring the default namespace), but not for namespaces in XML 1.1.
      */
-    def hasNoPrefixedNamespaceUndeclarations: Boolean = {
+    def childNodesNaveNoPrefixedNamespaceUndeclarations: Boolean = {
       findAllChildElems.forall { che =>
         scope.withoutDefaultNamespace.relativize(che.scope.withoutDefaultNamespace).retainingUndeclarations.isEmpty
       }

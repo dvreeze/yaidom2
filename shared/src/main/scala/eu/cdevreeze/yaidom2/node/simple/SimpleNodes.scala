@@ -67,6 +67,16 @@ object SimpleNodes {
 
     type ThisNode = Node
 
+    val name: EName = {
+      scope
+        .resolveQNameOption(qname)
+        .getOrElse(sys.error(s"Element name '$qname' should resolve to an EName in scope [$scope]"))
+    }
+
+    val attributes: ListMap[EName, String] = {
+      collectAttributes((_, _) => true)
+    }
+
     // Query API methods
 
     protected[yaidom2] def self: Elem = this
@@ -97,16 +107,6 @@ object SimpleNodes {
           None
         }
       }
-    }
-
-    def name: EName = {
-      scope
-        .resolveQNameOption(qname)
-        .getOrElse(sys.error(s"Element name '$qname' should resolve to an EName in scope [$scope]"))
-    }
-
-    def attributes: ListMap[EName, String] = {
-      collectAttributes((_, _) => true)
     }
 
     override def localName: String = {

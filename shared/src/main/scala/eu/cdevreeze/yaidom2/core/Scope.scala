@@ -178,9 +178,11 @@ final case class Scope(prefixNamespaceMap: ListMap[String, String]) {
    */
   def resolveQNameOption(qname: QName): Option[EName] = {
     qname match {
-      case unprefixedName: UnprefixedName if defaultNamespaceOption.isEmpty => Some(EName(None, unprefixedName.localPart))
-      case unprefixedName: UnprefixedName                                   => Some(EName(defaultNamespaceOption, unprefixedName.localPart))
-      case PrefixedName(prefix, localPart)                                  =>
+      case unprefixedName: UnprefixedName if defaultNamespaceOption.isEmpty =>
+        Some(EName(None, unprefixedName.localPart))
+      case unprefixedName: UnprefixedName =>
+        Some(EName(defaultNamespaceOption, unprefixedName.localPart))
+      case PrefixedName(prefix, localPart) =>
         // Thanks to Johan Walters for pointing to a performance bottleneck in previous versions of this code (in yaidom)
         prefix match {
           case "xml" => Some(EName(Some(XmlNamespace), localPart))

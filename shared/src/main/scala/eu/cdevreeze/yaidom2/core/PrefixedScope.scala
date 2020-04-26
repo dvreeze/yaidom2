@@ -86,9 +86,7 @@ final case class PrefixedScope private (scope: Scope) {
       if (ename.namespaceUriOption.contains(Scope.XmlNamespace)) {
         Some(QName("xml", ename.localPart))
       } else {
-        val prefixes: Seq[String] = scope.prefixesForNamespace(ename.namespaceUriOption.get).ensuring(_.forall(_.nonEmpty))
-
-        val prefixOption: Option[String] = prefixes.lastOption
+        val prefixOption: Option[String] = findPrefixForNamespace(ename.namespaceUriOption.get).ensuring(_.forall(_.nonEmpty))
 
         prefixOption.map { prefix =>
           QName(prefix, ename.localPart)
