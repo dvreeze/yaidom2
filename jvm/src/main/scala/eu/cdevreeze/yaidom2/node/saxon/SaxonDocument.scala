@@ -46,6 +46,8 @@ final case class SaxonDocument(xdmNode: XdmNode) extends BackingDocumentApi {
 
   type ElemType = SaxonNodes.Elem
 
+  type ThisDoc = SaxonDocument
+
   def docUriOption: Option[URI] = {
     Option(xdmNode.getDocumentURI)
   }

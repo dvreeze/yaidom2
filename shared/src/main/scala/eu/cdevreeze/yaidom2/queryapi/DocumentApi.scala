@@ -31,6 +31,8 @@ trait DocumentApi {
 
   type ElemType <: CanBeDocumentChildType with Nodes.Elem
 
+  type ThisDoc <: DocumentApi
+
   def docUriOption: Option[URI]
 
   def children: Seq[CanBeDocumentChildType]
@@ -40,9 +42,10 @@ trait DocumentApi {
 
 object DocumentApi {
 
-  type Aux[N, C, E] = DocumentApi {
+  type Aux[N, C, E, D] = DocumentApi {
     type NodeType = N
     type CanBeDocumentChildType = C
     type ElemType = E
+    type ThisDoc = D
   }
 }

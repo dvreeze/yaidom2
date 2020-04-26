@@ -28,13 +28,16 @@ trait ClarkDocumentApi extends DocumentApi {
   type CanBeDocumentChildType <: NodeType with ClarkNodes.CanBeDocumentChild
 
   type ElemType <: CanBeDocumentChildType with ClarkNodes.Elem
+
+  type ThisDoc <: ClarkDocumentApi
 }
 
 object ClarkDocumentApi {
 
-  type Aux[N, C, E] = ClarkDocumentApi {
+  type Aux[N, C, E, D] = ClarkDocumentApi {
     type Nodetype = N
     type CanBeDocumentChildType = C
     type ElemType = E
+    type ThisDoc = D
   }
 }

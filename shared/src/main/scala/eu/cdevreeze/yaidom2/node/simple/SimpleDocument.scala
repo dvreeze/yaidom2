@@ -31,13 +31,16 @@ import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 final case class SimpleDocument(docUriOption: Option[URI], children: Seq[SimpleNodes.CanBeDocumentChild]) extends ScopedDocumentApi {
   require(
     children.collect { case e: SimpleNodes.Elem => e }.size == 1,
-    s"A document must have precisely 1 document element but found ${children.collect { case e: SimpleNodes.Elem => e }.size} ones")
+    s"A document must have precisely 1 document element but found ${children.collect { case e: SimpleNodes.Elem => e }.size} ones"
+  )
 
   type NodeType = SimpleNodes.Node
 
   type CanBeDocumentChildType = SimpleNodes.CanBeDocumentChild
 
   type ElemType = SimpleNodes.Elem
+
+  type ThisDoc = SimpleDocument
 
   def documentElement: ElemType = children.collectFirst { case e: SimpleNodes.Elem => e }.get
 }
@@ -54,7 +57,8 @@ object SimpleDocument extends ScopedDocumentFactory {
     val docChildren = document.children.collect { case ch: ScopedNodes.CanBeDocumentChild => ch }
 
     val targetDocChildren =
-      docChildren.filter(n => Set[Nodes.NodeKind](Nodes.ElementKind, Nodes.CommentKind, Nodes.ProcessingInstructionKind).contains(n.nodeKind))
+      docChildren
+        .filter(n => Set[Nodes.NodeKind](Nodes.ElementKind, Nodes.CommentKind, Nodes.ProcessingInstructionKind).contains(n.nodeKind))
         .map(n => SimpleNodes.CanBeDocumentChild.from(n))
 
     SimpleDocument(document.docUriOption, targetDocChildren)

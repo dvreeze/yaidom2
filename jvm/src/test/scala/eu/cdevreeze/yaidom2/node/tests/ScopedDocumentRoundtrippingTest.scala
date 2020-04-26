@@ -41,7 +41,8 @@ import org.scalatest.funsuite.AnyFunSuite
 
 import scala.io.Codec
 
-abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], D <: ScopedDocumentApi.Aux[_, _, E]] extends AnyFunSuite {
+abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], D <: ScopedDocumentApi.Aux[_, _, E, D]]
+    extends AnyFunSuite {
 
   protected def doc: D
 

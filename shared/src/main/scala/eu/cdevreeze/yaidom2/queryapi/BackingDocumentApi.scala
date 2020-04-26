@@ -28,13 +28,16 @@ trait BackingDocumentApi extends ScopedDocumentApi {
   type CanBeDocumentChildType <: NodeType with BackingNodes.CanBeDocumentChild
 
   type ElemType <: CanBeDocumentChildType with BackingNodes.Elem
+
+  type ThisDoc <: BackingDocumentApi
 }
 
 object BackingDocumentApi {
 
-  type Aux[N, C, E] = BackingDocumentApi {
+  type Aux[N, C, E, D] = BackingDocumentApi {
     type NodeType = N
     type CanBeDocumentChildType = C
     type ElemType = E
+    type ThisDoc = D
   }
 }

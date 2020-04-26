@@ -43,6 +43,8 @@ final case class IndexedDocument(children: Seq[IndexedNodes.CanBeDocumentChild])
 
   type ElemType = IndexedNodes.Elem
 
+  type ThisDoc = IndexedDocument
+
   def docUriOption: Option[URI] = documentElement.docUriOption
 
   def documentElement: ElemType = children.collectFirst { case e: IndexedNodes.Elem => e }.get

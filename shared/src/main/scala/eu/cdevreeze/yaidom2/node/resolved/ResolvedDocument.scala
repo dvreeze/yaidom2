@@ -34,6 +34,8 @@ final case class ResolvedDocument(docUriOption: Option[URI], documentElement: Re
 
   type ElemType = ResolvedNodes.Elem
 
+  type ThisDoc = ResolvedDocument
+
   def children: Seq[ResolvedNodes.CanBeDocumentChild] = Seq(documentElement)
 }
 

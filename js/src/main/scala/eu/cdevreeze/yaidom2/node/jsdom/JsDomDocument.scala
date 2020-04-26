@@ -34,6 +34,8 @@ final case class JsDomDocument(jsDomDocument: dom.Document) extends BackingDocum
 
   type ElemType = JsDomNodes.Elem
 
+  type ThisDoc = JsDomDocument
+
   def docUriOption: Option[URI] = {
     Option(jsDomDocument.documentURI).map(s => new URI(s))
   }

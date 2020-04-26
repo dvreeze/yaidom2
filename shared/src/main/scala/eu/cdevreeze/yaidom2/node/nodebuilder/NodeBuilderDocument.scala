@@ -39,6 +39,8 @@ final case class NodeBuilderDocument(docUriOption: Option[URI], children: Seq[Ca
 
   type ElemType = Elem
 
+  type ThisDoc = NodeBuilderDocument
+
   def documentElement: ElemType = children.collectFirst { case e: Elem => e }.get
 }
 
