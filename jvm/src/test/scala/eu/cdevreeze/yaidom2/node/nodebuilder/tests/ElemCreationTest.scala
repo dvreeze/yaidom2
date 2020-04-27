@@ -19,6 +19,7 @@ package eu.cdevreeze.yaidom2.node.nodebuilder.tests
 import java.io.File
 
 import eu.cdevreeze.yaidom2.core._
+import eu.cdevreeze.yaidom2.node.resolved.ResolvedElemCreator
 import eu.cdevreeze.yaidom2.node.nodebuilder
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
@@ -26,12 +27,14 @@ import eu.cdevreeze.yaidom2.node.saxon.SaxonNodes
 import eu.cdevreeze.yaidom2.node.saxon.SaxonProducers
 import eu.cdevreeze.yaidom2.node.simple.SimpleNodes
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedElemApi
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
 import eu.cdevreeze.yaidom2.queryapi.named
 import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.immutable.ListMap
+import scala.util.chaining._
 
 class ElemCreationTest extends AnyFunSuite {
 
@@ -52,21 +55,246 @@ class ElemCreationTest extends AnyFunSuite {
 
   private val GaapNs = "http://xasb.org/gaap"
 
-  private val mappings: ListMap[String, String] = ListMap(
-    XbrliNs -> "xbrli",
-    LinkNs -> "link",
-    XLinkNs -> "xlink",
-    XbrldiNs -> "xbrldi",
-    Iso4217Ns -> "iso4217",
-    GaapNs -> "gaap",
+  private val scope: PrefixedScope = PrefixedScope.from(
+    "xbrli" -> XbrliNs,
+    "ignoredXLinkPrefix" -> XLinkNs,
+    "link" -> LinkNs,
+    "ignoredGaapPrefix" -> GaapNs,
+    "xlink" -> XLinkNs,
+    "xbrldi" -> XbrldiNs,
+    "iso4217" -> Iso4217Ns,
+    "gaap" -> GaapNs,
   )
 
-  implicit private val namespacePrefixMapper: NamespacePrefixMapper = NamespacePrefixMapper.fromMapWithFallback(mappings)
+  implicit private val namespacePrefixMapper: NamespacePrefixMapper =
+    NamespacePrefixMapper.fromPrefixToNamespaceMapWithFallback(scope.scope.prefixNamespaceMap)
 
   implicit private val elemCreator: nodebuilder.NodeBuilderCreator = nodebuilder.NodeBuilderCreator(namespacePrefixMapper)
 
   import elemCreator._
   import nodebuilder.NodeBuilderCreator._
+
+  test("testNamespacePrefixMapping") {
+    assertResult(Some("link")) {
+      namespacePrefixMapper.findPrefix(LinkNs)
+    }
+    assertResult(Some("xlink")) {
+      namespacePrefixMapper.findPrefix(XLinkNs)
+    }
+    assertResult(Some("gaap")) {
+      namespacePrefixMapper.findPrefix(GaapNs)
+    }
+  }
+
+  test("testPrefixedScopeUtil") {
+    val prefixedScopeUtil = new PrefixedScopeUtil(namespacePrefixMapper)
+
+    assertResult(Some("link")) {
+      prefixedScopeUtil.extractScopeFromNamespace(LinkNs, PrefixedScope.empty).findPrefixForNamespace(LinkNs)
+    }
+    assertResult(Some("link_prefix")) {
+      prefixedScopeUtil.extractScopeFromNamespace(LinkNs, PrefixedScope.from("link_prefix" -> LinkNs)).findPrefixForNamespace(LinkNs)
+    }
+    assertResult(Some("xlink")) {
+      prefixedScopeUtil.extractScopeFromNamespace(XLinkNs, PrefixedScope.empty).findPrefixForNamespace(XLinkNs)
+    }
+    assertResult(Some("gaap")) {
+      prefixedScopeUtil.extractScopeFromNamespace(GaapNs, PrefixedScope.empty).findPrefixForNamespace(GaapNs)
+    }
+
+    val enhancedScope: PrefixedScope = scope.append(PrefixedScope.from("ignoredGaapPrefix" -> GaapNs))
+
+    assertResult(true) {
+      enhancedScope == scope
+    }
+    assertResult(Some("gaap")) {
+      enhancedScope.findPrefixForNamespace(GaapNs)
+    }
+
+    assertResult(Some("gaap")) {
+      prefixedScopeUtil
+        .extractScopeFromNamespace(GaapNs, enhancedScope)
+        .findPrefixForNamespace(GaapNs)
+    }
+
+    assertResult(Some("gaap_prefix")) {
+      prefixedScopeUtil
+        .extractScopeFromNamespace(GaapNs, scope.append(PrefixedScope.from("ignoredGaapPrefix" -> GaapNs, "gaap_prefix" -> GaapNs)))
+        .findPrefixForNamespace(GaapNs)
+    }
+    assertResult(Some("gaap_prefix")) {
+      // Mapping "ignoredGaapPrefix" to GaapNs was already there, so has not been inserted again, and it was not the last mapping for namespace GaapNs.
+      prefixedScopeUtil
+        .extractScopeFromNamespace(GaapNs, scope.append(PrefixedScope.from("gaap_prefix" -> GaapNs, "ignoredGaapPrefix" -> GaapNs)))
+        .findPrefixForNamespace(GaapNs)
+    }
+    assertResult(Some("gaap_prefix2")) {
+      prefixedScopeUtil
+        .extractScopeFromNamespace(GaapNs, scope.append(PrefixedScope.from("gaap_prefix" -> GaapNs, "gaap_prefix2" -> GaapNs)))
+        .findPrefixForNamespace(GaapNs)
+    }
+  }
+
+  test("testChangeInNamespacePrefixDuringElementCreation") {
+    val customScope = PrefixedScope.from("xbrli_prefix" -> XbrliNs)
+
+    val identifier: nodebuilder.Elem =
+      textElem(EName(XbrliNs, "identifier"), "1234567890", customScope).creationApi
+        .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
+        .underlying
+
+    val entity: nodebuilder.Elem =
+      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi
+        .plusChild(identifier)
+        .underlying
+
+    assertResult(Some("xbrli_prefix")) {
+      identifier.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+    assertResult(Some("xbrli")) {
+      entity.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+
+    val foundIdentifier: nodebuilder.Elem = entity.findChildElem(_.name == EName(XbrliNs, "identifier")).get
+
+    assertResult(Some("xbrli_prefix")) {
+      foundIdentifier.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+
+    assertResult(true) {
+      entity.prefixedScope != foundIdentifier.prefixedScope
+    }
+
+    assertResult(entity.prefixedScope.append(customScope)) {
+      foundIdentifier.prefixedScope
+    }
+
+    val expectedResolvedEntity: resolved.Elem = {
+      implicit val resolvedElemCreator: ResolvedElemCreator.type = ResolvedElemCreator
+      import ResolvedElemCreator._
+
+      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi.plusChild {
+        textElem(EName(XbrliNs, "identifier"), "1234567890", PrefixedScope.empty).creationApi
+          .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
+          .underlying
+      }.underlying
+    }
+
+    assertResult(expectedResolvedEntity) {
+      resolved.Elem.from(entity)
+    }
+  }
+
+  test("testPushUpPrefixedNamespaceDeclarations") {
+    val customScope = PrefixedScope.from("xbrli_prefix" -> XbrliNs)
+
+    val identifier: nodebuilder.Elem =
+      textElem(EName(XbrliNs, "identifier"), "1234567890", customScope).creationApi
+        .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
+        .underlying
+
+    val entity: nodebuilder.Elem =
+      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi
+        .plusChild(identifier)
+        .underlying
+        .pipe { e =>
+          e.creationApi.usingParentScope(PrefixedScope.ignoringDefaultNamespace(ScopedElemApi.unionScope(e))).underlying
+        }
+
+    assertResult(Some("xbrli_prefix")) {
+      identifier.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+    assertResult(Some("xbrli_prefix")) {
+      // The prefix changed!
+      entity.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+
+    val foundIdentifier: nodebuilder.Elem = entity.findChildElem(_.name == EName(XbrliNs, "identifier")).get
+
+    assertResult(Some("xbrli_prefix")) {
+      foundIdentifier.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+
+    assertResult(Scope.from("xbrli_prefix" -> XbrliNs, "xbrli" -> XbrliNs)) {
+      foundIdentifier.scope
+    }
+    assertResult(foundIdentifier.scope) {
+      entity.scope
+    }
+
+    val expectedResolvedEntity: resolved.Elem = {
+      implicit val resolvedElemCreator: ResolvedElemCreator.type = ResolvedElemCreator
+      import ResolvedElemCreator._
+
+      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi.plusChild {
+        textElem(EName(XbrliNs, "identifier"), "1234567890", PrefixedScope.empty).creationApi
+          .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
+          .underlying
+      }.underlying
+    }
+
+    assertResult(expectedResolvedEntity) {
+      resolved.Elem.from(entity)
+    }
+  }
+
+  test("testChangeNamespacePrefixOverall") {
+    val customScope = PrefixedScope.from("xbrli_prefix" -> XbrliNs)
+
+    val identifier: nodebuilder.Elem =
+      textElem(EName(XbrliNs, "identifier"), "1234567890", customScope).creationApi
+        .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
+        .underlying
+
+    val entity: nodebuilder.Elem =
+      emptyElem(EName(XbrliNs, "entity"), customScope).creationApi
+        .plusChild(identifier)
+        .underlying
+
+    assertResult(Some("xbrli_prefix")) {
+      identifier.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+    assertResult(Some("xbrli_prefix")) {
+      entity.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+
+    val foundIdentifier: nodebuilder.Elem = entity.findChildElem(_.name == EName(XbrliNs, "identifier")).get
+
+    assertResult(Some("xbrli_prefix")) {
+      foundIdentifier.prefixedScope.findPrefixForNamespace(XbrliNs)
+    }
+
+    val updatedEntity: nodebuilder.Elem = entity.creationApi.underlying
+      .transformDescendantElemsOrSelf { e =>
+        emptyElem(
+          e.name,
+          e.attributes,
+          e.prefixedScope
+            .filterNamespaces(Set(XbrliNs))
+            .append(PrefixedScope.from("xbrli" -> XbrliNs, "xbrli_prefix" -> XbrliNs))).creationApi
+          .plusChildren(e.children)
+          .underlying
+      }
+
+    assertResult(List(Some("xbrli"))) {
+      updatedEntity.findAllDescendantElemsOrSelf.map(_.qname.prefixOption).distinct
+    }
+
+    val expectedResolvedEntity: resolved.Elem = {
+      implicit val resolvedElemCreator: ResolvedElemCreator.type = ResolvedElemCreator
+      import ResolvedElemCreator._
+
+      emptyElem(EName(XbrliNs, "entity"), PrefixedScope.empty).creationApi.plusChild {
+        textElem(EName(XbrliNs, "identifier"), "1234567890", PrefixedScope.empty).creationApi
+          .plusAttribute(EName.fromLocalName("scheme"), "http://www.sec.gov/CIK")
+          .underlying
+      }.underlying
+    }
+
+    assertResult(expectedResolvedEntity) {
+      resolved.Elem.from(updatedEntity)
+    }
+  }
 
   test("testCreationAndEquivalenceOfXbrlContext") {
     val prefixedScopeUtil = new PrefixedScopeUtil(namespacePrefixMapper)
@@ -74,8 +302,8 @@ class ElemCreationTest extends AnyFunSuite {
     def createExplicitMemberElem(dimension: EName, member: EName, parentScope: PrefixedScope): nodebuilder.Elem = {
       val scope: PrefixedScope = prefixedScopeUtil.extractScope(Seq(dimension, member), parentScope)
 
-      textElem(EName(XbrldiNs, "explicitMember"), scope.findQName(member).get.toString, scope).creationApi
-        .plusAttribute(EName.fromLocalName("dimension"), scope.findQName(dimension).get.toString)
+      textElem(EName(XbrldiNs, "explicitMember"), scope.getQName(member).toString, scope).creationApi
+        .plusAttribute(EName.fromLocalName("dimension"), scope.getQName(dimension).toString)
         .underlyingElem
     }
 
@@ -121,6 +349,7 @@ class ElemCreationTest extends AnyFunSuite {
         .findChildElem { e =>
           e.name == EName(XbrliNs, "context") && e.attr("id") == "I-2005"
         }
+        .ensuring(_.nonEmpty)
         .get
         .ensuring(_.qname.prefixOption.isEmpty)
 
@@ -159,7 +388,7 @@ class ElemCreationTest extends AnyFunSuite {
 
     val facts: Seq[nodebuilder.Elem] = saxonDocument.documentElement
       .filterChildElems(canBeFact)
-      .map(e => createFact(e, PrefixedScope.from(mappings.map(_.swap))))
+      .map(e => createFact(e, scope))
 
     val footnoteLinks: Seq[nodebuilder.Elem] = saxonDocument.documentElement
       .filterChildElems(named(LinkNs, "footnoteLink"))

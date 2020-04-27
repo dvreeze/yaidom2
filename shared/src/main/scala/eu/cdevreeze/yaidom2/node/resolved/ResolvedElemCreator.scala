@@ -68,7 +68,7 @@ object ResolvedElemCreator extends ElemCreationApi {
   }
 
   def plusChild(elem: ElemType, child: NodeType): ElemType = {
-    Elem(elem.name, elem.attributes, elem.children)
+    Elem(elem.name, elem.attributes, elem.children.appended(child))
   }
 
   def plusChildOption(elem: ElemType, childOption: Option[NodeType]): ElemType = {
