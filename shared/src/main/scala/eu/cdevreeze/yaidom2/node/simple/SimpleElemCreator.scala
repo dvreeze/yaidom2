@@ -87,7 +87,7 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       attributes.map { case (ename, v) => enhancedScope.getQName(ename) -> v },
       enhancedScope.scope,
       children.to(Vector).map {
-        case che: Elem => nodeUsingNonConflictingParentScope(che, enhancedScope.scope)
+        case che: Elem => nodeUsingNonConflictingParentScope(che, enhancedScope.scope.ensuring(_.defaultNamespaceOption.isEmpty))
         case ch: Node  => ch
       }
     )
@@ -100,11 +100,16 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributesByQName,
       elem.scope,
-      newChildren.map(ch => nodeUsingNonConflictingParentScope(ch, elem.scope)).to(Vector))
+      newChildren.map(ch => nodeUsingNonConflictingParentScope(ch, elem.scope.withoutDefaultNamespace)).to(Vector)
+    )
   }
 
   def plusChild(elem: ElemType, child: NodeType): ElemType = {
-    new Elem(elem.qname, elem.attributesByQName, elem.scope, elem.children.appended(nodeUsingNonConflictingParentScope(child, elem.scope)))
+    new Elem(
+      elem.qname,
+      elem.attributesByQName,
+      elem.scope,
+      elem.children.appended(nodeUsingNonConflictingParentScope(child, elem.scope.withoutDefaultNamespace)))
   }
 
   def plusChildOption(elem: ElemType, childOption: Option[NodeType]): ElemType = {
@@ -126,7 +131,8 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributesByQName,
       elem.scope,
-      elem.children.appendedAll(childSeq.map(ch => nodeUsingNonConflictingParentScope(ch, elem.scope))))
+      elem.children.appendedAll(childSeq.map(ch => nodeUsingNonConflictingParentScope(ch, elem.scope.withoutDefaultNamespace)))
+    )
   }
 
   def minusChild(elem: ElemType, index: Int): ElemType = {
@@ -144,7 +150,7 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       newAttributes.map { case (ename, v) => prefixedScope.getQName(ename) -> v },
       scope,
-      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope))
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope.withoutDefaultNamespace))
     )
   }
 
@@ -158,7 +164,7 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributes.updated(attrName, attrValue).map { case (ename, v) => prefixedScope.getQName(ename) -> v },
       scope,
-      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope))
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope.withoutDefaultNamespace))
     )
   }
 
@@ -176,7 +182,7 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributes.concat(newAttributes).map { case (ename, v) => prefixedScope.getQName(ename) -> v },
       scope,
-      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope))
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope.withoutDefaultNamespace))
     )
   }
 
@@ -200,7 +206,8 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       prefixedScope.getQName(newName),
       elem.attributesByQName,
       scope,
-      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope)))
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope.withoutDefaultNamespace))
+    )
   }
 
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {
