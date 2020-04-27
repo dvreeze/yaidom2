@@ -29,6 +29,16 @@ import scala.util.chaining._
 /**
  * "Creation DSL" element creation API. The passed NamespacePrefixMapper should be a total function from namespaces to prefixes.
  *
+ * The NodeBuilders.Elem elements created by this API obviously must obey the requirements on those elements: they have no
+ * default namespaces, the have matching QNames for the element name and attribute names, and they have no prefixed namespace
+ * undeclarations. Fortunately this NodeBuilderCreator API silently enforces these requirements. Indeed, the PrefixedScope
+ * supports no default namespace, class PrefixedScopeUtil is used to obtain QNames for given ENames, and the NodeBuilderCreator
+ * implementation enforces the prevention of prefixed namespace undeclarations by calling method nodeUsingNonConflictingParentScope.
+ *
+ * Moreover, almost all of this NodeBuilderCreator API does not allow for conflicting (prefixed) scopes during element creation.
+ * That is, the change of namespace for a given prefix is not allowed by almost all of this API. The only exception is method
+ * usingParentScope (and nodeUsingParentScope).
+ *
  * The more the NamespacePrefixMapper and parent scopes (in several functions below) agree on namespace-prefix mappings,
  * the less chance there is that conflicts (prefixes mapping to different namespaces) occur, and the fewer corresponding
  * exceptions will be thrown by these functions. We should strive to work as much as possible with collections of element trees that
@@ -127,14 +137,18 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(newAttributes.keys.toSeq, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(elem.name, newAttributes, enhancedScope, elem.children)
+    new Elem(elem.name, newAttributes, enhancedScope, elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, enhancedScope)))
   }
 
   def plusAttribute(elem: ElemType, attrName: EName, attrValue: String): ElemType = {
     val enhancedScope: PrefixedScope = extractScope(attrName, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(elem.name, elem.attributes.updated(attrName, attrValue), enhancedScope, elem.children)
+    new Elem(
+      elem.name,
+      elem.attributes.updated(attrName, attrValue),
+      enhancedScope,
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, enhancedScope)))
   }
 
   def plusAttributeOption(elem: ElemType, attrName: EName, attrValueOption: Option[String]): ElemType = {
@@ -145,7 +159,11 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(newAttributes.keys.toSeq, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(elem.name, elem.attributes.concat(newAttributes), enhancedScope, elem.children)
+    new Elem(
+      elem.name,
+      elem.attributes.concat(newAttributes),
+      enhancedScope,
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, enhancedScope)))
   }
 
   def minusAttribute(elem: ElemType, attrName: EName): ElemType = {
@@ -156,7 +174,7 @@ final class NodeBuilderCreator(val namespacePrefixMapper: NamespacePrefixMapper)
     val enhancedScope: PrefixedScope = extractScope(newName, elem.prefixedScope)
     require(elem.prefixedScope.doesNotConflictWith(enhancedScope), s"Conflicting scopes '${elem.prefixedScope}' and '$enhancedScope'")
 
-    new Elem(newName, elem.attributes, enhancedScope, elem.children)
+    new Elem(newName, elem.attributes, enhancedScope, elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, enhancedScope)))
   }
 
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {

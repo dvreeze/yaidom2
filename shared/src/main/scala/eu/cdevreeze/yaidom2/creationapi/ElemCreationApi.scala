@@ -165,6 +165,9 @@ trait ElemCreationApi {
 
   /**
    * Returns a copy of the given element in which the element name has been changed.
+   *
+   * Internally method usingNonConflictingParentScope is used to prevent prefixed namespace undeclarations, which are not allowed in XML 1.0,
+   * and to consistently use the same prefix-namespace mappings throughout the XML tree (although new non-conflicting ones may be added in descendants).
    */
   def withName(elem: ElemType, newName: EName): ElemType
 

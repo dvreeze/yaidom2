@@ -140,7 +140,12 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
     val scope: Scope = elem.scope.append(enhancedScope.scope)
     val prefixedScope: PrefixedScope = PrefixedScope.from(scope.withoutDefaultNamespace)
 
-    new Elem(elem.qname, newAttributes.map { case (ename, v) => prefixedScope.getQName(ename) -> v }, scope, elem.children)
+    new Elem(
+      elem.qname,
+      newAttributes.map { case (ename, v) => prefixedScope.getQName(ename) -> v },
+      scope,
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope))
+    )
   }
 
   def plusAttribute(elem: ElemType, attrName: EName, attrValue: String): ElemType = {
@@ -153,7 +158,8 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributes.updated(attrName, attrValue).map { case (ename, v) => prefixedScope.getQName(ename) -> v },
       scope,
-      elem.children)
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope))
+    )
   }
 
   def plusAttributeOption(elem: ElemType, attrName: EName, attrValueOption: Option[String]): ElemType = {
@@ -170,7 +176,8 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
       elem.qname,
       elem.attributes.concat(newAttributes).map { case (ename, v) => prefixedScope.getQName(ename) -> v },
       scope,
-      elem.children)
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope))
+    )
   }
 
   def minusAttribute(elem: ElemType, attrName: EName): ElemType = {
@@ -189,7 +196,11 @@ final class SimpleElemCreator(val namespacePrefixMapper: NamespacePrefixMapper) 
     val scope: Scope = elem.scope.append(enhancedScope.scope)
     val prefixedScope: PrefixedScope = PrefixedScope.from(scope.withoutDefaultNamespace)
 
-    new Elem(prefixedScope.getQName(newName), elem.attributesByQName, scope, elem.children)
+    new Elem(
+      prefixedScope.getQName(newName),
+      elem.attributesByQName,
+      scope,
+      elem.children.map(ch => nodeUsingNonConflictingParentScope(ch, scope)))
   }
 
   def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = {

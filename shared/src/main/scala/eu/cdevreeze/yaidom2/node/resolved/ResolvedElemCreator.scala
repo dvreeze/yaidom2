@@ -24,7 +24,8 @@ import scala.collection.immutable.ListMap
 import scala.util.chaining._
 
 /**
- * "Resolved" element creation API. The methods taking a parent scope ignore that parent scope.
+ * "Resolved" element creation API. The methods taking a parent scope ignore that parent scope, so in that sense the
+ * ElemCreationApi contract does not apply, because resolved elements have no scope.
  *
  * @author Chris de Vreeze
  */
