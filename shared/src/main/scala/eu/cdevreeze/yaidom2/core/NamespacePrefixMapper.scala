@@ -76,10 +76,15 @@ object NamespacePrefixMapper {
   object NamespacePrefixMap {
 
     /**
-     * Creates a NamespacePrefixMap from a mapping from prefixes to namespaces. Note that prefixes may get lost this way.
+     * Creates a NamespacePrefixMap from a Map from prefixes to namespaces. Note that prefixes may get lost this way.
+     * If there are multiple prefixes for the same namespaces, the last prefix in insertion order wins. Note that multiple
+     * namespaces for the same prefix are not possible, because the input is a Map from prefixes to namespaces.
+     *
+     * That is, the resulting NamespacePrefixMap has namespace-prefix mappings
+     * `prefixNamespaceMap.toSeq.map(_.swap).reverse.distinctBy(_._1).reverse.toMap`.
      */
-    def fromPrefixToNamespaceMap(prefixNamespaceMap: Map[String, String]): NamespacePrefixMap = {
-      val mappings: Map[String, String] = prefixNamespaceMap.map(_.swap)
+    def fromPrefixToNamespaceMap(prefixNamespaceMap: ListMap[String, String]): NamespacePrefixMap = {
+      val mappings: Map[String, String] = prefixNamespaceMap.toSeq.map(_.swap).reverse.distinctBy(_._1).reverse.toMap
 
       NamespacePrefixMap(mappings)
     }
@@ -163,9 +168,10 @@ object NamespacePrefixMapper {
   def fromMap(mappings: Map[String, String]): NamespacePrefixMap = NamespacePrefixMap(mappings)
 
   /**
-   * Returns a NamespacePrefixMapper from a Map from prefixes to namespaces.
+   * Returns a NamespacePrefixMapper from a Map from prefixes to namespaces. That is, returns
+   * `NamespacePrefixMap.fromPrefixToNamespaceMap(prefixNamespaceMap)`.
    */
-  def fromPrefixToNamespaceMap(prefixNamespaceMap: Map[String, String]): NamespacePrefixMap = {
+  def fromPrefixToNamespaceMap(prefixNamespaceMap: ListMap[String, String]): NamespacePrefixMap = {
     NamespacePrefixMap.fromPrefixToNamespaceMap(prefixNamespaceMap)
   }
 
@@ -197,7 +203,10 @@ object NamespacePrefixMapper {
     layering(Seq(fromMap(mappings), fallback()))
   }
 
-  def fromPrefixToNamespaceMapWithFallback(prefixNamespaceMap: Map[String, String]): NamespacePrefixMapper = {
+  /**
+   * Returns `layering(Seq(fromPrefixToNamespaceMap(prefixNamespaceMap), fallback()))`.
+   */
+  def fromPrefixToNamespaceMapWithFallback(prefixNamespaceMap: ListMap[String, String]): NamespacePrefixMapper = {
     layering(Seq(fromPrefixToNamespaceMap(prefixNamespaceMap), fallback()))
   }
 }
