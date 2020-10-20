@@ -9,45 +9,42 @@
 
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalaVer = "2.13.2"
+val scalaVer = "2.13.3"
 val crossScalaVer = Seq(scalaVer)
 
-lazy val commonSettings = Seq(
-  name         := "yaidom2",
-  description  := "Extensible XML query API with multiple DOM-like implementations, 2nd generation",
-  organization := "eu.cdevreeze.yaidom2",
-  version      := "0.12.0-SNAPSHOT",
+ThisBuild / name         := "yaidom2"
+ThisBuild / description  := "Extensible XML query API with multiple DOM-like implementations, 2nd generation"
+ThisBuild / organization := "eu.cdevreeze.yaidom2"
+ThisBuild / version      := "0.12.0-SNAPSHOT"
 
-  scalaVersion       := scalaVer,
-  crossScalaVersions := crossScalaVer,
+ThisBuild / scalaVersion       := scalaVer
+ThisBuild / crossScalaVersions := crossScalaVer
 
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings", "-Xlint"),
+ThisBuild / scalacOptions ++= Seq("-Wconf:cat=unused-imports:w,cat=unchecked:w,cat=deprecation:w,cat=feature:w,cat=lint:w")
 
-  Test / publishArtifact := false,
-  publishMavenStyle := true,
+ThisBuild / Test / publishArtifact := false
+ThisBuild / publishMavenStyle := true
 
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value) {
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    } else {
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    }
-  },
+ThisBuild / publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value) {
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  } else {
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  }
+}
 
-  pomExtra := pomData,
-  pomIncludeRepository := { _ => false },
+ThisBuild / pomExtra := pomData
+ThisBuild / pomIncludeRepository := { _ => false }
 
-  libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M1",
+ThisBuild / libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M2"
 
-  libraryDependencies += "org.scalatest" %%% "scalatest" % "3.1.1" % "test",
+ThisBuild / libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.2" % Test
 
-  libraryDependencies += "org.scalatestplus" %%% "scalacheck-1-14" % "3.1.1.1" % "test"
-)
+ThisBuild / libraryDependencies += "org.scalatestplus" %%% "scalacheck-1-14" % "3.2.2.0" % Test
 
 lazy val root = project.in(file("."))
   .aggregate(yaidom2JVM, yaidom2JS)
-  .settings(commonSettings: _*)
   .settings(
     name                 := "yaidom2",
     // Thanks, scala-java-time, for showing us how to prevent any publishing of root level artifacts:
@@ -60,13 +57,12 @@ lazy val root = project.in(file("."))
 lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
   .in(file("."))
-  .settings(commonSettings: _*)
   .jvmSettings(
     // By all means, override this version of Saxon if needed, possibly with a Saxon-EE release!
 
     libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-7",
 
-    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.3" % "test",
+    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.14.3" % Test,
 
     mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.10.0")
   )
@@ -74,7 +70,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
     // Do we need this jsEnv?
     jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
 
-    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "1.0.0",
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "1.1.0",
 
     Test / parallelExecution := false,
 
