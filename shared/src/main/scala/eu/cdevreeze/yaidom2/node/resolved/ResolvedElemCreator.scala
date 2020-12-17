@@ -19,7 +19,7 @@ package eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.StableScope
-import eu.cdevreeze.yaidom2.creationapi.ElementCreationApi
+import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 
 import scala.collection.immutable.ListMap
 import scala.util.chaining._
@@ -30,7 +30,7 @@ import scala.util.chaining._
  *
  * @author Chris de Vreeze
  */
-final class ResolvedElemCreator(val contextStableScope: StableScope) extends ElementCreationApi {
+final class ResolvedElemCreator(val contextStableScope: StableScope) extends ElemCreationApi {
 
   type WrapperType = ResolvedNodes.ElemInKnownScope
 

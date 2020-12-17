@@ -18,7 +18,7 @@ package eu.cdevreeze.yaidom2.node.nodebuilder
 
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.StableScope
-import eu.cdevreeze.yaidom2.creationapi.ElementCreationApi
+import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Text
 
 import scala.collection.immutable.ListMap
@@ -29,7 +29,7 @@ import scala.util.chaining._
  *
  * @author Chris de Vreeze
  */
-final class NodeBuilderCreator(val contextStableScope: StableScope) extends ElementCreationApi {
+final class NodeBuilderCreator(val contextStableScope: StableScope) extends ElemCreationApi {
 
   type WrapperType = NodeBuilders.ElemInKnownScope
 
@@ -100,7 +100,7 @@ final class NodeBuilderCreator(val contextStableScope: StableScope) extends Elem
         accKnownScope.append(currScope)
     }
 
-    val minimalScope: StableScope = ElementCreationApi.minimizeStableScope(startContextScope, qname, attributesByQName.keySet)
+    val minimalScope: StableScope = ElemCreationApi.minimizeStableScope(startContextScope, qname, attributesByQName.keySet)
 
     val targetScope: StableScope = minimalScope.appendUnsafely(neededExtraStableScope)
 

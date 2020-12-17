@@ -50,7 +50,7 @@ import scala.collection.immutable.ListMap
  *
  * @author Chris de Vreeze
  */
-trait ElementCreationApi {
+trait ElemCreationApi {
 
   type WrapperType <: ElemInKnownScope
 
@@ -149,7 +149,7 @@ trait ElementCreationApi {
   def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType], neededExtraStableScope: StableScope): WrapperType
 }
 
-object ElementCreationApi {
+object ElemCreationApi {
 
   /**
    * Returns the minimal sub-scope of the parameter stable scope that can resolve the given element QName and attribute names.
@@ -181,5 +181,5 @@ object ElementCreationApi {
    * @tparam N The node type
    * @tparam E The element type
    */
-  type Aux[W, N, E] = ElementCreationApi { type WrapperType = W; type NodeType = N; type ElemType = E }
+  type Aux[W, N, E] = ElemCreationApi { type WrapperType = W; type NodeType = N; type ElemType = E }
 }

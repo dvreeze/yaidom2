@@ -21,7 +21,7 @@ import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
 import eu.cdevreeze.yaidom2.core.StableScope
 import eu.cdevreeze.yaidom2.creationapi
-import eu.cdevreeze.yaidom2.creationapi.ElementCreationApi
+import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
@@ -324,7 +324,7 @@ object NodeBuilders {
 
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
       val extraScope: StableScope =
-        ElementCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), elem.qname, newAttributes.keySet)
+        ElemCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), elem.qname, newAttributes.keySet)
 
       val newKnownStableScope: StableScope = knownStableScope.append(elem.stableScope).append(extraScope)
 
@@ -352,7 +352,7 @@ object NodeBuilders {
     }
 
     def withQName(newQName: QName): ElemInKnownScope = {
-      val extraScope: StableScope = ElementCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), newQName, Set.empty)
+      val extraScope: StableScope = ElemCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), newQName, Set.empty)
 
       val newKnownStableScope: StableScope = knownStableScope.append(elem.stableScope).append(extraScope)
 
