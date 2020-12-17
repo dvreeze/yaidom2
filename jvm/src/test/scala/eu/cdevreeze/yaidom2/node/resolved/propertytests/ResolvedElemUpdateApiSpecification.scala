@@ -16,7 +16,7 @@
 
 package eu.cdevreeze.yaidom2.node.resolved.propertytests
 
-import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.core._
 import eu.cdevreeze.yaidom2.node.DefaultUpdatableElemApiSpecificationDataProvider
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.node.saxon
@@ -33,18 +33,16 @@ class ResolvedElemUpdateApiSpecification
   }
 
   protected def updateElem(e: resolved.Elem): resolved.Elem = {
-    e.copy(attributes = e.attributes + (EName.fromLocalName("testAttribute") -> "test"))
-      .copy(
-        children = e.children.appended(resolved.Elem(EName.fromLocalName("test-element"), ListMap.empty, Vector(resolved.Text("test")))))
+    e.copy(attributes = e.attributes + (e"testAttribute" -> "test"))
+      .copy(children = e.children.appended(resolved.Elem(e"test-element", ListMap.empty, Vector(resolved.Text("test")))))
   }
 
   protected def updateElemToNodeSeq(e: resolved.Elem): Seq[resolved.Node] = {
     Seq(
-      e.copy(attributes = e.attributes + (EName.fromLocalName("testAttribute") -> "test"))
-        .copy(
-          children = e.children.appended(resolved.Elem(EName.fromLocalName("test-element"), ListMap.empty, Vector(resolved.Text("test"))))),
+      e.copy(attributes = e.attributes + (e"testAttribute" -> "test"))
+        .copy(children = e.children.appended(resolved.Elem(e"test-element", ListMap.empty, Vector(resolved.Text("test"))))),
       resolved.Text("addedText"),
-      resolved.Elem(EName.fromLocalName("other-test-element"), ListMap.empty, Vector(resolved.Text("test2")))
+      resolved.Elem(e"other-test-element", ListMap.empty, Vector(resolved.Text("test2")))
     )
   }
 }

@@ -19,7 +19,7 @@ package eu.cdevreeze.yaidom2.queryapi.tests
 import java.net.URI
 import java.time.LocalDate
 
-import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.core._
 import eu.cdevreeze.yaidom2.dialect.AbstractDialectClarkElem
 import eu.cdevreeze.yaidom2.node.resolved
 import eu.cdevreeze.yaidom2.queryapi._
@@ -172,8 +172,8 @@ object TpDialectOverClarkElemQueryTest {
   val TpDescriptionEName: EName = EName(TpNs, "description")
   val TpLanguageEName: EName = EName(TpNs, "language")
 
-  val HrefEName: EName = EName.fromLocalName("href")
-  val NameEName: EName = EName.fromLocalName("name")
+  val HrefEName: EName = e"href"
+  val NameEName: EName = e"name"
 
   final case class TpDocument(underlyingDoc: ClarkDocumentApi) extends DocumentApi {
     require(underlyingDoc.documentElement.name == TpTaxonomyPackageEName, s"Expected TaxonomyPackage document element")

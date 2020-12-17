@@ -16,7 +16,10 @@
 
 package eu.cdevreeze.yaidom2.node.resolved
 
-import eu.cdevreeze.yaidom2.core.{EName, QName, Scope, StableScope}
+import eu.cdevreeze.yaidom2.core.EName
+import eu.cdevreeze.yaidom2.core.QName
+import eu.cdevreeze.yaidom2.core.Scope
+import eu.cdevreeze.yaidom2.core.StableScope
 import eu.cdevreeze.yaidom2.creationapi
 import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
@@ -399,11 +402,12 @@ object ResolvedNodes {
 
     def minusAttribute(attrQName: QName): ElemInKnownScope = {
       val attrScope: Scope = knownStableScope.scope.withoutDefaultNamespace
-      val attrName: EName = attrScope.resolveQNameOption(attrQName)
+      val attrName: EName = attrScope
+        .resolveQNameOption(attrQName)
         .getOrElse(sys.error(s"Attribute name '$attrQName' should resolve to an EName in scope [$attrScope]"))
 
-        Elem(elem.name, elem.attributes.filterNot(_._1 == attrName), children.toVector)
-          .pipe(e => ElemInKnownScope(e, knownStableScope))
+      Elem(elem.name, elem.attributes.filterNot(_._1 == attrName), children.toVector)
+        .pipe(e => ElemInKnownScope(e, knownStableScope))
     }
 
     def withQName(newQName: QName): ElemInKnownScope = {

@@ -87,18 +87,18 @@ class ElemCreationTest extends AnyFunSuite {
       textElem(q"identifier", "1234567890")
         .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
 
-    val entity: nodebuilder.ElemInKnownScope = emptyElem(QName("xbrli", "entity")).plusChild(identifier.elem)
+    val entity: nodebuilder.ElemInKnownScope = emptyElem(q"xbrli:entity").plusChild(identifier.elem)
 
     val expectedResolvedEntity: resolved.Elem = {
       val resolvedElemCreator: ResolvedElemCreator = new ResolvedElemCreator(stableScope)
 
       resolvedElemCreator
         .elem(
-          QName("xbrli", "entity"),
+          q"xbrli:entity",
           ListMap.empty[QName, String],
           Vector(
             resolvedElemCreator
-              .textElem(QName("xbrli", "identifier"), ListMap(q"scheme" -> "http://www.sec.gov/CIK"), "1234567890")
+              .textElem(q"xbrli:identifier", ListMap(q"scheme" -> "http://www.sec.gov/CIK"), "1234567890")
               .elem
           )
         )
@@ -121,7 +121,7 @@ class ElemCreationTest extends AnyFunSuite {
         .elem
 
     val entity: nodebuilder.Elem =
-      emptyElem(QName("xbrli", "entity"), StableScope.from("xbrli" -> XbrliNs))
+      emptyElem(q"xbrli:entity", StableScope.from("xbrli" -> XbrliNs))
         .plusChild(identifier)
         .usingParentScope(identifier.stableScope)
         .elem
@@ -147,8 +147,8 @@ class ElemCreationTest extends AnyFunSuite {
       val resolvedElemCreator: ResolvedElemCreator = ResolvedElemCreator(stableScope)
       import resolvedElemCreator._
 
-      emptyElem(QName("xbrli", "entity")).plusChildElem {
-        textElem(QName("xbrli", "identifier"), "1234567890")
+      emptyElem(q"xbrli:entity").plusChildElem {
+        textElem(q"xbrli:identifier", "1234567890")
           .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
       }.elem
     }
@@ -160,40 +160,40 @@ class ElemCreationTest extends AnyFunSuite {
 
   test("testCreationAndEquivalenceOfXbrlContext") {
     def createExplicitMemberElem(dimension: QName, member: QName): nodebuilder.Elem = {
-      textElem(QName("xbrldi", "explicitMember"), member.toString)
+      textElem(q"xbrldi:explicitMember", member.toString)
         .plusAttribute(q"dimension", dimension.toString)
         .elem
     }
 
     val xbrliEntity: nodebuilder.Elem = {
-      emptyElem(QName("xbrli", "entity"))
+      emptyElem(q"xbrli:entity")
         .plusChildElem {
-          textElem(QName("xbrli", "identifier"), "1234567890")
+          textElem(q"xbrli:identifier", "1234567890")
             .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
         }
-        .plusChildElem(emptyElem(QName("xbrli", "segment")))
+        .plusChildElem(emptyElem(q"xbrli:segment"))
         .elem
         .transformDescendantElems {
           case e @ nodebuilder.Elem(QName(Some("xbrli"), "segment"), _, _, _) =>
             nodebuilder
               .ElemInKnownScope(e, stableScope)
-              .plusChild(createExplicitMemberElem(QName("gaap", "EntityAxis"), QName("gaap", "ABCCompanyDomain")))
-              .plusChild(createExplicitMemberElem(QName("gaap", "BusinessSegmentAxis"), QName("gaap", "ConsolidatedGroupDomain")))
-              .plusChild(createExplicitMemberElem(QName("gaap", "VerificationAxis"), QName("gaap", "UnqualifiedOpinionMember")))
-              .plusChild(createExplicitMemberElem(QName("gaap", "PremiseAxis"), QName("gaap", "ActualMember")))
-              .plusChild(createExplicitMemberElem(QName("gaap", "ReportDateAxis"), QName("gaap", "ReportedAsOfMarch182008Member")))
+              .plusChild(createExplicitMemberElem(q"gaap:EntityAxis", q"gaap:ABCCompanyDomain"))
+              .plusChild(createExplicitMemberElem(q"gaap:BusinessSegmentAxis", q"gaap:ConsolidatedGroupDomain"))
+              .plusChild(createExplicitMemberElem(q"gaap:VerificationAxis", q"gaap:UnqualifiedOpinionMember"))
+              .plusChild(createExplicitMemberElem(q"gaap:PremiseAxis", q"gaap:ActualMember"))
+              .plusChild(createExplicitMemberElem(q"gaap:ReportDateAxis", q"gaap:ReportedAsOfMarch182008Member"))
               .elem
           case e => e
         }
     }
 
     val xbrliPeriod: nodebuilder.Elem =
-      emptyElem(QName("xbrli", "period"))
-        .plusChildElem(textElem(QName("xbrli", "instant"), "2005-12-31"))
+      emptyElem(q"xbrli:period")
+        .plusChildElem(textElem(q"xbrli:instant", "2005-12-31"))
         .elem
 
     val xbrliContext: nodebuilder.Elem =
-      emptyElem(QName("xbrli", "context"))
+      emptyElem(q"xbrli:context")
         .plusAttribute(q"id", "I-2005")
         .plusChild(xbrliEntity)
         .plusChild(xbrliPeriod)
@@ -218,11 +218,11 @@ class ElemCreationTest extends AnyFunSuite {
 
   test("testCreationAndEquivalenceOfXbrlInstance") {
     val schemaRef: nodebuilder.Elem =
-      emptyElem(QName("link", "schemaRef"), ListMap(q"xlink:type" -> "simple", q"xlink:href" -> "gaap.xsd")).elem
+      emptyElem(q"link:schemaRef", ListMap(q"xlink:type" -> "simple", q"xlink:href" -> "gaap.xsd")).elem
 
     val linkbaseRef: nodebuilder.Elem =
       emptyElem(
-        QName("link", "linkbaseRef"),
+        q"link:linkbaseRef",
         ListMap(
           q"xlink:type" -> "simple",
           q"xlink:href" -> "gaap-formula.xml",
@@ -247,7 +247,7 @@ class ElemCreationTest extends AnyFunSuite {
       .map(e => createFootnoteLink(e))
 
     val xbrlInstance: nodebuilder.Elem =
-      emptyElem(QName("xbrli", "xbrl"))
+      emptyElem(q"xbrli:xbrl")
         .plusChild(schemaRef)
         .plusChild(linkbaseRef)
         .plusChildren(contexts)
@@ -338,7 +338,7 @@ class ElemCreationTest extends AnyFunSuite {
     val rootElemWithENameContent: SimpleNodes.Elem =
       originalRootElemWithoutDefaultNamespace.transformDescendantElemsOrSelf {
         case e if e.name == EName(XbrldiNs, "explicitMember") =>
-          val dimension: EName = e.attrAsResolvedQName(EName.fromLocalName("dimension"))
+          val dimension: EName = e.attrAsResolvedQName(e"dimension")
 
           e.withAttributesByQName(e.attributesByQName + (q"dimension" -> dimension.toString))
             .withChildren(Vector(SimpleNodes.text(e.textAsResolvedQName.toString)))
@@ -380,7 +380,7 @@ class ElemCreationTest extends AnyFunSuite {
 
   private def createFact(originalFact: ScopedNodes.Elem, parentScope: StableScope): nodebuilder.Elem = {
     require(canBeFact(originalFact), s"Expected fact")
-    require(originalFact.attrOption(EName.fromLocalName("contextRef")).nonEmpty, s"Expected contextRef attribute")
+    require(originalFact.attrOption(e"contextRef").nonEmpty, s"Expected contextRef attribute")
     require(originalFact.qname.prefixOption.contains("gaap"), s"Expected 'gaap' fact")
 
     require(
