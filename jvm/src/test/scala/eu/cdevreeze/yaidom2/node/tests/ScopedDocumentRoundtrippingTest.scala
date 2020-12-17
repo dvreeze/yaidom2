@@ -20,10 +20,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URI
 
-import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.core.NamespacePrefixMapper
-import eu.cdevreeze.yaidom2.core.PrefixedScope
-import eu.cdevreeze.yaidom2.core.Scope
+import eu.cdevreeze.yaidom2.core._
 import eu.cdevreeze.yaidom2.creationapi.ScopedDocumentFactory
 import eu.cdevreeze.yaidom2.jaxp.DocumentSerializer
 import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilderCreator
@@ -111,102 +108,90 @@ abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], 
   private val XsiNs = "http://www.w3.org/2001/XMLSchema-instance"
 
   protected val nodeBuilderDoc: nodebuilder.Document = {
-    val scope = Scope.from("link" -> LinkNs, "ref" -> RefNs, "xlink" -> XLinkNs, "xsi" -> XsiNs)
-    val nsPrefixMapper = NamespacePrefixMapper.fromPrefixToNamespaceMapWithFallback(scope.prefixNamespaceMap)
-    implicit val elemCreator = NodeBuilderCreator(nsPrefixMapper)
+    val scope = StableScope.from("link" -> LinkNs, "ref" -> RefNs, "xlink" -> XLinkNs, "xsi" -> XsiNs)
+    val elemCreator = NodeBuilderCreator(scope)
 
-    import NodeBuilderCreator._
     import elemCreator._
 
-    val elm: nodebuilder.Elem = emptyElem(EName(LinkNs, "namespace"), PrefixedScope.empty).creationApi
-      .plusAttribute(EName(XsiNs, "schemaLocation"), "http://www.xbrl.org/2006/ref http://www.xbrl.org/2006/ref-2006-02-27.xsd")
-      .plusChild {
-        emptyElem(EName(LinkNs, "referenceLink"), PrefixedScope.empty).creationApi
-          .plusAttribute(EName(XLinkNs, "role"), "http://www.xbrl.org/2003/role/link")
-          .plusAttribute(EName(XLinkNs, "type"), "extended")
-          .plusChild {
-            emptyElem(EName(LinkNs, "loc"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName(XLinkNs, "href"), "jenv-bw2-axes.xsd#jenv-bw2-dim_LiabilitiesOtherAxis")
-              .plusAttribute(EName(XLinkNs, "label"), "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
-              .plusAttribute(EName(XLinkNs, "type"), "locator")
-              .underlying
+    val elm: nodebuilder.Elem = emptyElem(q"link:namespace")
+      .plusAttribute(q"xsi:schemaLocation", "http://www.xbrl.org/2006/ref http://www.xbrl.org/2006/ref-2006-02-27.xsd")
+      .plusChildElem {
+        emptyElem(q"link:referenceLink")
+          .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/link")
+          .plusAttribute(q"xlink:type", "extended")
+          .plusChildElem {
+            emptyElem(q"link:loc")
+              .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_LiabilitiesOtherAxis")
+              .plusAttribute(q"xlink:label", "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
+              .plusAttribute(q"xlink:type", "locator")
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "loc"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName(XLinkNs, "href"), "jenv-bw2-axes.xsd#jenv-bw2-dim_LoansAdvancesGuaranteesAxis")
-              .plusAttribute(EName(XLinkNs, "label"), "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
-              .plusAttribute(EName(XLinkNs, "type"), "locator")
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:loc")
+              .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_LoansAdvancesGuaranteesAxis")
+              .plusAttribute(q"xlink:label", "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
+              .plusAttribute(q"xlink:type", "locator")
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "loc"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName(XLinkNs, "href"), "jenv-bw2-axes.xsd#jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis")
-              .plusAttribute(EName(XLinkNs, "label"), "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
-              .plusAttribute(EName(XLinkNs, "type"), "locator")
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:loc")
+              .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis")
+              .plusAttribute(q"xlink:label", "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
+              .plusAttribute(q"xlink:type", "locator")
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "reference"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName.parse("id"), "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
-              .plusAttribute(EName(XLinkNs, "label"), "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
-              .plusAttribute(EName(XLinkNs, "role"), "http://www.xbrl.org/2003/role/reference")
-              .plusAttribute(EName(XLinkNs, "type"), "resource")
-              .plusChild(textElem(EName(RefNs, "Article"), "383e", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "IssueDate"), "2019-01-01", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "Name"), "Burgerlijk wetboek boek 2", PrefixedScope.empty))
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:reference")
+              .plusAttribute(q"id", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
+              .plusAttribute(q"xlink:label", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
+              .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
+              .plusAttribute(q"xlink:type", "resource")
+              .plusChildElem(textElem(q"ref:Article", "383e"))
+              .plusChildElem(textElem(q"ref:IssueDate", "2019-01-01"))
+              .plusChildElem(textElem(q"ref:Name", "Burgerlijk wetboek boek 2"))
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "reference"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName.parse("id"), "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
-              .plusAttribute(EName(XLinkNs, "label"), "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
-              .plusAttribute(EName(XLinkNs, "role"), "http://www.xbrl.org/2003/role/reference")
-              .plusAttribute(EName(XLinkNs, "type"), "resource")
-              .plusChild(textElem(EName(RefNs, "Chapter"), "115", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "IssueDate"), "2019-01-01", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "Name"), "Richtlijnen voor de jaarverslaggeving", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "Paragraph"), "214", PrefixedScope.empty))
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:reference")
+              .plusAttribute(q"id", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
+              .plusAttribute(q"xlink:label", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
+              .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
+              .plusAttribute(q"xlink:type", "resource")
+              .plusChildElem(textElem(q"ref:Chapter", "115"))
+              .plusChildElem(textElem(q"ref:IssueDate", "2019-01-01"))
+              .plusChildElem(textElem(q"ref:Name", "Richtlijnen voor de jaarverslaggeving"))
+              .plusChildElem(textElem(q"ref:Paragraph", "214"))
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "reference"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName.parse("id"), "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
-              .plusAttribute(EName(XLinkNs, "label"), "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
-              .plusAttribute(EName(XLinkNs, "role"), "http://www.xbrl.org/2003/role/reference")
-              .plusAttribute(EName(XLinkNs, "type"), "resource")
-              .plusChild(textElem(EName(RefNs, "Chapter"), "610", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "IssueDate"), "2019-01-01", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "Name"), "Richtlijnen voor de jaarverslaggeving", PrefixedScope.empty))
-              .plusChild(textElem(EName(RefNs, "Paragraph"), "106", PrefixedScope.empty))
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:reference")
+              .plusAttribute(q"id", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
+              .plusAttribute(q"xlink:label", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
+              .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
+              .plusAttribute(q"xlink:type", "resource")
+              .plusChildElem(textElem(q"ref:Chapter", "610"))
+              .plusChildElem(textElem(q"ref:IssueDate", "2019-01-01"))
+              .plusChildElem(textElem(q"ref:Name", "Richtlijnen voor de jaarverslaggeving"))
+              .plusChildElem(textElem(q"ref:Paragraph", "106"))
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "referenceArc"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName(XLinkNs, "arcrole"), "http://www.xbrl.org/2003/arcrole/concept-reference")
-              .plusAttribute(EName(XLinkNs, "from"), "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
-              .plusAttribute(EName(XLinkNs, "to"), "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
-              .plusAttribute(EName(XLinkNs, "type"), "arc")
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:referenceArc")
+              .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
+              .plusAttribute(q"xlink:from", "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
+              .plusAttribute(q"xlink:to", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
+              .plusAttribute(q"xlink:type", "arc")
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "referenceArc"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName(XLinkNs, "arcrole"), "http://www.xbrl.org/2003/arcrole/concept-reference")
-              .plusAttribute(EName(XLinkNs, "from"), "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
-              .plusAttribute(EName(XLinkNs, "to"), "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
-              .plusAttribute(EName(XLinkNs, "type"), "arc")
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:referenceArc")
+              .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
+              .plusAttribute(q"xlink:from", "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
+              .plusAttribute(q"xlink:to", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
+              .plusAttribute(q"xlink:type", "arc")
           }
-          .plusChild {
-            emptyElem(EName(LinkNs, "referenceArc"), PrefixedScope.empty).creationApi
-              .plusAttribute(EName(XLinkNs, "arcrole"), "http://www.xbrl.org/2003/arcrole/concept-reference")
-              .plusAttribute(EName(XLinkNs, "from"), "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
-              .plusAttribute(EName(XLinkNs, "to"), "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
-              .plusAttribute(EName(XLinkNs, "type"), "arc")
-              .underlying
+          .plusChildElem {
+            emptyElem(q"link:referenceArc")
+              .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
+              .plusAttribute(q"xlink:from", "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
+              .plusAttribute(q"xlink:to", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
+              .plusAttribute(q"xlink:type", "arc")
           }
-          .underlying
       }
-      .underlying
+      .elem
 
     nodebuilder.Document(Some(new URI("http://bogus-host/bogus-uri/bogus.xml")), elm)
   }

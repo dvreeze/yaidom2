@@ -17,9 +17,11 @@
 package eu.cdevreeze.yaidom2.node.nodebuilder
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.core.PrefixedScope
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.core.Scope
+import eu.cdevreeze.yaidom2.core.StableScope
+import eu.cdevreeze.yaidom2.creationapi
+import eu.cdevreeze.yaidom2.creationapi.ElementCreationApi
 import eu.cdevreeze.yaidom2.creationapi.ScopedNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
@@ -27,6 +29,7 @@ import eu.cdevreeze.yaidom2.queryapi.internal.AbstractScopedElem
 import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
 import scala.collection.immutable.ListMap
+import scala.util.chaining._
 
 /**
  * "Creation DSL" nodes and documents.
@@ -54,24 +57,29 @@ object NodeBuilders {
    * https://github.com/scala/scala/pull/8854.
    */
   final class Elem private[nodebuilder] (
-      val name: EName,
-      val attributes: ListMap[EName, String],
-      val prefixedScope: PrefixedScope,
+      val qname: QName,
+      val attributesByQName: ListMap[QName, String],
+      val stableScope: StableScope,
       val children: Vector[Node] // For querying, ArraySeq would be optimal, but not for (functional) updates
   ) extends CanBeDocumentChild
       with AbstractScopedElem
       with AbstractUpdatableElem {
 
-    // TODO These are expensive checks. Improve performance if possible.
-    assert(
-      Elem.hasElementAndAttributeQNames(name, attributes, prefixedScope),
-      s"No QName(s) for element name '$name' and/or attribute names (scope: $prefixedScope)"
-    )
-    assert(this.childNodesNaveNoPrefixedNamespaceUndeclarations, s"Prefixed namespace undeclarations found but not allowed, for element '$name''")
-
     type ThisElem = Elem
 
     type ThisNode = Node
+
+    val name: EName = {
+      scope
+        .resolveQNameOption(qname)
+        .getOrElse(sys.error(s"Element name '$qname' should resolve to an EName in scope [$scope]"))
+    }
+
+    val attributes: ListMap[EName, String] = {
+      collectAttributes((_, _) => true)
+    }
+
+    def scope: Scope = stableScope.scope
 
     // Query API methods
 
@@ -79,36 +87,6 @@ object NodeBuilders {
 
     protected[yaidom2] def toImmutableSeq(xs: collection.Seq[Elem]): Seq[Elem] = {
       Vector.from(xs)
-    }
-
-    def scope: Scope = prefixedScope.scope
-
-    // Note that for nodebuilder elements (unlike for simple elements), ENames (for element name and attribute names) are leading,
-    // whereas QNames are derived from the EName and PrefixedScope (taking the last optional prefix in insertion order).
-    // Hence the state of an element contains ENames and not QNames.
-
-    /**
-     * Returns the QName. If prefixed, the prefix is the last one (in insertion order) for the namespace of the EName.
-     * That is, if prefixed the prefix is found with expression `prefixedScope.findPrefixForNamespace(name.namespaceUriOption.get)`.
-     *
-     * In other words, returns `prefixedScope.getQName(name)`.
-     */
-    def qname: QName = {
-      prefixedScope.getQName(name)
-    }
-
-    /**
-     * Returns the attributes by QName. For any attribute name, if prefixed, the prefix is the last one (in insertion order)
-     * for the namespace of the attribute EName. That is, if prefixed, they are found with expression
-     * `prefixedScope.findPrefixForNamespace(attrName.namespaceUriOption.get)`.
-     *
-     * In other words, for each attribute name attrName, the attribute QName is `prefixedScope.getQName(attrName)`.
-     */
-    def attributesByQName: ListMap[QName, String] = {
-      attributes.map {
-        case (attrName, attrValue) =>
-          prefixedScope.getQName(attrName) -> attrValue
-      }
     }
 
     def filterChildElems(p: ThisElem => Boolean): Seq[ThisElem] = {
@@ -162,20 +140,11 @@ object NodeBuilders {
     // Update API methods
 
     /**
-     * Replaces the children by the given child nodes. Throws an exception if at least one prefixed namespace undeclaration
-     * would be introduced. Therefore it is better to use the "element creation DSL" instead.
+     * Replaces the children by the given child nodes. Throws an exception if the scopes are not "compatible".
      */
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
-      val introducesNoPrefixedNamespaceUndeclarations: Boolean =
-        newChildren.collect { case e: Elem => e }.forall { che =>
-          prefixedScope.scope.relativize(che.prefixedScope.scope).retainingUndeclarations.isEmpty
-        }
-      require(
-        introducesNoPrefixedNamespaceUndeclarations,
-        s"Not all child elements introduce no (prefixed) namespace undeclarations (current element's scope: $scope)"
-      )
-
-      new Elem(name, attributes, prefixedScope, newChildren.to(Vector))
+      // Dependency on ElemInKnownScope, so Elem and ElemInKnownScope are recursively dependent
+      ElemInKnownScope(this, this.stableScope).withChildren(newChildren).elem
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
@@ -259,6 +228,25 @@ object NodeBuilders {
     override def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
       super.transformDescendantElemsToNodeSeq(f)
     }
+
+    // Other public methods
+
+    def attributeScope: Scope = scope.withoutDefaultNamespace
+
+    // Private methods
+
+    private def collectAttributes(p: (QName, String) => Boolean): ListMap[EName, String] = {
+      val attrScope = attributeScope
+
+      attributesByQName.collect {
+        case (attQName, attValue) if p(attQName, attValue) =>
+          val attEName = attrScope
+            .resolveQNameOption(attQName)
+            .getOrElse(sys.error(s"Attribute name '$attQName' should resolve to an EName in scope [$attrScope]"))
+
+          attEName -> attValue
+      }
+    }
   }
 
   /**
@@ -275,6 +263,158 @@ object NodeBuilders {
    * "Creation DSL" processing instruction
    */
   final case class ProcessingInstruction(target: String, data: String) extends CanBeDocumentChild with ScopedNodes.ProcessingInstruction
+
+  // Wrapper of element in known scope
+
+  final case class ElemInKnownScope(elem: Elem, knownStableScope: StableScope) extends creationapi.ElemInKnownScope {
+
+    type WrapperType = ElemInKnownScope
+
+    type NodeType = Node
+
+    type ElemType = Elem
+
+    def children: Seq[Node] = elem.children
+
+    /**
+     * Replaces the children by the given child nodes. Throws an exception if the scopes are not "compatible".
+     */
+    def withChildren(newChildren: Seq[Node]): ElemInKnownScope = {
+      val newChildElems: Seq[Elem] = newChildren.collect { case e: Elem => e }
+
+      val scopes: Seq[StableScope] = newChildElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
+
+      // Throws if safely appending fails
+
+      val newKnownStableScope: StableScope = scopes.foldLeft(knownStableScope) {
+        case (accKnownScope, currScope) =>
+          accKnownScope.append(currScope)
+      }
+
+      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector)
+        .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+        .usingParentScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
+        .ensuring(_.elem.stableScope == this.elem.stableScope)
+        .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
+    }
+
+    def plusChild(child: Node): ElemInKnownScope = {
+      withChildren(this.children.appended(child))
+    }
+
+    def plusChildOption(childOption: Option[Node]): ElemInKnownScope = {
+      withChildren(this.children.appendedAll(childOption.toSeq))
+    }
+
+    def plusChild(index: Int, child: Node): ElemInKnownScope = {
+      withChildren(this.children.patch(index, Seq(child), 0))
+    }
+
+    def plusChildOption(index: Int, childOption: Option[Node]): ElemInKnownScope = {
+      withChildren(this.children.patch(index, childOption.toSeq, 0))
+    }
+
+    def plusChildren(childSeq: Seq[Node]): ElemInKnownScope = {
+      withChildren(this.children.appendedAll(childSeq))
+    }
+
+    def minusChild(index: Int): ElemInKnownScope = {
+      withChildren(this.children.patch(index, Seq.empty, 1))
+    }
+
+    def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
+      val extraScope: StableScope =
+        ElementCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), elem.qname, newAttributes.keySet)
+
+      val newKnownStableScope: StableScope = knownStableScope.append(elem.stableScope).append(extraScope)
+
+      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.append(extraScope), children.toVector)
+        .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+        .usingParentScope(StableScope.empty)
+        .ensuring(_.elem.stableScope == this.elem.stableScope.append(extraScope))
+        .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
+    }
+
+    def plusAttribute(attrQName: QName, attrValue: String): ElemInKnownScope = {
+      withAttributes(elem.attributesByQName.updated(attrQName, attrValue))
+    }
+
+    def plusAttributeOption(attrQName: QName, attrValueOption: Option[String]): ElemInKnownScope = {
+      attrValueOption.map(v => plusAttribute(attrQName, v)).getOrElse(this)
+    }
+
+    def plusAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
+      withAttributes(elem.attributesByQName.concat(newAttributes))
+    }
+
+    def minusAttribute(attrQName: QName): ElemInKnownScope = {
+      withAttributes(elem.attributesByQName.filterNot(_._1 == attrQName))
+    }
+
+    def withQName(newQName: QName): ElemInKnownScope = {
+      val extraScope: StableScope = ElementCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), newQName, Set.empty)
+
+      val newKnownStableScope: StableScope = knownStableScope.append(elem.stableScope).append(extraScope)
+
+      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.append(extraScope), children.toVector)
+        .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+        .usingParentScope(StableScope.empty)
+        .ensuring(_.elem.stableScope == this.elem.stableScope.append(extraScope))
+        .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
+    }
+
+    def plusChildElem(childElem: WrapperType): WrapperType = {
+      plusChild(childElem.elem)
+    }
+
+    def plusChildElemOption(childElemOption: Option[WrapperType]): WrapperType = {
+      plusChildOption(childElemOption.map(_.elem))
+    }
+
+    def plusChildElem(index: Int, childElem: WrapperType): WrapperType = {
+      plusChild(index, childElem.elem)
+    }
+
+    def plusChildElemOption(index: Int, childElemOption: Option[WrapperType]): WrapperType = {
+      plusChildOption(index, childElemOption.map(_.elem))
+    }
+
+    def plusChildElems(childElemSeq: Seq[WrapperType]): WrapperType = {
+      plusChildren(childElemSeq.map(_.elem))
+    }
+
+    def usingParentScope(parentScope: StableScope): ElemInKnownScope = {
+      val scopes: Seq[StableScope] = elem.findAllDescendantElemsOrSelf.map(_.stableScope).distinct
+
+      val contextScope: StableScope = scopes.foldLeft(knownStableScope.appendUnsafely(parentScope)) {
+        case (accScope, currScope) =>
+          accScope.append(currScope)
+      }
+
+      usingParentScope(parentScope, contextScope)
+    }
+
+    private def usingParentScope(parentScope: StableScope, knownScope: StableScope): ElemInKnownScope = {
+      // Throws if unsafely appending fails
+      val newScope: StableScope = elem.stableScope.appendUnsafely(parentScope)
+
+      assert(newScope.isCompatibleSubScopeOf(knownScope))
+
+      val newChildNodes: Seq[Node] =
+        children.collect {
+          case che: NodeBuilders.Elem =>
+            // Recursive call
+            che
+              .pipe(che => ElemInKnownScope(che, knownScope))
+              .usingParentScope(newScope, knownScope)
+              .elem
+          case n => n
+        }
+
+      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, newScope, newChildNodes.toVector)
+        .pipe(e => ElemInKnownScope(e, knownScope))
+    }
+  }
 
   // Companion objects
 
@@ -307,22 +447,24 @@ object NodeBuilders {
 
     type TargetElemType = Elem
 
-    def unapply(elem: Elem): Option[(EName, ListMap[EName, String], Seq[Node], PrefixedScope)] = {
-      val v = (elem.name, elem.attributes, elem.children, elem.prefixedScope)
+    def unapply(elem: Elem): Option[(QName, ListMap[QName, String], Seq[Node], StableScope)] = {
+      val v = (elem.qname, elem.attributesByQName, elem.children, elem.stableScope)
       Some(v)
     }
 
     /**
      * Returns an optional copy of the passed element as "creation DSL" element.
      * If the passed element does not meet the requirements of "creation DSL" elements, None is returned.
-     * Such requirements include the absence of any default namespace, the absence of namespace undeclarations, etc.
      */
     def optionallyFrom(elm: ScopedNodes.Elem): Option[Elem] = {
       val allElemsOrSelf = elm.findAllDescendantElemsOrSelf
 
       def isItselfValid(e: ScopedNodes.Elem): Boolean = {
-        PrefixedScope.optionallyFrom(e.scope).nonEmpty &&
-        hasElementAndAttributeQNames(e.name, e.attributes, PrefixedScope.from(e.scope)) && // this should be true anyway
+        StableScope.optionallyFrom(e.scope).nonEmpty &&
+        e.findAllChildElems
+          .flatMap(che => StableScope.optionallyFrom(che.scope))
+          .distinct
+          .forall(sc => StableScope.from(e.scope).canAppend(sc)) &&
         e.childNodesNaveNoPrefixedNamespaceUndeclarations
       }
 
@@ -336,15 +478,14 @@ object NodeBuilders {
     /**
      * Returns a copy of the passed element as "creation DSL" element.
      * If the passed element does not meet the requirements of "creation DSL" elements, an exception is thrown.
-     * Such requirements include the absence of any default namespace, the absence of namespace undeclarations, etc.
      */
     def from(elm: ScopedNodes.Elem): Elem = {
-      require(elm.scope.defaultNamespaceOption.isEmpty, s"Not a scope without default namespace: ${elm.scope}")
-      val prefixedScope = PrefixedScope.from(elm.scope)
+      require(StableScope.optionallyFrom(elm.scope).nonEmpty, s"Not a stable scope: ${elm.scope}")
+      val stableScope: StableScope = StableScope.from(elm.scope)
 
       require(
-        hasElementAndAttributeQNames(elm.name, elm.attributes, prefixedScope),
-        s"Element ${elm.name} with scope ${elm.scope} is corrupt with respect to naming (the correspondence between QNames and ENames)"
+        elm.findAllChildElems.flatMap(che => StableScope.optionallyFrom(che.scope)).distinct.forall(sc => stableScope.canAppend(sc)),
+        s"The stable scopes of child elements of ${elm.name} with scope ${elm.scope} cannot all be (safely) appended"
       )
 
       require(
@@ -363,45 +504,7 @@ object NodeBuilders {
         Node.from(node)
       }
 
-      new Elem(elm.name, elm.attributes, prefixedScope, creationDslChildren.to(Vector))
-    }
-
-    // Constraints on element builders (besides the use of PrefixedScopes only)
-
-    // Property ScopedNodes.Elem.hasNoPrefixedNamespaceUndeclarations is required too
-
-    /**
-     * Returns true if both element name (as EName) and attribute names (as ENames) determine a corresponding
-     * QName, given the passed simple scope. This is a requirement that has to be fulfilled in order to create an
-     * element builder containing this data, and it must hold for all descendant elements as well.
-     */
-    def hasElementAndAttributeQNames(elementName: EName, attributes: ListMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
-      hasElementQName(elementName, prefixedScope) &&
-      hasAttributeQNames(attributes, prefixedScope)
-    }
-
-    /**
-     * Returns true if the element name (as EName) determines a corresponding QName, given the passed simple scope.
-     */
-    def hasElementQName(elementName: EName, prefixedScope: PrefixedScope): Boolean = {
-      hasQName(elementName, prefixedScope)
-    }
-
-    /**
-     * Returns true if the attribute names (as ENames) determine a corresponding QName, given the passed simple scope.
-     */
-    def hasAttributeQNames(attributes: ListMap[EName, String], prefixedScope: PrefixedScope): Boolean = {
-      attributes.forall {
-        case (attrName, _) =>
-          hasQName(attrName, prefixedScope)
-      }
-    }
-
-    /**
-     * Returns true if the given EName determines a corresponding QName, given the passed simple scope.
-     */
-    def hasQName(ename: EName, prefixedScope: PrefixedScope): Boolean = {
-      prefixedScope.findQName(ename).nonEmpty
+      new Elem(elm.qname, elm.attributesByQName, stableScope, creationDslChildren.to(Vector))
     }
   }
 }

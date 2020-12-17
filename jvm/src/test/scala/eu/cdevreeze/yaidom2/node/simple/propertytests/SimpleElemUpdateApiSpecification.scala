@@ -16,15 +16,16 @@
 
 package eu.cdevreeze.yaidom2.node.simple.propertytests
 
-import eu.cdevreeze.yaidom2.core.{EName, NamespacePrefixMapper, PrefixedScope, QName}
+import eu.cdevreeze.yaidom2.core._
 import eu.cdevreeze.yaidom2.node.DefaultUpdatableElemApiSpecificationDataProvider
-import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.node.saxon
-import eu.cdevreeze.yaidom2.node.simple.SimpleElemCreator
+import eu.cdevreeze.yaidom2.node.simple
 import eu.cdevreeze.yaidom2.updateapi.propertytests.UpdatableElemApiSpecification
 
+import scala.collection.immutable.ListMap
+
 class SimpleElemUpdateApiSpecification
-  extends DefaultUpdatableElemApiSpecificationDataProvider[simple.Node, simple.Elem]("Simple-UpdatableElemApi")
+    extends DefaultUpdatableElemApiSpecificationDataProvider[simple.Node, simple.Elem]("Simple-UpdatableElemApi")
     with UpdatableElemApiSpecification[simple.Node, simple.Elem] {
 
   protected def convertSaxonElemToElem(e: saxon.Elem): simple.Elem = {
@@ -32,27 +33,18 @@ class SimpleElemUpdateApiSpecification
   }
 
   protected def updateElem(e: simple.Elem): simple.Elem = {
-    val prefixedScope: PrefixedScope = PrefixedScope(e.scope.withoutDefaultNamespace)
-
-    val mappings: Map[String, String] = prefixedScope.scope.prefixNamespaceMap.map(_.swap)
-
-    val elemCreator: SimpleElemCreator = SimpleElemCreator(NamespacePrefixMapper.fromMapWithFallback(mappings))
-
-    e.withAttributesByQName(e.attributesByQName + (QName.fromLocalName("testAttribute") -> "test"))
-      .withChildren(e.children.appended(elemCreator.textElem(EName.fromLocalName("test-element"), "test", prefixedScope)))
+    e.withAttributesByQName(e.attributesByQName + (q"testAttribute" -> "test"))
+      .withChildren(
+        e.children.appended(new simple.Elem(q"test-element", ListMap.empty, e.scope, Vector(simple.Text("test", isCData = false)))))
   }
 
   protected def updateElemToNodeSeq(e: simple.Elem): Seq[simple.Node] = {
-    val prefixedScope: PrefixedScope = PrefixedScope(e.scope.withoutDefaultNamespace)
-
-    val mappings: Map[String, String] = prefixedScope.scope.prefixNamespaceMap.map(_.swap)
-
-    val elemCreator: SimpleElemCreator = SimpleElemCreator(NamespacePrefixMapper.fromMapWithFallback(mappings))
-
     Seq(
-      e.withAttributesByQName(e.attributesByQName + (QName.fromLocalName("testAttribute") -> "test"))
-        .withChildren(e.children.appended(elemCreator.textElem(EName.fromLocalName("test-element"), "test", prefixedScope))),
+      e.withAttributesByQName(e.attributesByQName + (q"testAttribute" -> "test"))
+        .withChildren(
+          e.children.appended(new simple.Elem(q"test-element", ListMap.empty, e.scope, Vector(simple.Text("test", isCData = false))))),
       simple.Text("addedText", false),
-      elemCreator.textElem(EName.fromLocalName("other-test-element"), "test2", prefixedScope))
+      new simple.Elem(q"other-test-element", ListMap.empty, e.scope, Vector(simple.Text("test2", isCData = false)))
+    )
   }
 }

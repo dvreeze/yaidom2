@@ -17,8 +17,9 @@
 package eu.cdevreeze.yaidom2.node.resolved
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.core.PrefixedScope
-import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
+import eu.cdevreeze.yaidom2.core.QName
+import eu.cdevreeze.yaidom2.core.StableScope
+import eu.cdevreeze.yaidom2.creationapi.ElementCreationApi
 
 import scala.collection.immutable.ListMap
 import scala.util.chaining._
@@ -29,176 +30,89 @@ import scala.util.chaining._
  *
  * @author Chris de Vreeze
  */
-object ResolvedElemCreator extends ElemCreationApi {
+final class ResolvedElemCreator(val contextStableScope: StableScope) extends ElementCreationApi {
+
+  type WrapperType = ResolvedNodes.ElemInKnownScope
 
   type NodeType = ResolvedNodes.Node
 
   type ElemType = ResolvedNodes.Elem
 
-  def emptyElem(name: EName, parentScope: PrefixedScope): ElemType = {
-    emptyElem(name, ListMap.empty, parentScope)
+  def knownStableScope: StableScope = contextStableScope
+
+  def emptyElem(qname: QName): WrapperType = {
+    emptyElem(qname, ListMap.empty, StableScope.empty)
   }
 
-  def emptyElem(name: EName, attributes: ListMap[EName, String], parentScope: PrefixedScope): ElemType = {
-    Elem(name, attributes, Vector.empty)
+  def emptyElem(qname: QName, neededExtraStableScope: StableScope): WrapperType = {
+    emptyElem(qname, ListMap.empty, neededExtraStableScope)
   }
 
-  def textElem(name: EName, txt: String, parentScope: PrefixedScope): ElemType = {
-    textElem(name, ListMap.empty, txt, parentScope)
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String]): WrapperType = {
+    emptyElem(qname, attributesByQName, StableScope.empty)
   }
 
-  def textElem(name: EName, attributes: ListMap[EName, String], txt: String, parentScope: PrefixedScope): ElemType = {
-    Elem(name, attributes, Vector(Text(txt)))
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String], neededExtraStableScope: StableScope): WrapperType = {
+    elem(qname, attributesByQName, Vector.empty, neededExtraStableScope)
   }
 
-  def elem(name: EName, children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
-    elem(name, ListMap.empty, children, parentScope)
+  def textElem(qname: QName, txt: String): WrapperType = {
+    textElem(qname, ListMap.empty, txt, StableScope.empty)
   }
 
-  def elem(name: EName, attributes: ListMap[EName, String], children: Seq[NodeType], parentScope: PrefixedScope): ElemType = {
-    Elem(name, attributes, children.to(Vector))
+  def textElem(qname: QName, txt: String, neededExtraStableScope: StableScope): WrapperType = {
+    textElem(qname, ListMap.empty, txt, neededExtraStableScope)
   }
 
-  def children(elem: ElemType): Seq[NodeType] = {
-    elem.children
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String): WrapperType = {
+    textElem(qname, attributesByQName, txt, StableScope.empty)
   }
 
-  def withChildren(elem: ElemType, newChildren: Seq[NodeType]): ElemType = {
-    Elem(elem.name, elem.attributes, newChildren.to(Vector))
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String, neededExtraStableScope: StableScope): WrapperType = {
+    elem(qname, attributesByQName, Vector(Text(txt)), neededExtraStableScope)
   }
 
-  def plusChild(elem: ElemType, child: NodeType): ElemType = {
-    Elem(elem.name, elem.attributes, elem.children.appended(child))
+  def elem(qname: QName, children: Seq[NodeType]): WrapperType = {
+    elem(qname, ListMap.empty, children, StableScope.empty)
   }
 
-  def plusChildOption(elem: ElemType, childOption: Option[NodeType]): ElemType = {
-    plusChildren(elem, childOption.toSeq)
+  def elem(qname: QName, children: Seq[NodeType], neededExtraStableScope: StableScope): WrapperType = {
+    elem(qname, ListMap.empty, children, neededExtraStableScope)
   }
 
-  def plusChild(elem: ElemType, index: Int, child: NodeType): ElemType = {
-    withChildren(elem, children(elem).patch(index, Seq(child), 0))
+  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType]): WrapperType = {
+    elem(qname, attributesByQName, children, StableScope.empty)
   }
 
-  def plusChildOption(elem: ElemType, index: Int, childOption: Option[NodeType]): ElemType = {
-    withChildren(elem, children(elem).patch(index, childOption.toSeq, 0))
+  def elem(
+      qname: QName,
+      attributesByQName: ListMap[QName, String],
+      children: Seq[NodeType],
+      neededExtraStableScope: StableScope): WrapperType = {
+    val startContextScope: StableScope = contextStableScope.appendUnsafely(neededExtraStableScope)
+
+    val ename: EName = startContextScope.resolveQName(qname)
+
+    ResolvedNodes
+      .Elem(ename, convertAttributes(attributesByQName, startContextScope), children.toVector)
+      .pipe(e => ElemInKnownScope(e, startContextScope))
   }
 
-  def plusChildren(elem: ElemType, childSeq: Seq[NodeType]): ElemType = {
-    Elem(elem.name, elem.attributes, elem.children.appendedAll(childSeq))
-  }
+  private def convertAttributes(attributesByQName: ListMap[QName, String], stableScope: StableScope): ListMap[EName, String] = {
+    val attrScope = stableScope.scope.withoutDefaultNamespace
 
-  def minusChild(elem: ElemType, index: Int): ElemType = {
-    withChildren(elem, children(elem).patch(index, Seq.empty, 1))
-  }
+    attributesByQName.collect {
+      case (attQName, attValue) =>
+        val attEName = attrScope
+          .resolveQNameOption(attQName)
+          .getOrElse(sys.error(s"Attribute name '$attQName' should resolve to an EName in scope [$attrScope]"))
 
-  def withAttributes(elem: ElemType, newAttributes: ListMap[EName, String]): ElemType = {
-    Elem(elem.name, newAttributes, elem.children)
-  }
-
-  def plusAttribute(elem: ElemType, attrName: EName, attrValue: String): ElemType = {
-    Elem(elem.name, elem.attributes.updated(attrName, attrValue), elem.children)
-  }
-
-  def plusAttributeOption(elem: ElemType, attrName: EName, attrValueOption: Option[String]): ElemType = {
-    plusAttributes(elem, attrValueOption.toSeq.map(v => attrName -> v).to(ListMap))
-  }
-
-  def plusAttributes(elem: ElemType, newAttributes: ListMap[EName, String]): ElemType = {
-    Elem(elem.name, elem.attributes.concat(newAttributes), elem.children)
-  }
-
-  def minusAttribute(elem: ElemType, attrName: EName): ElemType = {
-    Elem(elem.name, elem.attributes.removed(attrName), elem.children)
-  }
-
-  def withName(elem: ElemType, newName: EName): ElemType = {
-    Elem(newName, elem.attributes, elem.children)
-  }
-
-  def usingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = elem
-
-  def usingNonConflictingParentScope(elem: ElemType, parentScope: PrefixedScope): ElemType = elem
-
-  implicit class WithCreationApi(val underlyingElem: ResolvedNodes.Elem) {
-
-    def creationApi(implicit elemCreator: ResolvedElemCreator.type): Elem = {
-      new Elem(underlyingElem)(elemCreator)
+        attEName -> attValue
     }
   }
+}
 
-  final class Elem(val underlyingElem: ResolvedNodes.Elem)(implicit val elemCreator: ResolvedElemCreator.type)
-      extends ElemCreationApi.Elem {
+object ResolvedElemCreator {
 
-    type UnderlyingNode = ResolvedNodes.Node
-
-    type UnderlyingElem = ResolvedNodes.Elem
-
-    type ThisElem = Elem
-
-    def withChildren(newChildren: Seq[UnderlyingNode]): ThisElem = {
-      elemCreator.withChildren(underlyingElem, newChildren).pipe(wrap)
-    }
-
-    def plusChild(child: UnderlyingNode): ThisElem = {
-      elemCreator.plusChild(underlyingElem, child).pipe(wrap)
-    }
-
-    def plusChildOption(childOption: Option[UnderlyingNode]): ThisElem = {
-      elemCreator.plusChildOption(underlyingElem, childOption).pipe(wrap)
-    }
-
-    def plusChild(index: Int, child: UnderlyingNode): ThisElem = {
-      elemCreator.plusChild(underlyingElem, index, child).pipe(wrap)
-    }
-
-    def plusChildOption(index: Int, childOption: Option[UnderlyingNode]): ThisElem = {
-      elemCreator.plusChildOption(underlyingElem, index, childOption).pipe(wrap)
-    }
-
-    def plusChildren(childSeq: Seq[UnderlyingNode]): ThisElem = {
-      elemCreator.plusChildren(underlyingElem, childSeq).pipe(wrap)
-    }
-
-    def minusChild(index: Int): ThisElem = {
-      elemCreator.minusChild(underlyingElem, index).pipe(wrap)
-    }
-
-    def withAttributes(newAttributes: ListMap[EName, String]): ThisElem = {
-      elemCreator.withAttributes(underlyingElem, newAttributes).pipe(wrap)
-    }
-
-    def plusAttribute(attrName: EName, attrValue: String): ThisElem = {
-      elemCreator.plusAttribute(underlyingElem, attrName, attrValue).pipe(wrap)
-    }
-
-    def plusAttributeOption(attrName: EName, attrValueOption: Option[String]): ThisElem = {
-      elemCreator.plusAttributeOption(underlyingElem, attrName, attrValueOption).pipe(wrap)
-    }
-
-    def plusAttributes(newAttributes: ListMap[EName, String]): ThisElem = {
-      elemCreator.plusAttributes(underlyingElem, newAttributes).pipe(wrap)
-    }
-
-    def minusAttribute(attrName: EName): ThisElem = {
-      elemCreator.minusAttribute(underlyingElem, attrName).pipe(wrap)
-    }
-
-    def withName(newName: EName): ThisElem = {
-      elemCreator.withName(underlyingElem, newName).pipe(wrap)
-    }
-
-    def usingParentScope(parentScope: PrefixedScope): ThisElem = {
-      elemCreator.usingParentScope(underlyingElem, parentScope).pipe(wrap)
-    }
-
-    def usingNonConflictingParentScope(parentScope: PrefixedScope): ThisElem = {
-      elemCreator.usingNonConflictingParentScope(underlyingElem, parentScope).pipe(wrap)
-    }
-
-    def underlying: UnderlyingElem = underlyingElem
-
-    private def wrap(underlyingElem: UnderlyingElem): ThisElem = {
-      new Elem(underlyingElem)(elemCreator)
-    }
-  }
+  def apply(contextStableScope: StableScope): ResolvedElemCreator = new ResolvedElemCreator(contextStableScope)
 }

@@ -221,7 +221,7 @@ final case class Scope(prefixNamespaceMap: ListMap[String, String]) {
     } else {
       val newlyDeclared: ListMap[String, String] = scope.prefixNamespaceMap.filter {
         case (pref, ns) =>
-          assert(ns.length > 0)
+          assert(ns.nonEmpty)
           Scope.this.prefixNamespaceMap.getOrElse(pref, "") != ns
       }
 
@@ -421,7 +421,7 @@ final case class Scope(prefixNamespaceMap: ListMap[String, String]) {
    */
   def conflictsWith(otherScope: Scope): Boolean = {
     val commonPrefixes: Set[String] = this.keySet.intersect(otherScope.keySet)
-    this.filterKeys(commonPrefixes) != otherScope.filterKeys(commonPrefixes)
+    this.prefixNamespaceMap.view.filterKeys(commonPrefixes).toMap != otherScope.prefixNamespaceMap.view.filterKeys(commonPrefixes).toMap
   }
 }
 

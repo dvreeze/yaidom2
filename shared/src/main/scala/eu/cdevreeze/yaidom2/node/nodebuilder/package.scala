@@ -44,4 +44,10 @@ package object nodebuilder {
   val Node = NodeBuilders.Node
 
   val Elem = NodeBuilders.Elem
+
+  // Wrappers
+
+  type ElemInKnownScope = NodeBuilders.ElemInKnownScope
+
+  val ElemInKnownScope = NodeBuilders.ElemInKnownScope
 }

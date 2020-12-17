@@ -42,4 +42,10 @@ package object resolved {
   val Elem = ResolvedNodes.Elem
 
   val Text = ResolvedNodes.Text
+
+  // Wrappers
+
+  type ElemInKnownScope = ResolvedNodes.ElemInKnownScope
+
+  val ElemInKnownScope = ResolvedNodes.ElemInKnownScope
 }
