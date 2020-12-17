@@ -69,16 +69,13 @@ class ElemCreationTest extends AnyFunSuite {
   import elemCreator._
 
   test("testCompatibleSubScope") {
-    val sc: StableScope = stableScope.filterKeys(Set("link", "xlink", "gaap"))
+    val sc: StableScope = stableScope.filterKeysCompatibly(Set("link", "xlink", "gaap"))
 
     assertResult(true) {
-      sc.subScopeOf(stableScope)
-    }
-    assertResult(false) {
       sc.isCompatibleSubScopeOf(stableScope)
     }
-    assertResult(true) {
-      stableScope.filterKeys(Set("link", "xlink", "gaap", "")).isCompatibleSubScopeOf(stableScope)
+    assertResult(sc) {
+      stableScope.filterKeysCompatibly(Set("link", "xlink", "gaap", ""))
     }
   }
 
@@ -259,9 +256,12 @@ class ElemCreationTest extends AnyFunSuite {
     def transformElementTree(rootElem: resolved.Elem): resolved.Elem = {
       rootElem.transformDescendantElemsOrSelf {
         case e @ resolved.Elem(EName(Some(XbrliNs), "xbrl"), _, _) =>
-          e.pipe(e =>
-              resolved
-                .ElemInKnownScope(e, stableScope.appendUnsafely(StableScope.from("xsi" -> "http://www.w3.org/2001/XMLSchema-instance"))))
+          e.pipe(
+              e =>
+                resolved
+                  .ElemInKnownScope(
+                    e,
+                    stableScope.appendNonConflicting(StableScope.from("xsi" -> "http://www.w3.org/2001/XMLSchema-instance"))))
             .minusAttribute(q"xsi:schemaLocation")
             .elem
         case e @ resolved.Elem(EName(Some(XbrliNs), "measure"), _, _) =>
@@ -317,7 +317,7 @@ class ElemCreationTest extends AnyFunSuite {
 
     val targetPrefixedScope = StableScope
       .from(originalScope.withoutDefaultNamespace)
-      .append(StableScope.from("xbrli" -> XbrliNs))
+      .appendCompatibly(StableScope.from("xbrli" -> XbrliNs))
 
     val originalRootElemWithoutDefaultNamespace: SimpleNodes.Elem =
       SimpleNodes.Elem

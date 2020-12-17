@@ -146,7 +146,11 @@ trait ElemCreationApi {
    *
    * This may be an expensive operation (because of the number or depth of the children).
    */
-  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType], neededExtraStableScope: StableScope): WrapperType
+  def elem(
+      qname: QName,
+      attributesByQName: ListMap[QName, String],
+      children: Seq[NodeType],
+      neededExtraStableScope: StableScope): WrapperType
 }
 
 object ElemCreationApi {
@@ -170,8 +174,7 @@ object ElemCreationApi {
 
     val prefixes: Set[String] = elemQName.prefixOption.toSet.union(attributeQNames.flatMap(_.prefixOption))
 
-    val result: StableScope = stableScope.filterKeys(prefixes + "") // The default namespace, if any, is retained
-    result.ensuring(_.isCompatibleSubScopeOf(stableScope))
+    stableScope.filterKeysCompatibly(prefixes)
   }
 
   /**

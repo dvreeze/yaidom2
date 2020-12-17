@@ -88,7 +88,7 @@ final class NodeBuilderCreator(val contextStableScope: StableScope) extends Elem
       attributesByQName: ListMap[QName, String],
       children: Seq[NodeType],
       neededExtraStableScope: StableScope): WrapperType = {
-    val startContextScope: StableScope = knownStableScope.appendUnsafely(neededExtraStableScope)
+    val startContextScope: StableScope = knownStableScope.appendNonConflicting(neededExtraStableScope)
 
     val childElems: Seq[ElemType] = children.collect { case e: NodeBuilders.Elem => e }
     val scopes: Seq[StableScope] = childElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
@@ -97,12 +97,12 @@ final class NodeBuilderCreator(val contextStableScope: StableScope) extends Elem
 
     val newKnownStableScope: StableScope = scopes.foldLeft(startContextScope) {
       case (accKnownScope, currScope) =>
-        accKnownScope.append(currScope)
+        accKnownScope.appendCompatibly(currScope)
     }
 
     val minimalScope: StableScope = ElemCreationApi.minimizeStableScope(startContextScope, qname, attributesByQName.keySet)
 
-    val targetScope: StableScope = minimalScope.appendUnsafely(neededExtraStableScope)
+    val targetScope: StableScope = minimalScope.appendNonConflicting(neededExtraStableScope)
 
     new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector)
       .pipe(e => ElemInKnownScope(e, newKnownStableScope))

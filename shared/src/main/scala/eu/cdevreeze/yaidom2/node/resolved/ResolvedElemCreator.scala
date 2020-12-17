@@ -89,7 +89,7 @@ final class ResolvedElemCreator(val contextStableScope: StableScope) extends Ele
       attributesByQName: ListMap[QName, String],
       children: Seq[NodeType],
       neededExtraStableScope: StableScope): WrapperType = {
-    val startContextScope: StableScope = contextStableScope.appendUnsafely(neededExtraStableScope)
+    val startContextScope: StableScope = contextStableScope.appendNonConflicting(neededExtraStableScope)
 
     val ename: EName = startContextScope.resolveQName(qname)
 

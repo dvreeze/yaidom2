@@ -288,7 +288,7 @@ object NodeBuilders {
 
       val newKnownStableScope: StableScope = scopes.foldLeft(knownStableScope) {
         case (accKnownScope, currScope) =>
-          accKnownScope.append(currScope)
+          accKnownScope.appendCompatibly(currScope)
       }
 
       new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector)
@@ -324,14 +324,14 @@ object NodeBuilders {
 
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
       val extraScope: StableScope =
-        ElemCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), elem.qname, newAttributes.keySet)
+        ElemCreationApi.minimizeStableScope(knownStableScope.appendCompatibly(elem.stableScope), elem.qname, newAttributes.keySet)
 
-      val newKnownStableScope: StableScope = knownStableScope.append(elem.stableScope).append(extraScope)
+      val newKnownStableScope: StableScope = knownStableScope.appendCompatibly(elem.stableScope).appendCompatibly(extraScope)
 
-      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.append(extraScope), children.toVector)
+      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibly(extraScope), children.toVector)
         .pipe(e => ElemInKnownScope(e, newKnownStableScope))
         .usingParentScope(StableScope.empty)
-        .ensuring(_.elem.stableScope == this.elem.stableScope.append(extraScope))
+        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
@@ -352,14 +352,14 @@ object NodeBuilders {
     }
 
     def withQName(newQName: QName): ElemInKnownScope = {
-      val extraScope: StableScope = ElemCreationApi.minimizeStableScope(knownStableScope.append(elem.stableScope), newQName, Set.empty)
+      val extraScope: StableScope = ElemCreationApi.minimizeStableScope(knownStableScope.appendCompatibly(elem.stableScope), newQName, Set.empty)
 
-      val newKnownStableScope: StableScope = knownStableScope.append(elem.stableScope).append(extraScope)
+      val newKnownStableScope: StableScope = knownStableScope.appendCompatibly(elem.stableScope).appendCompatibly(extraScope)
 
-      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.append(extraScope), children.toVector)
+      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibly(extraScope), children.toVector)
         .pipe(e => ElemInKnownScope(e, newKnownStableScope))
         .usingParentScope(StableScope.empty)
-        .ensuring(_.elem.stableScope == this.elem.stableScope.append(extraScope))
+        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
@@ -386,9 +386,9 @@ object NodeBuilders {
     def usingParentScope(parentScope: StableScope): ElemInKnownScope = {
       val scopes: Seq[StableScope] = elem.findAllDescendantElemsOrSelf.map(_.stableScope).distinct
 
-      val contextScope: StableScope = scopes.foldLeft(knownStableScope.appendUnsafely(parentScope)) {
+      val contextScope: StableScope = scopes.foldLeft(knownStableScope.appendNonConflicting(parentScope)) {
         case (accScope, currScope) =>
-          accScope.append(currScope)
+          accScope.appendCompatibly(currScope)
       }
 
       usingParentScope(parentScope, contextScope)
@@ -396,7 +396,7 @@ object NodeBuilders {
 
     private def usingParentScope(parentScope: StableScope, knownScope: StableScope): ElemInKnownScope = {
       // Throws if unsafely appending fails
-      val newScope: StableScope = elem.stableScope.appendUnsafely(parentScope)
+      val newScope: StableScope = elem.stableScope.appendNonConflicting(parentScope)
 
       assert(newScope.isCompatibleSubScopeOf(knownScope))
 
@@ -464,7 +464,7 @@ object NodeBuilders {
         e.findAllChildElems
           .flatMap(che => StableScope.optionallyFrom(che.scope))
           .distinct
-          .forall(sc => StableScope.from(e.scope).canAppend(sc)) &&
+          .forall(sc => StableScope.from(e.scope).canAppendCompatibly(sc)) &&
         e.childNodesNaveNoPrefixedNamespaceUndeclarations
       }
 
@@ -484,7 +484,7 @@ object NodeBuilders {
       val stableScope: StableScope = StableScope.from(elm.scope)
 
       require(
-        elm.findAllChildElems.flatMap(che => StableScope.optionallyFrom(che.scope)).distinct.forall(sc => stableScope.canAppend(sc)),
+        elm.findAllChildElems.flatMap(che => StableScope.optionallyFrom(che.scope)).distinct.forall(sc => stableScope.canAppendCompatibly(sc)),
         s"The stable scopes of child elements of ${elm.name} with scope ${elm.scope} cannot all be (safely) appended"
       )
 

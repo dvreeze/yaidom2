@@ -20,20 +20,21 @@ import scala.collection.immutable.ListMap
 import scala.util.chaining._
 
 /**
- * A holder of a Scope that, when ignoring the optional default namespace, is invertible. A stable scopes can only be
- * appended to another one if both scopes agree on the namespace of each prefix (including the empty one) that they share,
- * and if both scopes either have a default namespace (the same one, necessarily) or don't have a default namespace.
- * In practice this means that the default namespace must be chosen beforehand, before starting with a stable scope and
- * appending other ones to it.
+ * A holder of a Scope that, when ignoring the optional default namespace, is invertible. At least as importantly, stable scopes
+ * are defined in terms of the operations allowed on them. The idea is to use stable scopes in element creation APIs, and
+ * having the stable scopes grow in a "compatible" way.
  *
- * Hence, the notion of a stable scope is defined partly by restrictions on the underlying scope, and partly by the operations
- * that are allowed on stable scopes (returning other stable scopes). This makes stable scopes predictable in practice.
- * In particular, a StableScope is useful for element creation DSLs. Note that despite the restrictions on stable scopes,
- * these restrictions are quite reasonable in practice for element creation APIs.
+ * Stable scopes are compatible if they are non-conflicting (that is, common prefixes map to the same namespaces), while
+ * agreeing on the presence or absence of the default namespace. In element creation APIs stable scopes "grow" in a compatible
+ * way, by appending non-conflicting stable scopes returning compatible super-scopes (while not introducing a default namespace),
+ * in particular by appending compatible stable scopes.
  *
- * If "compatible" stable scopes are used throughout an element tree, then all namespace declarations can be pushed up
- * to the root element of the tree. "Compatible" in this context means: there is one "start" stable scope and the other
- * stable scopes are the result of (directly or indirectly) appending other stable scopes to that start stable scope.
+ * When using stable scopes, start with deciding whether a default namespace is needed. If so, when appending stable
+ * scopes this default namespace always remains there. If not, when appending stable scopes the default namespace cannot be added
+ * anywhere in a compatible way. So typically this is a decision to take per document to create using an element creation API.
+ *
+ * If compatible stable scopes are used throughout an element tree, then all namespace declarations can be pushed up
+ * to the root element of the tree.
  *
  * @author Chris de Vreeze
  */
@@ -44,30 +45,34 @@ final case class StableScope private (scope: Scope) {
 
   def defaultNamespaceOption: Option[String] = scope.defaultNamespaceOption
 
-  def retainingDefaultNamespace: StableScope = filterKeys(Set(Scope.DefaultNsPrefix))
-
-  /** Returns true if this is a subscope of the given parameter `StableScope`. A `StableScope` is considered subscope of itself. */
-  def subScopeOf(otherStableScope: StableScope): Boolean = {
-    scope.subScopeOf(otherStableScope.scope)
-  }
-
-  /** Returns true if this is a superscope of the given parameter `StableScope`. A `StableScope` is considered superscope of itself. */
-  def superScopeOf(otherStableScope: StableScope): Boolean = otherStableScope.subScopeOf(this)
-
-  /** Returns true if this is a compatible subscope of the given parameter `StableScope`. A `StableScope` is a compatible subscope of itself. */
+  /**
+   * Returns true if this is a compatible sub-scope of the given parameter `StableScope`. A `StableScope` is a compatible sub-scope of itself.
+   */
   def isCompatibleSubScopeOf(otherStableScope: StableScope): Boolean = {
     subScopeOf(otherStableScope) && this.defaultNamespaceOption == otherStableScope.defaultNamespaceOption
   }
 
-  /** Returns true if this is a compatible superscope of the given parameter `StableScope`. A `StableScope` is a compatible superscope of itself. */
+  /**
+   * Returns true if this is a compatible super-scope of the given parameter `StableScope`. A `StableScope` is a compatible super-scope of itself.
+   */
   def isCompatibleSuperScopeOf(otherStableScope: StableScope): Boolean = otherStableScope.isCompatibleSubScopeOf(this)
 
-  /** Returns `StableScope.from(scope.filter(p))`. */
-  def filter(p: ((String, String)) => Boolean): StableScope = StableScope.from(scope.filter(p))
+  /**
+   * Returns `StableScope.from(scope.filter(p).append(scope.retainingDefaultNamespace))`, so the result is a compatible sub-scope.
+   */
+  def filterCompatibly(p: ((String, String)) => Boolean): StableScope = {
+    StableScope
+      .from(scope.filter(p).append(scope.retainingDefaultNamespace))
+      .ensuring(_.isCompatibleSubScopeOf(this))
+  }
 
-  /** Returns `StableScope.from(scope.filterKeys(p))`. */
-  def filterKeys(p: String => Boolean): StableScope = {
-    StableScope.from(scope.filterKeys(p))
+  /**
+   * Returns `StableScope.from(scope.filterKeys(p).append(scope.retainingDefaultNamespace))`, so the result is a compatible sub-scope.
+   */
+  def filterKeysCompatibly(p: String => Boolean): StableScope = {
+    StableScope
+      .from(scope.filterKeys(p).append(scope.retainingDefaultNamespace))
+      .ensuring(_.isCompatibleSubScopeOf(this))
   }
 
   /** Returns `scope.keySet`. */
@@ -76,9 +81,13 @@ final case class StableScope private (scope: Scope) {
   /** Returns `scope.namespaces`. Hence, the "XML namespace" is not returned. */
   def namespaces: Set[String] = scope.namespaces
 
-  /** Returns `StableScope.from(scope.filterNamespaces(p))`. */
-  def filterNamespaces(p: String => Boolean): StableScope = {
-    StableScope.from(scope.filterNamespaces(p))
+  /**
+   * Returns `StableScope.from(scope.filterNamespaces(p).append(scope.retainingDefaultNamespace))`, so the result is a compatible sub-scope.
+   */
+  def filterNamespacesCompatibly(p: String => Boolean): StableScope = {
+    StableScope
+      .from(scope.filterNamespaces(p).append(scope.retainingDefaultNamespace))
+      .ensuring(_.isCompatibleSubScopeOf(this))
   }
 
   /**
@@ -97,40 +106,47 @@ final case class StableScope private (scope: Scope) {
 
   /**
    * Returns true if the parameter stable scope does not conflict with this stable scope, and both stable scopes either have
-   * a default namespace (the same one, necessarily) or do not have a default namespace.
+   * a default namespace (the same one, necessarily) or do not have any default namespace.
    */
   def isCompatibleWith(otherStableScope: StableScope): Boolean = {
-    this.defaultNamespaceOption == otherStableScope.defaultNamespaceOption && this.scope.doesNotConflictWith(otherStableScope.scope)
+    this.defaultNamespaceOption == otherStableScope.defaultNamespaceOption && this.doesNotConflictWith(otherStableScope)
   }
 
   /**
-   * Alias for `isCompatibleWith`, expressing in the method name that the `append` operation will be successful.
+   * Returns true if this stable scope does not conflict with the parameter stable scopes. This is required for compatibility
+   * of the stable scopes, but is a weaker property than compatibility.
    */
-  def canAppend(otherStableScope: StableScope): Boolean = {
+  def doesNotConflictWith(otherStableScope: StableScope): Boolean = {
+    this.scope.doesNotConflictWith(otherStableScope.scope)
+  }
+
+  /**
+   * Alias for `isCompatibleWith`, expressing in the method name that the `appendCompatibly` operation will be successful.
+   */
+  def canAppendCompatibly(otherStableScope: StableScope): Boolean = {
     isCompatibleWith(otherStableScope)
   }
 
   /**
-   * Appends the parameter stable scope to this stable scope if it can be appended, returning the optional result.
+   * Appends the parameter stable scope to this stable scope if they are compatible, returning the optional result.
    *
-   * The resulting StableScope, if any, is always a super-scope of the parameter StableScope and of this StableScope.
+   * The resulting StableScope, if any, is always a compatible super-scope of the parameter StableScope and of this StableScope.
+   * In practice the parameter stable scope is quite often a compatible sub-scope of this stable scope.
    *
-   * There is no prependOption function, because appending is a commutative operation.
+   * There is no prependCompatiblyOption function, because appending compatibly is a commutative operation.
    */
-  def appendOption(otherStableScope: StableScope): Option[StableScope] = {
-    if (canAppend(otherStableScope)) {
+  def appendCompatiblyOption(otherStableScope: StableScope): Option[StableScope] = {
+    if (canAppendCompatibly(otherStableScope)) {
       val resultScope: StableScope =
-        if (this == otherStableScope) {
+        if (otherStableScope.isCompatibleSubScopeOf(this)) {
           this
         } else {
           StableScope.from(this.scope.append(otherStableScope.scope))
         }
 
       resultScope
-        .ensuring(_.superScopeOf(this))
-        .ensuring(_.superScopeOf(otherStableScope))
-        .ensuring(_.defaultNamespaceOption == this.defaultNamespaceOption)
-        .ensuring(_.defaultNamespaceOption == otherStableScope.defaultNamespaceOption)
+        .ensuring(_.isCompatibleSuperScopeOf(this))
+        .ensuring(_.isCompatibleSuperScopeOf(otherStableScope))
         .pipe(Some(_))
     } else {
       None
@@ -138,52 +154,46 @@ final case class StableScope private (scope: Scope) {
   }
 
   /**
-   * Calls the equivalent of  `appendOption(otherStableScope).get`.
+   * Calls the equivalent of  `appendCompatiblyOption(otherStableScope).get`.
    *
-   * The resulting StableScope is always a super-scope of the parameter StableScope and of this StableScope.
+   * The resulting StableScope is always a compatible super-scope of the parameter StableScope and of this StableScope.
    */
-  def append(otherStableScope: StableScope): StableScope = {
-    appendOption(otherStableScope)
-      .getOrElse(sys.error(s"Could not append stable scope $otherStableScope to stable scope $this"))
+  def appendCompatibly(otherStableScope: StableScope): StableScope = {
+    appendCompatiblyOption(otherStableScope)
+      .getOrElse(sys.error(s"Could not append stable scope $otherStableScope compatibly to stable scope $this"))
   }
 
   /**
    * Returns true if the parameter stable scope does not conflict with this stable scope, and the scope to be appended
    * either has no default namespace or it has the same default namespace as this stable scope.
-   *
-   * The word "unsafe" means that both scopes may not agree on the existence of a default namespace, which can be a problem
-   * when creating element trees using appended scopes, where potentially only some elements in the tree may have a default namespace.
    */
-  def canAppendUnsafely(otherStableScope: StableScope): Boolean = {
+  def canAppendNonConflicting(otherStableScope: StableScope): Boolean = {
     val enhancedOtherStableScope: StableScope =
       if (otherStableScope.defaultNamespaceOption.isEmpty && this.defaultNamespaceOption.nonEmpty)
         StableScope.from(otherStableScope.scope.append(this.scope.retainingDefaultNamespace))
       else otherStableScope
 
-    canAppend(enhancedOtherStableScope)
+    canAppendCompatibly(enhancedOtherStableScope)
   }
 
   /**
-   * Appends the parameter stable scope to this stable scope if it can be appended unsafely, returning the optional result.
+   * Appends the parameter stable scope to this stable scope if method `canAppendNonConflicting` returns true, returning the optional result.
    *
-   * The resulting StableScope, if any, is always a super-scope of the parameter StableScope and of this StableScope.
-   *
-   * The word "unsafe" means that both scopes may not agree on the existence of a default namespace, which can be a problem
-   * when creating element trees using appended scopes, where potentially only some elements in the tree may have a default namespace.
+   * The resulting StableScope, if any, is always a super-scope of the parameter StableScope and a compatible super-scope of this StableScope.
+   * In practice the parameter stable scope is quite often a sub-scope of this stable scope.
    */
-  def appendUnsafelyOption(otherStableScope: StableScope): Option[StableScope] = {
-    if (canAppendUnsafely(otherStableScope)) {
+  def appendNonConflictingOption(otherStableScope: StableScope): Option[StableScope] = {
+    if (canAppendNonConflicting(otherStableScope)) {
       val resultScope: StableScope =
-        if (this == otherStableScope) {
+        if (otherStableScope.subScopeOf(this)) {
           this
         } else {
           StableScope.from(this.scope.append(otherStableScope.scope))
         }
 
       resultScope
-        .ensuring(_.superScopeOf(this))
+        .ensuring(_.isCompatibleSuperScopeOf(this))
         .ensuring(_.superScopeOf(otherStableScope))
-        .ensuring(_.defaultNamespaceOption == this.defaultNamespaceOption)
         .pipe(Some(_))
     } else {
       None
@@ -191,16 +201,23 @@ final case class StableScope private (scope: Scope) {
   }
 
   /**
-   * Calls the equivalent of  `appendUnsafelyOption(otherStableScope).get`.
+   * Calls the equivalent of  `appendNonConflictingOption(otherStableScope).get`.
    *
-   * The resulting StableScope is always a super-scope of the parameter StableScope and of this StableScope.
-   *
-   * The word "unsafe" means that both scopes may not agree on the existence of a default namespace, which can be a problem
-   * when creating element trees using appended scopes, where potentially only some elements in the tree may have a default namespace.
+   * The resulting StableScope, is always a super-scope of the parameter StableScope and a compatible super-scope of this StableScope.
    */
-  def appendUnsafely(otherStableScope: StableScope): StableScope = {
-    appendUnsafelyOption(otherStableScope)
-      .getOrElse(sys.error(s"Could not append stable scope $otherStableScope unsafely to stable scope $this"))
+  def appendNonConflicting(otherStableScope: StableScope): StableScope = {
+    appendNonConflictingOption(otherStableScope)
+      .getOrElse(sys.error(s"Could not append non-conflicting stable scope $otherStableScope to stable scope $this"))
+  }
+
+  /** Returns true if this is a sub-scope of the given parameter `StableScope`. A `StableScope` is considered sub-scope of itself. */
+  private def subScopeOf(otherStableScope: StableScope): Boolean = {
+    scope.subScopeOf(otherStableScope.scope)
+  }
+
+  /** Returns true if this is a super-scope of the given parameter `StableScope`. A `StableScope` is considered super-scope of itself. */
+  private def superScopeOf(otherStableScope: StableScope): Boolean = {
+    scope.superScopeOf(otherStableScope.scope)
   }
 }
 
@@ -216,8 +233,11 @@ object StableScope {
     if (scope.withoutDefaultNamespace.isInvertible) Some(StableScope.from(scope)) else None
   }
 
-  /** The "empty" `StableScope` */
+  /** The "empty" `StableScope`. It contains no default namespace, and no default namespace can be added compatibly. */
   val empty: StableScope = StableScope(Scope.Empty)
+
+  /** Creates a StableScope containing only a default namespace. This default namespace remains when appending stable scopes. */
+  def fromDefaultNamespace(ns: String): StableScope = StableScope(Scope.from("" -> ns))
 
   /**
    * Same as `StableScope.from(Scope.from(m))`.
