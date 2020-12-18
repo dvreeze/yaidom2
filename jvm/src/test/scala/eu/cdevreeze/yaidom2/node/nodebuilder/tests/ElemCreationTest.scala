@@ -179,7 +179,9 @@ class ElemCreationTest extends AnyFunSuite {
               .plusChild(createExplicitMemberElem(q"gaap:VerificationAxis", q"gaap:UnqualifiedOpinionMember"))
               .plusChild(createExplicitMemberElem(q"gaap:PremiseAxis", q"gaap:ActualMember"))
               .plusChild(createExplicitMemberElem(q"gaap:ReportDateAxis", q"gaap:ReportedAsOfMarch182008Member"))
+              .validated
               .elem
+              .validated
           case e => e
         }
     }
@@ -395,7 +397,9 @@ class ElemCreationTest extends AnyFunSuite {
       .plusAttributeOption(q"unitRef", originalFact.attrOption("unitRef"))
       .plusAttributeOption(q"decimals", originalFact.attrOption("decimals"))
       .plusAttributeOption(q"id", originalFact.attrOption("id"))
+      .validated
       .elem
+      .validated
   }
 
   private def createFootnoteLink(originalFootnoteLink: ScopedNodes.Elem): nodebuilder.Elem = {

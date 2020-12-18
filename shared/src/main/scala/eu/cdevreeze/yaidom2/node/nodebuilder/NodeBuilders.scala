@@ -460,7 +460,7 @@ object NodeBuilders {
       case n                                     => sys.error(s"Not an element, text, comment or PI node: $n")
     }
 
-    private[nodebuilders] def unsafeFrom(node: ScopedNodes.Node): Node = node match {
+    private[NodeBuilders] def unsafeFrom(node: ScopedNodes.Node): Node = node match {
       case e: ScopedNodes.Elem                   => Elem.unsafeFrom(e)
       case t: ScopedNodes.Text                   => Text(t.text)
       case c: ScopedNodes.Comment                => Comment(c.text)
@@ -523,18 +523,18 @@ object NodeBuilders {
         // Not all elements have a stable scope (invertible scope when ignoring the default namespace)
         sys.error(s"Not all scopes of descendant-or-self elements are stable scopes (invertible ignoring default namespace)")
       } else {
-        val combinedStableScope: StableScope =
+        val combinedScope: StableScope =
           allStableScopes.tail.foldLeft(allStableScopes.head) {
             case (accScope, currScope) =>
               accScope.appendCompatibly(currScope) // throws if cannot append compatibly
           }
-        assert(combinedStableScope.scope.nonEmpty)
+        assert(combinedScope.isCompatibleSuperScopeOf(allStableScopes.head)) // Just to use combinedScope
       }
 
       unsafeFrom(elm)
     }
 
-    private[nodebuilders] def unsafeFrom(elm: ScopedNodes.Elem): Elem = {
+    private[NodeBuilders] def unsafeFrom(elm: ScopedNodes.Elem): Elem = {
       val stableScope: StableScope = StableScope.from(elm.scope)
 
       val children = elm.children.collect {
