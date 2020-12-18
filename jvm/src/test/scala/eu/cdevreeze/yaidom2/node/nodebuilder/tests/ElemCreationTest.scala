@@ -114,13 +114,13 @@ class ElemCreationTest extends AnyFunSuite {
     val identifier: nodebuilder.Elem =
       textElem(q"identifier", "1234567890")
         .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
-        .usingParentScope(customScope)
+        .usingExtraScope(customScope)
         .elem
 
     val entity: nodebuilder.Elem =
       emptyElem(q"xbrli:entity", StableScope.from("xbrli" -> XbrliNs))
         .plusChild(identifier)
-        .usingParentScope(identifier.stableScope)
+        .usingExtraScope(identifier.stableScope)
         .elem
 
     assertResult(Seq("test")) {
@@ -196,7 +196,7 @@ class ElemCreationTest extends AnyFunSuite {
         .plusAttribute(q"id", "I-2005")
         .plusChild(xbrliEntity)
         .plusChild(xbrliPeriod)
-        .usingParentScope(StableScope.empty)
+        .usingExtraScope(StableScope.empty)
         .elem
 
     val originalContext: SaxonNodes.Elem =

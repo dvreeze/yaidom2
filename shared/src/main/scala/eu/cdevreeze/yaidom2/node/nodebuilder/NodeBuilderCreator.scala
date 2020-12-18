@@ -25,7 +25,7 @@ import scala.collection.immutable.ListMap
 import scala.util.chaining._
 
 /**
- * "Creation DSL" element creation API, implementing ElementCreationApi.
+ * "Creation DSL" element creation API, implementing ElemCreationApi.
  *
  * @author Chris de Vreeze
  */
@@ -81,6 +81,15 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
     elem(qname, attributesByQName, children, StableScope.empty)
   }
 
+  /**
+   * Creates an ElemInKnownScope whose element has the given QName, attributes (by QName) and child nodes.
+   * That returned element has a stable scope that is a super-scope of neededExtraStableScope. The resulting knownStableScope
+   * is also a super-scope of neededExtraStableScope, and is also a compatible super-scope of this NodeBuilderCreator's
+   * knownStableScope. Of course, the returned ElemInKnownScope instance must also be internally consistent, in that
+   * its element has a "combined stable scope" that is a compatible sub-scope of the ElemInKnownScope's knownStableScope.
+   *
+   * This method can be quite expensive if there are many children, or children with many descendant elements.
+   */
   def elem(
       qname: QName,
       attributesByQName: ListMap[QName, String],
@@ -89,25 +98,29 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
     val startKnownStableScope: StableScope = knownStableScope.appendNonConflicting(neededExtraStableScope)
 
     val childElems: Seq[ElemType] = children.collect { case e: NodeBuilders.Elem => e }
-    val scopes: Seq[StableScope] = childElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
+    val scopesOfDescendants: Seq[StableScope] = childElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
 
-    // Throws if appending compatibly fails
+    // The code below throws if appending compatibly fails. Note that newKnownStableScope is a compatible super-scope of knownStableScope.
+    // It is also a super-scope of neededExtraStableScope. It is also a compatible super-scope of the "combined stable scope"
+    // of the returned element.
 
-    val newKnownStableScope: StableScope = scopes.foldLeft(startKnownStableScope) {
+    val newKnownStableScope: StableScope = scopesOfDescendants.foldLeft(startKnownStableScope) {
       case (accKnownScope, currScope) =>
         accKnownScope.appendCompatibly(currScope)
     }
 
-    // For element name and attributes, startKnownStableScope should be enough
-    val minimalScope: StableScope = ElemCreationApi.minimizeStableScope(startKnownStableScope, qname, attributesByQName.keySet)
+    // For element name and attributes, startKnownStableScope should be enough context passed to function minimizeStableScope.
+    // Note that targetScope does not necessarily "contain" the descendant element scopes. Also note that targetScope is a
+    // compatible sub-scope of newKnownStableScope, and so is the "combined stable scope" of the returned element.
 
-    val targetScope: StableScope = minimalScope.appendNonConflicting(neededExtraStableScope)
+    val targetScope: StableScope = ElemCreationApi
+      .minimizeStableScope(startKnownStableScope, qname, attributesByQName.keySet)
+      .appendNonConflicting(neededExtraStableScope)
 
     new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector)
-      .pipe(e => ElemInKnownScope.unsafeFrom(e, newKnownStableScope))
-      .usingParentScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
+      .pipe(e => ElemInKnownScope.from(e, newKnownStableScope)) // expensive, but it checks internal consistency
+      .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
       .ensuring(_.elem.stableScope == targetScope)
-      .ensuring(_.elem.stableScope.isCompatibleWith(newKnownStableScope))
   }
 }
 

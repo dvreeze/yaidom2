@@ -434,8 +434,8 @@ object ResolvedNodes {
       plusChildren(childElemSeq.map(_.elem))
     }
 
-    def usingParentScope(parentScope: StableScope): ElemInKnownScope = {
-      elem.pipe(e => ElemInKnownScope(e, knownStableScope.appendNonConflicting(parentScope)))
+    def usingExtraScope(extraScope: StableScope): ElemInKnownScope = {
+      elem.pipe(e => ElemInKnownScope(e, knownStableScope.appendNonConflicting(extraScope)))
     }
 
     private def convertAttributes(attributesByQName: ListMap[QName, String], stableScope: StableScope): ListMap[EName, String] = {

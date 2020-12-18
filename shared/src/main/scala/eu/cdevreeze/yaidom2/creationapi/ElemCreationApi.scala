@@ -28,11 +28,11 @@ import scala.collection.immutable.ListMap
  * which must be a compatible super-scope of the element's combined stable scope, if applicable.
  *
  * Each element creation function (if no exception is thrown) returns an `ElemInKnownScope`, whose known stable scope
- * is a compatible super-scope of the known stable scope of this element creation API (which acts as a "start scope").
+ * is a compatible super-scope of the known stable scope of this element creation API (which acts as a "starting scope").
  *
  * For element creation functions that take an extra `neededExtraStableScope` stable scope parameter, expression
  * `knownStableScope.appendNonConflicting(neededExtraStableScope)` must not throw an exception, and this result scope
- * is part of the returned known stable scope. Indeed it is a compatible super-scope of `knownStableScope`.
+ * is part of the returned `ElemInKnownScope`. Indeed it is a compatible super-scope of `knownStableScope`.
  *
  * @author Chris de Vreeze
  */

@@ -22,14 +22,13 @@ import eu.cdevreeze.yaidom2.core.StableScope
 import scala.collection.immutable.ListMap
 
 /**
- * Element within a known stable scope. It helps in keeping (gradually growing) known stable scopes
- * around while creating element trees.
+ * Element within a known stable scope. It helps in keeping (gradually growing) known stable scopes around while creating
+ * element trees.
  *
- * If the element has a Scope, it must be a StableScope, and it must be a compatible
- * sub-scope of the known stable scope.
+ * If the element has a Scope, it must be a StableScope, and the "combinedStableScope" must be a compatible sub-scope of the known stable scope.
  *
- * All methods that add/update child nodes, attributes and that update element QNames must return element wrappers
- * whose known scopes are compatible super-scopes of this wrapper's known scope.
+ * All methods that add/update child nodes or attributes and that update element QNames must return element wrappers whose
+ * known scopes are compatible super-scopes of this wrapper's known scope.
  *
  * @author Chris de Vreeze
  */
@@ -104,14 +103,14 @@ trait ElemInKnownScope {
   def plusChildElems(childElemSeq: Seq[WrapperType]): WrapperType
 
   /**
-   * Appends the parent stable scope to this element's stable scope, and makes sure there are no namespace undeclarations
-   * in the descendant elements. If the parent stable scope cannot be added as a non-conflicting scope to this element
+   * Appends the given extra stable scope to this element's stable scope, and makes sure there are no namespace undeclarations
+   * in the descendant elements. If the extra stable scope cannot be added as a non-conflicting scope to this element
    * or any of its descendants, an exception is thrown.
    *
    * This method is typically used to introduce one or more prefixes and corresponding namespaces to an element and
    * all its descendants.
    */
-  def usingParentScope(parentScope: StableScope): WrapperType
+  def usingExtraScope(extraScope: StableScope): WrapperType
 }
 
 object ElemInKnownScope {
