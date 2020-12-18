@@ -168,7 +168,7 @@ object NodeBuilders {
      */
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
       // Dependency on ElemInKnownScope, so Elem and ElemInKnownScope are mutually dependent
-      ElemInKnownScope(this, this.combinedStableScope).withChildren(newChildren).elem
+      ElemInKnownScope.unsafeFrom(this, this.combinedStableScope).withChildren(newChildren).elem
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
@@ -290,7 +290,7 @@ object NodeBuilders {
 
   // Wrapper of element in known scope
 
-  final case class ElemInKnownScope(elem: Elem, knownStableScope: StableScope) extends creationapi.ElemInKnownScope {
+  final class ElemInKnownScope private (val elem: Elem, val knownStableScope: StableScope) extends creationapi.ElemInKnownScope {
 
     type WrapperType = ElemInKnownScope
 
@@ -325,7 +325,7 @@ object NodeBuilders {
       }
 
       new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector)
-        .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+        .pipe(e => ElemInKnownScope.unsafeFrom(e, newKnownStableScope))
         .usingParentScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
         .ensuring(_.elem.stableScope == this.elem.stableScope)
     }
@@ -359,7 +359,7 @@ object NodeBuilders {
         ElemCreationApi.minimizeStableScope(knownStableScope, elem.qname, newAttributes.keySet)
 
       new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibly(extraScope), children.toVector)
-        .pipe(e => ElemInKnownScope(e, knownStableScope))
+        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
         .usingParentScope(StableScope.empty)
         .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
@@ -386,7 +386,7 @@ object NodeBuilders {
         ElemCreationApi.minimizeStableScope(knownStableScope, newQName, Set.empty)
 
       new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibly(extraScope), children.toVector)
-        .pipe(e => ElemInKnownScope(e, knownStableScope))
+        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
         .usingParentScope(StableScope.empty)
         .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
@@ -427,18 +427,32 @@ object NodeBuilders {
           case che: NodeBuilders.Elem =>
             // Recursive call
             che
-              .pipe(che => ElemInKnownScope(che, knownScope))
+              .pipe(che => ElemInKnownScope.unsafeFrom(che, knownScope))
               .usingParentScope(newElemScope, knownScope)
               .elem
           case n => n
         }
 
       new NodeBuilders.Elem(elem.qname, elem.attributesByQName, newElemScope, newChildNodes.toVector)
-        .pipe(e => ElemInKnownScope(e, knownScope))
+        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownScope))
     }
   }
 
-  // Companion objects
+  object ElemInKnownScope {
+
+    /**
+     * Expensive ElemInKnownScope factory method that calls the constructor followed by expensive method `validated`.
+     */
+    def from(elem: Elem, knownStableScope: StableScope): ElemInKnownScope = {
+      new ElemInKnownScope(elem, knownStableScope).validated
+    }
+
+    def unsafeFrom(elem: Elem, knownStableScope: StableScope): ElemInKnownScope = {
+      new ElemInKnownScope(elem, knownStableScope)
+    }
+  }
+
+  // Companion objects for Node and Elem
 
   object Node extends ScopedNodeFactories.NodeFactory {
 

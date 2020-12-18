@@ -173,7 +173,7 @@ class ElemCreationTest extends AnyFunSuite {
         .transformDescendantElems {
           case e @ nodebuilder.Elem(QName(Some("xbrli"), "segment"), _, _, _) =>
             nodebuilder
-              .ElemInKnownScope(e, stableScope)
+              .ElemInKnownScope.from(e, stableScope)
               .plusChild(createExplicitMemberElem(q"gaap:EntityAxis", q"gaap:ABCCompanyDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:BusinessSegmentAxis", q"gaap:ConsolidatedGroupDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:VerificationAxis", q"gaap:UnqualifiedOpinionMember"))

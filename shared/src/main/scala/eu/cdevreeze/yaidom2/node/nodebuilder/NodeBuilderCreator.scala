@@ -104,7 +104,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
     val targetScope: StableScope = minimalScope.appendNonConflicting(neededExtraStableScope)
 
     new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector)
-      .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+      .pipe(e => ElemInKnownScope.unsafeFrom(e, newKnownStableScope))
       .usingParentScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
       .ensuring(_.elem.stableScope == targetScope)
       .ensuring(_.elem.stableScope.isCompatibleWith(newKnownStableScope))
