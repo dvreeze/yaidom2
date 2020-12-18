@@ -51,7 +51,10 @@ object NodeBuilders {
   sealed trait CanBeDocumentChild extends Node with ScopedNodes.CanBeDocumentChild
 
   /**
-   * "Creation DSL" element node, offering the `ScopedNodes.Elem` element query API.
+   * "Creation DSL" element node, offering the `ScopedNodes.Elem` element query API. There must be a compatible super-scope
+   * of the stable scopes of all descendant-or-self elements, or else the element has a corrupt state. That is, function
+   * `combinedStableScope` must return a non-exception result stable scope, namely the minimal compatible super-scope of
+   * all those stable scopes.
    *
    * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
    * https://github.com/scala/scala/pull/8854.
@@ -80,6 +83,26 @@ object NodeBuilders {
     }
 
     def scope: Scope = stableScope.scope
+
+    /**
+     * Returns the combined stable scope of all descendant-or-self elements, by compatibly appending them.
+     * If there are stable scope incompatibilities, this element is corrupt, and an exception is thrown. Hence this
+     * method is also an important consistency check if called.
+     */
+    def combinedStableScope: StableScope = {
+      findAllDescendantElems.map(_.stableScope).distinct.foldLeft(this.stableScope) {
+        case (accScope, currScope) =>
+          accScope.appendCompatibly(currScope)
+      }
+    }
+
+    /**
+     * Expensive internal consistency check based on function `combinedStableScope`, returning this element itself if
+     * no exception was thrown.
+     */
+    def validated: Elem = {
+      combinedStableScope.pipe(_ => this)
+    }
 
     // Query API methods
 
@@ -141,10 +164,11 @@ object NodeBuilders {
 
     /**
      * Replaces the children by the given child nodes. Throws an exception if the scopes are not "compatible".
+     * This is a rather expensive operation.
      */
     def withChildren(newChildren: Seq[ThisNode]): ThisElem = {
-      // Dependency on ElemInKnownScope, so Elem and ElemInKnownScope are recursively dependent
-      ElemInKnownScope(this, this.stableScope).withChildren(newChildren).elem
+      // Dependency on ElemInKnownScope, so Elem and ElemInKnownScope are mutually dependent
+      ElemInKnownScope(this, this.combinedStableScope).withChildren(newChildren).elem
     }
 
     protected def findAllChildElemsWithSteps: Seq[(ThisElem, Int)] = {
@@ -276,15 +300,24 @@ object NodeBuilders {
 
     def children: Seq[Node] = elem.children
 
+    def validated: ElemInKnownScope = {
+      val combinedScope: StableScope = elem.combinedStableScope // may throw
+      require(
+        combinedScope.isCompatibleSubScopeOf(knownStableScope),
+        s"Stable scope ${elem.stableScope.scope} is not a compatible sub-scope of known scope ${knownStableScope.scope}"
+      ).pipe(_ => this)
+    }
+
     /**
-     * Replaces the children by the given child nodes. Throws an exception if the scopes are not "compatible".
+     * Replaces the children by the given child nodes. Throws an exception if the child element scopes are not "compatible"
+     * (with each other or with this element's scope or with the known scope).
      */
     def withChildren(newChildren: Seq[Node]): ElemInKnownScope = {
       val newChildElems: Seq[Elem] = newChildren.collect { case e: Elem => e }
 
       val scopes: Seq[StableScope] = newChildElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
 
-      // Throws if safely appending fails
+      // Throws if appending compatibly fails
 
       val newKnownStableScope: StableScope = scopes.foldLeft(knownStableScope) {
         case (accKnownScope, currScope) =>
@@ -295,7 +328,6 @@ object NodeBuilders {
         .pipe(e => ElemInKnownScope(e, newKnownStableScope))
         .usingParentScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
         .ensuring(_.elem.stableScope == this.elem.stableScope)
-        .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
     def plusChild(child: Node): ElemInKnownScope = {
@@ -324,12 +356,10 @@ object NodeBuilders {
 
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
       val extraScope: StableScope =
-        ElemCreationApi.minimizeStableScope(knownStableScope.appendCompatibly(elem.stableScope), elem.qname, newAttributes.keySet)
-
-      val newKnownStableScope: StableScope = knownStableScope.appendCompatibly(elem.stableScope).appendCompatibly(extraScope)
+        ElemCreationApi.minimizeStableScope(knownStableScope, elem.qname, newAttributes.keySet)
 
       new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibly(extraScope), children.toVector)
-        .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+        .pipe(e => ElemInKnownScope(e, knownStableScope))
         .usingParentScope(StableScope.empty)
         .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
@@ -352,12 +382,11 @@ object NodeBuilders {
     }
 
     def withQName(newQName: QName): ElemInKnownScope = {
-      val extraScope: StableScope = ElemCreationApi.minimizeStableScope(knownStableScope.appendCompatibly(elem.stableScope), newQName, Set.empty)
-
-      val newKnownStableScope: StableScope = knownStableScope.appendCompatibly(elem.stableScope).appendCompatibly(extraScope)
+      val extraScope: StableScope =
+        ElemCreationApi.minimizeStableScope(knownStableScope, newQName, Set.empty)
 
       new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibly(extraScope), children.toVector)
-        .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+        .pipe(e => ElemInKnownScope(e, knownStableScope))
         .usingParentScope(StableScope.empty)
         .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
@@ -384,21 +413,14 @@ object NodeBuilders {
     }
 
     def usingParentScope(parentScope: StableScope): ElemInKnownScope = {
-      val scopes: Seq[StableScope] = elem.findAllDescendantElemsOrSelf.map(_.stableScope).distinct
-
-      val contextScope: StableScope = scopes.foldLeft(knownStableScope.appendNonConflicting(parentScope)) {
-        case (accScope, currScope) =>
-          accScope.appendCompatibly(currScope)
-      }
-
-      usingParentScope(parentScope, contextScope)
+      usingParentScope(parentScope, knownStableScope.appendNonConflicting(parentScope))
     }
 
     private def usingParentScope(parentScope: StableScope, knownScope: StableScope): ElemInKnownScope = {
       // Throws if unsafely appending fails
-      val newScope: StableScope = elem.stableScope.appendNonConflicting(parentScope)
+      val newElemScope: StableScope = elem.stableScope.appendNonConflicting(parentScope)
 
-      assert(newScope.isCompatibleSubScopeOf(knownScope))
+      assert(newElemScope.isCompatibleSubScopeOf(knownScope))
 
       val newChildNodes: Seq[Node] =
         children.collect {
@@ -406,12 +428,12 @@ object NodeBuilders {
             // Recursive call
             che
               .pipe(che => ElemInKnownScope(che, knownScope))
-              .usingParentScope(newScope, knownScope)
+              .usingParentScope(newElemScope, knownScope)
               .elem
           case n => n
         }
 
-      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, newScope, newChildNodes.toVector)
+      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, newElemScope, newChildNodes.toVector)
         .pipe(e => ElemInKnownScope(e, knownScope))
     }
   }
@@ -437,6 +459,14 @@ object NodeBuilders {
       case pi: ScopedNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
       case n                                     => sys.error(s"Not an element, text, comment or PI node: $n")
     }
+
+    private[nodebuilders] def unsafeFrom(node: ScopedNodes.Node): Node = node match {
+      case e: ScopedNodes.Elem                   => Elem.unsafeFrom(e)
+      case t: ScopedNodes.Text                   => Text(t.text)
+      case c: ScopedNodes.Comment                => Comment(c.text)
+      case pi: ScopedNodes.ProcessingInstruction => ProcessingInstruction(pi.target, pi.data)
+      case n                                     => sys.error(s"Not an element, text, comment or PI node: $n")
+    }
   }
 
   object Elem extends ScopedNodeFactories.ElemFactory {
@@ -455,42 +485,57 @@ object NodeBuilders {
     /**
      * Returns an optional copy of the passed element as "creation DSL" element.
      * If the passed element does not meet the requirements of "creation DSL" elements, None is returned.
+     * The absence of prefixed namespace undeclarations (using function `childNodesNaveNoPrefixedNamespaceUndeclarations`) is not checked.
      */
     def optionallyFrom(elm: ScopedNodes.Elem): Option[Elem] = {
       val allElemsOrSelf = elm.findAllDescendantElemsOrSelf
 
-      def isItselfValid(e: ScopedNodes.Elem): Boolean = {
-        StableScope.optionallyFrom(e.scope).nonEmpty &&
-        e.findAllChildElems
-          .flatMap(che => StableScope.optionallyFrom(che.scope))
-          .distinct
-          .forall(sc => StableScope.from(e.scope).canAppendCompatibly(sc)) &&
-        e.childNodesNaveNoPrefixedNamespaceUndeclarations
-      }
+      val allScopes: Seq[Scope] = allElemsOrSelf.map(_.scope).distinct
+      val allStableScopes: Seq[StableScope] = allScopes.flatMap(StableScope.optionallyFrom)
 
-      if (allElemsOrSelf.forall(isItselfValid)) {
-        Some(from(elm))
-      } else {
+      if (allStableScopes.size < allScopes.size) {
+        // Not all elements have a stable scope (invertible scope when ignoring the default namespace)
         None
+      } else {
+        val combinedStableScopeOption: Option[StableScope] = scala.util.Try {
+          allStableScopes.tail.foldLeft(allStableScopes.head) {
+            case (accScope, currScope) =>
+              accScope.appendCompatibly(currScope)
+          }
+        }.toOption
+
+        combinedStableScopeOption.map(_ => unsafeFrom(elm))
       }
     }
 
     /**
      * Returns a copy of the passed element as "creation DSL" element.
      * If the passed element does not meet the requirements of "creation DSL" elements, an exception is thrown.
+     * The absence of prefixed namespace undeclarations (using function `childNodesNaveNoPrefixedNamespaceUndeclarations`) is not checked.
      */
     def from(elm: ScopedNodes.Elem): Elem = {
-      require(StableScope.optionallyFrom(elm.scope).nonEmpty, s"Not a stable scope: ${elm.scope}")
+      val allElemsOrSelf = elm.findAllDescendantElemsOrSelf
+
+      val allScopes: Seq[Scope] = allElemsOrSelf.map(_.scope).distinct
+      val allStableScopes: Seq[StableScope] = allScopes.flatMap(StableScope.optionallyFrom)
+
+      if (allStableScopes.size < allScopes.size) {
+        // Not all elements have a stable scope (invertible scope when ignoring the default namespace)
+        sys.error(s"Not all scopes of descendant-or-self elements are stable scopes (invertible ignoring default namespace)")
+      } else {
+        val combinedStableScope: StableScope =
+          allStableScopes.tail.foldLeft(allStableScopes.head) {
+            case (accScope, currScope) =>
+              accScope.appendCompatibly(currScope) // throws if cannot append compatibly
+          }
+        assert(combinedStableScope.scope.nonEmpty)
+      }
+
+      unsafeFrom(elm)
+    }
+
+    private[nodebuilders] def unsafeFrom(elm: ScopedNodes.Elem): Elem = {
       val stableScope: StableScope = StableScope.from(elm.scope)
-
-      require(
-        elm.findAllChildElems.flatMap(che => StableScope.optionallyFrom(che.scope)).distinct.forall(sc => stableScope.canAppendCompatibly(sc)),
-        s"The stable scopes of child elements of ${elm.name} with scope ${elm.scope} cannot all be (safely) appended"
-      )
-
-      require(
-        elm.childNodesNaveNoPrefixedNamespaceUndeclarations,
-        s"Element ${elm.name} with scope ${elm.scope} has namespace undeclarations, which is not allowed")
 
       val children = elm.children.collect {
         case childElm: ScopedNodes.Elem                 => childElm
@@ -499,9 +544,9 @@ object NodeBuilders {
         case childPi: ScopedNodes.ProcessingInstruction => childPi
       }
 
-      // Recursion, with Node.from and Elem.from being mutually dependent
+      // Recursion, with Node.unsafeFrom and Elem.unsafeFrom being mutually dependent
       val creationDslChildren = children.map { node =>
-        Node.from(node)
+        Node.unsafeFrom(node)
       }
 
       new Elem(elm.qname, elm.attributesByQName, stableScope, creationDslChildren.to(Vector))

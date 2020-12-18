@@ -345,9 +345,6 @@ object ResolvedNodes {
 
     def children: Seq[Node] = elem.children
 
-    /**
-     * Replaces the children by the given child nodes. Throws an exception if the scopes are not "compatible".
-     */
     def withChildren(newChildren: Seq[Node]): ElemInKnownScope = {
       Elem(elem.name, elem.attributes, newChildren.toVector)
         .pipe(e => ElemInKnownScope(e, knownStableScope))
@@ -378,9 +375,9 @@ object ResolvedNodes {
     }
 
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
-      val attrs: ListMap[EName, String] = convertAttributes(newAttributes, knownStableScope)
+      val newAttrs: ListMap[EName, String] = convertAttributes(newAttributes, knownStableScope)
 
-      Elem(elem.name, attrs, children.toVector)
+      Elem(elem.name, newAttrs, children.toVector)
         .pipe(e => ElemInKnownScope(e, knownStableScope))
     }
 
@@ -394,9 +391,9 @@ object ResolvedNodes {
 
     def plusAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
       val attrsToAdd: ListMap[EName, String] = convertAttributes(newAttributes, knownStableScope)
-      val attrs: ListMap[EName, String] = elem.attributes.concat(attrsToAdd)
+      val newAttrs: ListMap[EName, String] = elem.attributes.concat(attrsToAdd)
 
-      Elem(elem.name, attrs, children.toVector)
+      Elem(elem.name, newAttrs, children.toVector)
         .pipe(e => ElemInKnownScope(e, knownStableScope))
     }
 

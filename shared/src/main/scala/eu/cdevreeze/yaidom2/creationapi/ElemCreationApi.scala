@@ -24,34 +24,23 @@ import scala.collection.immutable.ListMap
 /**
  * Element creation API, using stable scopes underneath.
  *
- * All element creation functions return an `ElemInKnownScope`, which combines an element with a known stable scope.
+ * All element creation functions return an `ElemInKnownScope`, which combines an element with a known stable scope,
+ * which must be a compatible super-scope of the element's combined stable scope, if applicable.
  *
- * The element creation functions below may or may not have a parameter for the needed
- * extra stable scope. If they do, expression `knownStableScope.canAppendUnsafely(neededExtraStableScope)`
- * must return true.
+ * Each element creation function (if no exception is thrown) returns an `ElemInKnownScope`, whose known stable scope
+ * is a compatible super-scope of the known stable scope of this element creation API (which acts as a "start scope").
  *
- * Thus, for the element creation functions below, the "context" stable scope is
- * `knownStableScope.appendUnsafely(neededExtraStableScope)` if `neededExtraStableScope` is passed
- * as extra parameter, and `knownStableScope` otherwise. The stable scope of the resulting created element
- * is the result of calling function `ElementCreationApi.minimizeStableScope`, passing the above-mentioned
- * "context" stable scope as first parameter, and the element QName and attribute QNames as other parameters.
- * An exception will be thrown if the element QName or attribute QNames cannot be resolved. The `neededExtraStableScope`
- * itself is also added to the element creation function result's scope.
- *
- * Hence, the stable scope of the element creation function result's element is a sub-scope of
- * `knownStableScope.appendUnsafely(neededExtraStableScope)`, but a super-scope of `neededExtraStableScope` (where
- * `neededExtraStableScope` defaults to the empty stable scope). The function result also contains the default namespace
- * if `knownStableScope` does, both in the returned element and the returned adapted known scope.
- *
- * If the element creation function also takes child nodes, the child element trees must have stable scopes that can be
- * appended to above-mentioned "context" stable scope, or else an exception is thrown. These element creation functions
- * make sure that prefixed namespace undeclarations do not occur, which means that the scopes of descendant elements
- * may be enhanced by the function implementation.
+ * For element creation functions that take an extra `neededExtraStableScope` stable scope parameter, expression
+ * `knownStableScope.appendNonConflicting(neededExtraStableScope)` must not throw an exception, and this result scope
+ * is part of the returned known stable scope. Indeed it is a compatible super-scope of `knownStableScope`.
  *
  * @author Chris de Vreeze
  */
 trait ElemCreationApi {
 
+  /**
+   * The element wrapper type, holding an element and a known scope.
+   */
   type WrapperType <: ElemInKnownScope
 
   type NodeType

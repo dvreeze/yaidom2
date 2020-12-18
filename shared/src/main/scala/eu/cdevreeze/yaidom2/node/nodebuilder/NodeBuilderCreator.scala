@@ -29,15 +29,13 @@ import scala.util.chaining._
  *
  * @author Chris de Vreeze
  */
-final class NodeBuilderCreator(val contextStableScope: StableScope) extends ElemCreationApi {
+final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCreationApi {
 
   type WrapperType = NodeBuilders.ElemInKnownScope
 
   type NodeType = NodeBuilders.Node
 
   type ElemType = NodeBuilders.Elem
-
-  def knownStableScope: StableScope = contextStableScope
 
   def emptyElem(qname: QName): WrapperType = {
     emptyElem(qname, ListMap.empty, StableScope.empty)
@@ -88,19 +86,20 @@ final class NodeBuilderCreator(val contextStableScope: StableScope) extends Elem
       attributesByQName: ListMap[QName, String],
       children: Seq[NodeType],
       neededExtraStableScope: StableScope): WrapperType = {
-    val startContextScope: StableScope = knownStableScope.appendNonConflicting(neededExtraStableScope)
+    val startKnownStableScope: StableScope = knownStableScope.appendNonConflicting(neededExtraStableScope)
 
     val childElems: Seq[ElemType] = children.collect { case e: NodeBuilders.Elem => e }
     val scopes: Seq[StableScope] = childElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
 
-    // Throws if safely appending fails
+    // Throws if appending compatibly fails
 
-    val newKnownStableScope: StableScope = scopes.foldLeft(startContextScope) {
+    val newKnownStableScope: StableScope = scopes.foldLeft(startKnownStableScope) {
       case (accKnownScope, currScope) =>
         accKnownScope.appendCompatibly(currScope)
     }
 
-    val minimalScope: StableScope = ElemCreationApi.minimizeStableScope(startContextScope, qname, attributesByQName.keySet)
+    // For element name and attributes, startKnownStableScope should be enough
+    val minimalScope: StableScope = ElemCreationApi.minimizeStableScope(startKnownStableScope, qname, attributesByQName.keySet)
 
     val targetScope: StableScope = minimalScope.appendNonConflicting(neededExtraStableScope)
 
@@ -108,11 +107,11 @@ final class NodeBuilderCreator(val contextStableScope: StableScope) extends Elem
       .pipe(e => ElemInKnownScope(e, newKnownStableScope))
       .usingParentScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
       .ensuring(_.elem.stableScope == targetScope)
-      .ensuring(_.elem.stableScope.isCompatibleWith(startContextScope))
+      .ensuring(_.elem.stableScope.isCompatibleWith(newKnownStableScope))
   }
 }
 
 object NodeBuilderCreator {
 
-  def apply(contextStableScope: StableScope): NodeBuilderCreator = new NodeBuilderCreator(contextStableScope)
+  def apply(knownStableScope: StableScope): NodeBuilderCreator = new NodeBuilderCreator(knownStableScope)
 }

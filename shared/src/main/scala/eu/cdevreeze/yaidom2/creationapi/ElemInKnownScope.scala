@@ -22,16 +22,22 @@ import eu.cdevreeze.yaidom2.core.StableScope
 import scala.collection.immutable.ListMap
 
 /**
- * Element within a known stable scope. It helps in keeping (growing) known stable scopes
+ * Element within a known stable scope. It helps in keeping (gradually growing) known stable scopes
  * around while creating element trees.
  *
  * If the element has a Scope, it must be a StableScope, and it must be a compatible
  * sub-scope of the known stable scope.
  *
+ * All methods that add/update child nodes, attributes and that update element QNames must return element wrappers
+ * whose known scopes are compatible super-scopes of this wrapper's known scope.
+ *
  * @author Chris de Vreeze
  */
 trait ElemInKnownScope {
 
+  /**
+   * The element wrapper type, holding an element and a known scope.
+   */
   type WrapperType <: ElemInKnownScope
 
   type NodeType
@@ -73,33 +79,37 @@ trait ElemInKnownScope {
   def withQName(newQName: QName): WrapperType
 
   /**
-   * Returns `plusChild(childElem.elem)`.
+   * Returns `plusChild(childElem.elem)`, ignoring the child's known scope.
    */
   def plusChildElem(childElem: WrapperType): WrapperType
 
   /**
-   * Returns `plusChildOption(childElemOption.map(_.elem))`.
+   * Returns `plusChildOption(childElemOption.map(_.elem))`, ignoring the optional child's known scope.
    */
   def plusChildElemOption(childElemOption: Option[WrapperType]): WrapperType
 
   /**
-   * Returns `plusChild(index, childElem.elem)`.
+   * Returns `plusChild(index, childElem.elem)`, ignoring the child's known scope.
    */
   def plusChildElem(index: Int, childElem: WrapperType): WrapperType
 
   /**
-   * Returns `plusChildOption(index, childElemOption.map(_.elem))`.
+   * Returns `plusChildOption(index, childElemOption.map(_.elem))`, ignoring the optional child's known scope.
    */
   def plusChildElemOption(index: Int, childElemOption: Option[WrapperType]): WrapperType
 
   /**
-   * Returns `plusChildren(childElemSeq.map(_.elem))`.
+   * Returns `plusChildren(childElemSeq.map(_.elem))`, ignoring the known scopes of the passed children.
    */
   def plusChildElems(childElemSeq: Seq[WrapperType]): WrapperType
 
   /**
    * Appends the parent stable scope to this element's stable scope, and makes sure there are no namespace undeclarations
-   * in the descendant elements.
+   * in the descendant elements. If the parent stable scope cannot be added as a non-conflicting scope to this element
+   * or any of its descendants, an exception is thrown.
+   *
+   * This method is typically used to introduce one or more prefixes and corresponding namespaces to an element and
+   * all its descendants.
    */
   def usingParentScope(parentScope: StableScope): WrapperType
 }

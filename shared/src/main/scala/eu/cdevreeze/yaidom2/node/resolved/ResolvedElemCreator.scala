@@ -25,20 +25,17 @@ import scala.collection.immutable.ListMap
 import scala.util.chaining._
 
 /**
- * "Resolved" element creation API. The methods taking a parent scope ignore that parent scope, so in that sense the
- * ElemCreationApi contract does not apply, because resolved elements have no scope.
+ * "Resolved" element creation API.
  *
  * @author Chris de Vreeze
  */
-final class ResolvedElemCreator(val contextStableScope: StableScope) extends ElemCreationApi {
+final class ResolvedElemCreator(val knownStableScope: StableScope) extends ElemCreationApi {
 
   type WrapperType = ResolvedNodes.ElemInKnownScope
 
   type NodeType = ResolvedNodes.Node
 
   type ElemType = ResolvedNodes.Elem
-
-  def knownStableScope: StableScope = contextStableScope
 
   def emptyElem(qname: QName): WrapperType = {
     emptyElem(qname, ListMap.empty, StableScope.empty)
@@ -89,13 +86,13 @@ final class ResolvedElemCreator(val contextStableScope: StableScope) extends Ele
       attributesByQName: ListMap[QName, String],
       children: Seq[NodeType],
       neededExtraStableScope: StableScope): WrapperType = {
-    val startContextScope: StableScope = contextStableScope.appendNonConflicting(neededExtraStableScope)
+    val newKnownStableScope: StableScope = knownStableScope.appendNonConflicting(neededExtraStableScope)
 
-    val ename: EName = startContextScope.resolveQName(qname)
+    val ename: EName = newKnownStableScope.resolveQName(qname)
 
     ResolvedNodes
-      .Elem(ename, convertAttributes(attributesByQName, startContextScope), children.toVector)
-      .pipe(e => ElemInKnownScope(e, startContextScope))
+      .Elem(ename, convertAttributes(attributesByQName, newKnownStableScope), children.toVector)
+      .pipe(e => ElemInKnownScope(e, newKnownStableScope))
   }
 
   private def convertAttributes(attributesByQName: ListMap[QName, String], stableScope: StableScope): ListMap[EName, String] = {
@@ -114,5 +111,5 @@ final class ResolvedElemCreator(val contextStableScope: StableScope) extends Ele
 
 object ResolvedElemCreator {
 
-  def apply(contextStableScope: StableScope): ResolvedElemCreator = new ResolvedElemCreator(contextStableScope)
+  def apply(knownStableScope: StableScope): ResolvedElemCreator = new ResolvedElemCreator(knownStableScope)
 }
