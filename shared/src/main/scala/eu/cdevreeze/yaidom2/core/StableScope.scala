@@ -61,18 +61,21 @@ final case class StableScope private (scope: Scope) {
    * Returns `StableScope.from(scope.filter(p).append(scope.retainingDefaultNamespace))`, so the result is a compatible sub-scope.
    */
   def filterCompatibly(p: ((String, String)) => Boolean): StableScope = {
-    StableScope
-      .from(scope.filter(p).append(scope.retainingDefaultNamespace))
-      .ensuring(_.isCompatibleSubScopeOf(this))
+    StableScope.from(scope.filter(kv => p(kv) || kv._1.isEmpty))
   }
 
   /**
    * Returns `StableScope.from(scope.filterKeys(p).append(scope.retainingDefaultNamespace))`, so the result is a compatible sub-scope.
    */
   def filterKeysCompatibly(p: String => Boolean): StableScope = {
-    StableScope
-      .from(scope.filterKeys(p).append(scope.retainingDefaultNamespace))
-      .ensuring(_.isCompatibleSubScopeOf(this))
+    StableScope.from(scope.filterKeys(pref => p(pref) || pref.isEmpty))
+  }
+
+  /**
+   * Returns `StableScope.from(scope.filterNamespaces(p).append(scope.retainingDefaultNamespace))`, so the result is a compatible sub-scope.
+   */
+  def filterNamespacesCompatibly(p: String => Boolean): StableScope = {
+    StableScope.from(scope.filter(kv => p(kv._2) || kv._1.isEmpty))
   }
 
   /** Returns `scope.keySet`. */
@@ -80,15 +83,6 @@ final case class StableScope private (scope: Scope) {
 
   /** Returns `scope.namespaces`. Hence, the "XML namespace" is not returned. */
   def namespaces: Set[String] = scope.namespaces
-
-  /**
-   * Returns `StableScope.from(scope.filterNamespaces(p).append(scope.retainingDefaultNamespace))`, so the result is a compatible sub-scope.
-   */
-  def filterNamespacesCompatibly(p: String => Boolean): StableScope = {
-    StableScope
-      .from(scope.filterNamespaces(p).append(scope.retainingDefaultNamespace))
-      .ensuring(_.isCompatibleSubScopeOf(this))
-  }
 
   /**
    * Returns `scope.resolveQName(qname)`.
@@ -139,7 +133,7 @@ final case class StableScope private (scope: Scope) {
     if (canAppendCompatibleScope(otherStableScope)) {
       val resultScope: StableScope =
         if (otherStableScope.isCompatibleSubScopeOf(this)) {
-          this
+          this // Optimization for common case
         } else {
           StableScope.from(this.scope.append(otherStableScope.scope))
         }
@@ -186,7 +180,7 @@ final case class StableScope private (scope: Scope) {
     if (canAppendNonConflictingScope(otherStableScope)) {
       val resultScope: StableScope =
         if (otherStableScope.subScopeOf(this)) {
-          this
+          this // Optimization for common case
         } else {
           StableScope.from(this.scope.append(otherStableScope.scope))
         }
