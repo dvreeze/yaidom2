@@ -379,13 +379,13 @@ object NodeBuilders {
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
 
-      val extraScope: StableScope =
+      val extraElemScope: StableScope =
         ElemCreationApi.minimizeStableScope(knownStableScope, elem.qname, newAttributes.keySet)
 
-      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibly(extraScope), children.toVector)
-        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope.appendCompatibly(extraScope)))
+      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibly(extraElemScope), children.toVector)
+        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
         .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of the element's stableScope
-        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
+        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraElemScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
@@ -414,13 +414,13 @@ object NodeBuilders {
     def withQName(newQName: QName): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
 
-      val extraScope: StableScope =
+      val extraElemScope: StableScope =
         ElemCreationApi.minimizeStableScope(knownStableScope, newQName, Set.empty)
 
-      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibly(extraScope), children.toVector)
-        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope.appendCompatibly(extraScope)))
+      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibly(extraElemScope), children.toVector)
+        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
         .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of the element's stableScope
-        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraScope))
+        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraElemScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
