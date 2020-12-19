@@ -92,7 +92,7 @@ object NodeBuilders {
     def combinedStableScope: StableScope = {
       findAllDescendantElems.map(_.stableScope).distinct.foldLeft(this.stableScope) {
         case (accScope, currScope) =>
-          accScope.appendCompatibly(currScope)
+          accScope.appendCompatibleScope(currScope)
       }
     }
 
@@ -337,7 +337,7 @@ object NodeBuilders {
 
       val newKnownStableScope: StableScope = scopesOfDescendants.foldLeft(knownStableScope) {
         case (accKnownScope, currScope) =>
-          accKnownScope.appendCompatibly(currScope)
+          accKnownScope.appendCompatibleScope(currScope)
       }
 
       new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector)
@@ -382,10 +382,10 @@ object NodeBuilders {
       val extraElemScope: StableScope =
         ElemCreationApi.minimizeStableScope(knownStableScope, elem.qname, newAttributes.keySet)
 
-      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibly(extraElemScope), children.toVector)
+      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibleScope(extraElemScope), children.toVector)
         .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
         .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of the element's stableScope
-        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraElemScope))
+        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibleScope(extraElemScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
@@ -417,10 +417,10 @@ object NodeBuilders {
       val extraElemScope: StableScope =
         ElemCreationApi.minimizeStableScope(knownStableScope, newQName, Set.empty)
 
-      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibly(extraElemScope), children.toVector)
+      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibleScope(extraElemScope), children.toVector)
         .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
         .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of the element's stableScope
-        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibly(extraElemScope))
+        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibleScope(extraElemScope))
         .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
@@ -452,18 +452,18 @@ object NodeBuilders {
      * This method is typically used to introduce one or more prefixes and corresponding namespaces to an element and
      * all its descendants.
      *
-     * The "combined stable scope" of the result element is `this.elem.combinedStableScope.appendNonConflicting(extraScope)`.
-     * The "known stable scope" of the result is `this.knownStableScope.appendNonConflicting(extraScope)`.
+     * The "combined stable scope" of the result element is `this.elem.combinedStableScope.appendNonConflictingScope(extraScope)`.
+     * The "known stable scope" of the result is `this.knownStableScope.appendNonConflictingScope(extraScope)`.
      * Hence it is trivial to deduce that the result ElemInKnownScope is internally consistent,
      * and that `this.knownStableScope` is a compatible sub-scope of the result known scope.
      */
     def usingExtraScope(extraScope: StableScope): ElemInKnownScope = {
-      usingExtraScope(extraScope, knownStableScope.appendNonConflicting(extraScope))
+      usingExtraScope(extraScope, knownStableScope.appendNonConflictingScope(extraScope))
     }
 
     private def usingExtraScope(extraScope: StableScope, knownScope: StableScope): ElemInKnownScope = {
       // Throws if unsafely appending fails
-      val newElemScope: StableScope = elem.stableScope.appendNonConflicting(extraScope)
+      val newElemScope: StableScope = elem.stableScope.appendNonConflictingScope(extraScope)
 
       assert(newElemScope.isCompatibleSubScopeOf(knownScope))
 
@@ -560,7 +560,7 @@ object NodeBuilders {
         val combinedStableScopeOption: Option[StableScope] = scala.util.Try {
           allStableScopes.tail.foldLeft(allStableScopes.head) {
             case (accScope, currScope) =>
-              accScope.appendCompatibly(currScope)
+              accScope.appendCompatibleScope(currScope)
           }
         }.toOption
 
@@ -587,7 +587,7 @@ object NodeBuilders {
         val combinedScope: StableScope =
           allStableScopes.tail.foldLeft(allStableScopes.head) {
             case (accScope, currScope) =>
-              accScope.appendCompatibly(currScope) // throws if cannot append compatibly
+              accScope.appendCompatibleScope(currScope) // throws if cannot append compatibly
           }
         assert(combinedScope.isCompatibleSuperScopeOf(allStableScopes.head)) // Just to use combinedScope
       }

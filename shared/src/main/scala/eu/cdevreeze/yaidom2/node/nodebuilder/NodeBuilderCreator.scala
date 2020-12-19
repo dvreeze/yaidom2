@@ -95,7 +95,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
       attributesByQName: ListMap[QName, String],
       children: Seq[NodeType],
       neededExtraStableScope: StableScope): WrapperType = {
-    val startKnownStableScope: StableScope = knownStableScope.appendNonConflicting(neededExtraStableScope)
+    val startKnownStableScope: StableScope = knownStableScope.appendNonConflictingScope(neededExtraStableScope)
 
     val childElems: Seq[ElemType] = children.collect { case e: NodeBuilders.Elem => e }
     val scopesOfDescendants: Seq[StableScope] = childElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
@@ -106,7 +106,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
 
     val newKnownStableScope: StableScope = scopesOfDescendants.foldLeft(startKnownStableScope) {
       case (accKnownScope, currScope) =>
-        accKnownScope.appendCompatibly(currScope)
+        accKnownScope.appendCompatibleScope(currScope)
     }
 
     // For element name and attributes, startKnownStableScope should be enough context passed to function minimizeStableScope.
@@ -115,7 +115,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
 
     val targetScope: StableScope = ElemCreationApi
       .minimizeStableScope(startKnownStableScope, qname, attributesByQName.keySet)
-      .appendNonConflicting(neededExtraStableScope)
+      .appendNonConflictingScope(neededExtraStableScope)
 
     new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector)
       .pipe(e => ElemInKnownScope.from(e, newKnownStableScope)) // expensive, but it checks internal consistency

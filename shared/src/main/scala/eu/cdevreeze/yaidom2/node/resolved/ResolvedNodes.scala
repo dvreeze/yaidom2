@@ -435,7 +435,7 @@ object ResolvedNodes {
     }
 
     def usingExtraScope(extraScope: StableScope): ElemInKnownScope = {
-      elem.pipe(e => ElemInKnownScope(e, knownStableScope.appendNonConflicting(extraScope)))
+      elem.pipe(e => ElemInKnownScope(e, knownStableScope.appendNonConflictingScope(extraScope)))
     }
 
     private def convertAttributes(attributesByQName: ListMap[QName, String], stableScope: StableScope): ListMap[EName, String] = {

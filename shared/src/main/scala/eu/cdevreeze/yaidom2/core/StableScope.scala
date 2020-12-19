@@ -121,9 +121,9 @@ final case class StableScope private (scope: Scope) {
   }
 
   /**
-   * Alias for `isCompatibleWith`, expressing in the method name that the `appendCompatibly` operation will be successful.
+   * Alias for `isCompatibleWith`, expressing in the method name that the `appendCompatibleScope` operation will be successful.
    */
-  def canAppendCompatibly(otherStableScope: StableScope): Boolean = {
+  def canAppendCompatibleScope(otherStableScope: StableScope): Boolean = {
     isCompatibleWith(otherStableScope)
   }
 
@@ -133,10 +133,10 @@ final case class StableScope private (scope: Scope) {
    * The resulting StableScope, if any, is always a compatible super-scope of the parameter StableScope and of this StableScope.
    * In practice the parameter stable scope is quite often a compatible sub-scope of this stable scope.
    *
-   * There is no prependCompatiblyOption function, because appending compatibly is a commutative operation.
+   * There is no prependCompatibleScopeOption function, because appending a compatible scope is a commutative operation.
    */
-  def appendCompatiblyOption(otherStableScope: StableScope): Option[StableScope] = {
-    if (canAppendCompatibly(otherStableScope)) {
+  def appendCompatibleScopeOption(otherStableScope: StableScope): Option[StableScope] = {
+    if (canAppendCompatibleScope(otherStableScope)) {
       val resultScope: StableScope =
         if (otherStableScope.isCompatibleSubScopeOf(this)) {
           this
@@ -154,12 +154,12 @@ final case class StableScope private (scope: Scope) {
   }
 
   /**
-   * Calls the equivalent of  `appendCompatiblyOption(otherStableScope).get`.
+   * Calls the equivalent of  `appendCompatibleScopeOption(otherStableScope).get`.
    *
    * The resulting StableScope is always a compatible super-scope of the parameter StableScope and of this StableScope.
    */
-  def appendCompatibly(otherStableScope: StableScope): StableScope = {
-    appendCompatiblyOption(otherStableScope)
+  def appendCompatibleScope(otherStableScope: StableScope): StableScope = {
+    appendCompatibleScopeOption(otherStableScope)
       .getOrElse(sys.error(s"Could not append stable scope $otherStableScope compatibly to stable scope $this"))
   }
 
@@ -167,23 +167,23 @@ final case class StableScope private (scope: Scope) {
    * Returns true if the parameter stable scope does not conflict with this stable scope, and the scope to be appended
    * either has no default namespace or it has the same default namespace as this stable scope.
    */
-  def canAppendNonConflicting(otherStableScope: StableScope): Boolean = {
+  def canAppendNonConflictingScope(otherStableScope: StableScope): Boolean = {
     val enhancedOtherStableScope: StableScope =
       if (otherStableScope.defaultNamespaceOption.isEmpty && this.defaultNamespaceOption.nonEmpty)
         StableScope.from(otherStableScope.scope.append(this.scope.retainingDefaultNamespace))
       else otherStableScope
 
-    canAppendCompatibly(enhancedOtherStableScope)
+    canAppendCompatibleScope(enhancedOtherStableScope)
   }
 
   /**
-   * Appends the parameter stable scope to this stable scope if method `canAppendNonConflicting` returns true, returning the optional result.
+   * Appends the parameter stable scope to this stable scope if method `canAppendNonConflictingScope` returns true, returning the optional result.
    *
    * The resulting StableScope, if any, is always a super-scope of the parameter StableScope and a compatible super-scope of this StableScope.
    * In practice the parameter stable scope is quite often a sub-scope of this stable scope.
    */
-  def appendNonConflictingOption(otherStableScope: StableScope): Option[StableScope] = {
-    if (canAppendNonConflicting(otherStableScope)) {
+  def appendNonConflictingScopeOption(otherStableScope: StableScope): Option[StableScope] = {
+    if (canAppendNonConflictingScope(otherStableScope)) {
       val resultScope: StableScope =
         if (otherStableScope.subScopeOf(this)) {
           this
@@ -201,12 +201,12 @@ final case class StableScope private (scope: Scope) {
   }
 
   /**
-   * Calls the equivalent of  `appendNonConflictingOption(otherStableScope).get`.
+   * Calls the equivalent of  `appendNonConflictingScopeOption(otherStableScope).get`.
    *
    * The resulting StableScope, is always a super-scope of the parameter StableScope and a compatible super-scope of this StableScope.
    */
-  def appendNonConflicting(otherStableScope: StableScope): StableScope = {
-    appendNonConflictingOption(otherStableScope)
+  def appendNonConflictingScope(otherStableScope: StableScope): StableScope = {
+    appendNonConflictingScopeOption(otherStableScope)
       .getOrElse(sys.error(s"Could not append non-conflicting stable scope $otherStableScope to stable scope $this"))
   }
 

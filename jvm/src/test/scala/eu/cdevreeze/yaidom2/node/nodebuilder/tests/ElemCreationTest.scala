@@ -263,7 +263,7 @@ class ElemCreationTest extends AnyFunSuite {
                 resolved
                   .ElemInKnownScope(
                     e,
-                    stableScope.appendNonConflicting(StableScope.from("xsi" -> "http://www.w3.org/2001/XMLSchema-instance"))))
+                    stableScope.appendNonConflictingScope(StableScope.from("xsi" -> "http://www.w3.org/2001/XMLSchema-instance"))))
             .minusAttribute(q"xsi:schemaLocation")
             .elem
         case e @ resolved.Elem(EName(Some(XbrliNs), "measure"), _, _) =>
@@ -319,7 +319,7 @@ class ElemCreationTest extends AnyFunSuite {
 
     val targetPrefixedScope = StableScope
       .from(originalScope.withoutDefaultNamespace)
-      .appendCompatibly(StableScope.from("xbrli" -> XbrliNs))
+      .appendCompatibleScope(StableScope.from("xbrli" -> XbrliNs))
 
     val originalRootElemWithoutDefaultNamespace: SimpleNodes.Elem =
       SimpleNodes.Elem

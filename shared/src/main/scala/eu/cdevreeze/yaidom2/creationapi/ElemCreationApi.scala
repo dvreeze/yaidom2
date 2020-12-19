@@ -31,7 +31,7 @@ import scala.collection.immutable.ListMap
  * is a compatible super-scope of the known stable scope of this element creation API (which acts as a "starting scope").
  *
  * For element creation functions that take an extra `neededExtraStableScope` stable scope parameter, expression
- * `knownStableScope.appendNonConflicting(neededExtraStableScope)` must not throw an exception, and this result scope
+ * `knownStableScope.appendNonConflictingScope(neededExtraStableScope)` must not throw an exception, and this result scope
  * is part of the returned `ElemInKnownScope`. Indeed it is a compatible super-scope of `knownStableScope`.
  *
  * @author Chris de Vreeze
