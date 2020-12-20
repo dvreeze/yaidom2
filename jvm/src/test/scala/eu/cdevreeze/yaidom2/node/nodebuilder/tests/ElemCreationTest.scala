@@ -86,7 +86,7 @@ class ElemCreationTest extends AnyFunSuite {
 
     // Here using the "xbrli" prefix instead
 
-    val entity: nodebuilder.ElemInKnownScope = emptyElem(q"xbrli:entity").plusChild(identifier.elem)
+    val entity: nodebuilder.ElemInKnownScope = emptyElem(q"xbrli:entity").plusChildElem(identifier)
 
     assertResult(knownStableScope.filterKeysCompatibly(Set(""))) {
       identifier.elem.stableScope
@@ -109,9 +109,7 @@ class ElemCreationTest extends AnyFunSuite {
         .getOrElse(StableScope.empty)
     }
     assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
-      entity
-        .usingExtraScope(StableScope.empty) // Prevent the occurrence of any namespace undeclarations
-        .elem
+      entity.withoutNamespaceUndeclarations.elem
         .findChildElem(named(XbrliNs, "identifier"))
         .map(_.stableScope)
         .getOrElse(StableScope.empty)
@@ -228,7 +226,7 @@ class ElemCreationTest extends AnyFunSuite {
         .plusAttribute(q"id", "I-2005")
         .plusChild(xbrliEntity)
         .plusChild(xbrliPeriod)
-        .usingExtraScope(StableScope.empty)
+        .withoutNamespaceUndeclarations
         .elem
 
     val originalContext: SaxonNodes.Elem =
@@ -285,7 +283,7 @@ class ElemCreationTest extends AnyFunSuite {
         .plusChildren(units)
         .plusChildren(facts)
         .plusChildren(footnoteLinks)
-        .usingExtraScope(StableScope.empty)
+        .withoutNamespaceUndeclarations
         .elem
 
     def transformElementTree(rootElem: resolved.Elem): resolved.Elem = {

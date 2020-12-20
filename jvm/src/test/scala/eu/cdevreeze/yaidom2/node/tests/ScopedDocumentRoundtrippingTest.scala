@@ -191,7 +191,7 @@ abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], 
               .plusAttribute(q"xlink:type", "arc")
           }
       }
-      .usingExtraScope(StableScope.empty) // Prevent the occurrence of namespace undeclarations
+      .withoutNamespaceUndeclarations
       .elem
 
     nodebuilder.Document(Some(new URI("http://bogus-host/bogus-uri/bogus.xml")), elm)

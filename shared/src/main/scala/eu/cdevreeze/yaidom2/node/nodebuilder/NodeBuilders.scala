@@ -326,7 +326,8 @@ object NodeBuilders {
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
      *
-     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope to fix that.
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
+     * to fix that.
      */
     def withChildren(newChildren: Seq[Node]): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
@@ -376,7 +377,8 @@ object NodeBuilders {
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
      *
-     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope to fix that.
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
+     * to fix that.
      */
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
@@ -410,7 +412,8 @@ object NodeBuilders {
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
      *
-     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope to fix that.
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
+     * to fix that.
      */
     def withQName(newQName: QName): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
@@ -457,6 +460,22 @@ object NodeBuilders {
      */
     def usingExtraScope(extraScope: StableScope): ElemInKnownScope = {
       usingExtraScope(extraScope, knownStableScope.appendNonConflictingScope(extraScope))
+    }
+
+    /**
+     * Returns an equivalent ElemInKnownScope, without any namespace undeclarations.
+     * That is, returns `usingExtraScope(StableScope.empty)`.
+     */
+    def withoutNamespaceUndeclarations: ElemInKnownScope = {
+      usingExtraScope(StableScope.empty)
+    }
+
+    /**
+     * Returns an equivalent ElemInKnownScope, without any namespace (un)declarations in the descendants.
+     * That is, returns `usingExtraScope(elem.combinedStableScope)`.
+     */
+    def havingSameScopeInDescendantsOrSelf: ElemInKnownScope = {
+      usingExtraScope(elem.combinedStableScope)
     }
 
     private def usingExtraScope(extraScope: StableScope, knownScope: StableScope): ElemInKnownScope = {
