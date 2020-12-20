@@ -54,45 +54,76 @@ class ElemCreationTest extends AnyFunSuite {
 
   private val GaapNs = "http://xasb.org/gaap"
 
-  private val stableScope: StableScope = StableScope.from(
+  // A "known stable scope" is chosen, with default namespace. The choice of having a default namespace can not
+  // be changed anymore when appending scopes (using function appendNonConflictingScope etc.) to this stable scope.
+  // This known scope contains the prefixes ommonly found in XBRL instances, but may miss prefixes of facts, dimensions etc.
+  // Here it misses the "gaap" namespace prefix.
+
+  private val knownStableScope: StableScope = StableScope.from(
     "" -> XbrliNs,
     "xbrli" -> XbrliNs,
     "link" -> LinkNs,
     "xlink" -> XLinkNs,
     "xbrldi" -> XbrldiNs,
     "iso4217" -> Iso4217Ns,
-    "gaap" -> GaapNs,
   )
 
-  private val elemCreator: nodebuilder.NodeBuilderCreator = new nodebuilder.NodeBuilderCreator(stableScope)
+  // The stable scope containing the specific prefixes in fact names, dimensions, members etc.
+
+  private val extraStableScope: StableScope =
+    StableScope.from("gaap" -> GaapNs).ensuring(sc => knownStableScope.canAppendNonConflictingScope(sc))
+
+  private val elemCreator: nodebuilder.NodeBuilderCreator = nodebuilder.NodeBuilderCreator(knownStableScope)
 
   import elemCreator._
 
-  test("testCompatibleSubScope") {
-    val sc: StableScope = stableScope.filterKeysCompatibly(Set("link", "xlink", "gaap"))
-
-    assertResult(true) {
-      sc.isCompatibleSubScopeOf(stableScope)
-    }
-    assertResult(sc) {
-      stableScope.filterKeysCompatibly(Set("link", "xlink", "gaap", ""))
-    }
-  }
-
   test("testUseDefaultNamespaceAndPrefixDuringElementCreation") {
+    // Using the default namespace (same namespace as for prefix "xbrli")
+
     val identifier: nodebuilder.ElemInKnownScope =
       textElem(q"identifier", "1234567890")
         .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
 
+    // Here using the "xbrli" prefix instead
+
     val entity: nodebuilder.ElemInKnownScope = emptyElem(q"xbrli:entity").plusChild(identifier.elem)
 
+    assertResult(knownStableScope.filterKeysCompatibly(Set(""))) {
+      identifier.elem.stableScope
+    }
+    assertResult(knownStableScope.filterKeysCompatibly(Set.empty)) {
+      identifier.elem.stableScope
+    }
+
+    assertResult(knownStableScope.filterKeysCompatibly(Set("", "xbrli"))) {
+      entity.elem.stableScope
+    }
+    assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
+      entity.elem.stableScope
+    }
+
+    // Method plusChild internally called function usingExtraScope, thus preventing any namespace undeclarations
+    assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
+      entity.elem
+        .findChildElem(named(XbrliNs, "identifier"))
+        .map(_.stableScope)
+        .getOrElse(StableScope.empty)
+    }
+    assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
+      entity
+        .usingExtraScope(StableScope.empty)
+        .elem
+        .findChildElem(named(XbrliNs, "identifier"))
+        .map(_.stableScope)
+        .getOrElse(StableScope.empty)
+    }
+
     val expectedResolvedEntity: resolved.Elem = {
-      val resolvedElemCreator: ResolvedElemCreator = new ResolvedElemCreator(stableScope)
+      val resolvedElemCreator: ResolvedElemCreator = ResolvedElemCreator(knownStableScope)
 
       resolvedElemCreator
         .elem(
           q"xbrli:entity",
-          ListMap.empty[QName, String],
           Vector(
             resolvedElemCreator
               .textElem(q"xbrli:identifier", ListMap(q"scheme" -> "http://www.sec.gov/CIK"), "1234567890")
@@ -127,7 +158,7 @@ class ElemCreationTest extends AnyFunSuite {
       entity.scope.prefixesForNamespace(testNs)
     }
 
-    val foundIdentifier: nodebuilder.Elem = entity.findChildElem(_.name == EName(XbrliNs, "identifier")).get
+    val foundIdentifier: nodebuilder.Elem = entity.findChildElem(named(XbrliNs, "identifier")).get
 
     assertResult(Seq("test")) {
       foundIdentifier.scope.prefixesForNamespace(testNs)
@@ -141,7 +172,7 @@ class ElemCreationTest extends AnyFunSuite {
     }
 
     val expectedResolvedEntity: resolved.Elem = {
-      val resolvedElemCreator: ResolvedElemCreator = ResolvedElemCreator(stableScope)
+      val resolvedElemCreator: ResolvedElemCreator = ResolvedElemCreator(knownStableScope)
       import resolvedElemCreator._
 
       emptyElem(q"xbrli:entity").plusChildElem {
@@ -158,6 +189,8 @@ class ElemCreationTest extends AnyFunSuite {
   test("testCreationAndEquivalenceOfXbrlContext") {
     def createExplicitMemberElem(dimension: QName, member: QName): nodebuilder.Elem = {
       textElem(q"xbrldi:explicitMember", member.toString)
+        .usingExtraScope(extraStableScope.filterKeysCompatibly(dimension.prefixOption.toSet))
+        .usingExtraScope(extraStableScope.filterKeysCompatibly(member.prefixOption.toSet))
         .plusAttribute(q"dimension", dimension.toString)
         .elem
     }
@@ -172,8 +205,9 @@ class ElemCreationTest extends AnyFunSuite {
         .elem
         .transformDescendantElems {
           case e @ nodebuilder.Elem(QName(Some("xbrli"), "segment"), _, _, _) =>
-            nodebuilder
-              .ElemInKnownScope.from(e, stableScope)
+            nodebuilder.ElemInKnownScope
+              .from(e, knownStableScope)
+              .usingExtraScope(extraStableScope.filterKeysCompatibly(Set("gaap")))
               .plusChild(createExplicitMemberElem(q"gaap:EntityAxis", q"gaap:ABCCompanyDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:BusinessSegmentAxis", q"gaap:ConsolidatedGroupDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:VerificationAxis", q"gaap:UnqualifiedOpinionMember"))
@@ -181,7 +215,6 @@ class ElemCreationTest extends AnyFunSuite {
               .plusChild(createExplicitMemberElem(q"gaap:ReportDateAxis", q"gaap:ReportedAsOfMarch182008Member"))
               .validated
               .elem
-              .validated
           case e => e
         }
     }
@@ -239,7 +272,7 @@ class ElemCreationTest extends AnyFunSuite {
 
     val facts: Seq[nodebuilder.Elem] = saxonDocument.documentElement
       .filterChildElems(canBeFact)
-      .map(e => createFact(e, stableScope))
+      .map(e => createFact(e, knownStableScope.appendNonConflictingScope(extraStableScope)))
 
     val footnoteLinks: Seq[nodebuilder.Elem] = saxonDocument.documentElement
       .filterChildElems(named(LinkNs, "footnoteLink"))
@@ -263,7 +296,7 @@ class ElemCreationTest extends AnyFunSuite {
                 resolved
                   .ElemInKnownScope(
                     e,
-                    stableScope.appendNonConflictingScope(StableScope.from("xsi" -> "http://www.w3.org/2001/XMLSchema-instance"))))
+                    knownStableScope.appendNonConflictingScope(StableScope.from("xsi" -> "http://www.w3.org/2001/XMLSchema-instance"))))
             .minusAttribute(q"xsi:schemaLocation")
             .elem
         case e @ resolved.Elem(EName(Some(XbrliNs), "measure"), _, _) =>
@@ -399,7 +432,6 @@ class ElemCreationTest extends AnyFunSuite {
       .plusAttributeOption(q"id", originalFact.attrOption("id"))
       .validated
       .elem
-      .validated
   }
 
   private def createFootnoteLink(originalFootnoteLink: ScopedNodes.Elem): nodebuilder.Elem = {

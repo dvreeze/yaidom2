@@ -361,7 +361,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     scope1.appendCompatibleScope(scope2).isCompatibleSubScopeOf(superScope)
   }
 
-  // If a non-conflicting scope can be added to a scope, it can also be added to a sub-scope of that scope,
+  // If a non-conflicting scope can be added to a scope, it can also be added to a compatible sub-scope of that scope,
   // resulting in a compatible sub-scope of the "new" superscope.
 
   property("append-to-subscope") = forAll { scopeTriple: StableScopeAndCompatibleSuperScopeAndExtraScope =>
