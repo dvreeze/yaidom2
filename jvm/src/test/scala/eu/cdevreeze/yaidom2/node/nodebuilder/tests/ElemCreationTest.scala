@@ -102,8 +102,7 @@ class ElemCreationTest extends AnyFunSuite {
       entity.elem.stableScope
     }
 
-    // Method plusChild internally called function usingExtraScope, thus preventing any namespace undeclarations
-    assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
+    assertResult(knownStableScope.filterKeysCompatibly(Set.empty)) {
       entity.elem
         .findChildElem(named(XbrliNs, "identifier"))
         .map(_.stableScope)
@@ -111,7 +110,7 @@ class ElemCreationTest extends AnyFunSuite {
     }
     assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
       entity
-        .usingExtraScope(StableScope.empty)
+        .usingExtraScope(StableScope.empty) // Prevent the occurrence of any namespace undeclarations
         .elem
         .findChildElem(named(XbrliNs, "identifier"))
         .map(_.stableScope)
@@ -286,6 +285,7 @@ class ElemCreationTest extends AnyFunSuite {
         .plusChildren(units)
         .plusChildren(facts)
         .plusChildren(footnoteLinks)
+        .usingExtraScope(StableScope.empty)
         .elem
 
     def transformElementTree(rootElem: resolved.Elem): resolved.Elem = {

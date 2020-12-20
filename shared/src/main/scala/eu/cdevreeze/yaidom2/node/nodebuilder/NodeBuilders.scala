@@ -325,6 +325,8 @@ object NodeBuilders {
      * element not having a "combined stable scope". The "combined stable scope" of the result element is a compatible
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
+     *
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope to fix that.
      */
     def withChildren(newChildren: Seq[Node]): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
@@ -342,8 +344,6 @@ object NodeBuilders {
 
       new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector)
         .pipe(e => ElemInKnownScope.from(e, newKnownStableScope)) // expensive, but it checks internal consistency
-        .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of the element's stableScope
-        .ensuring(_.elem.stableScope == this.elem.stableScope)
     }
 
     def plusChild(child: Node): ElemInKnownScope = {
@@ -375,6 +375,8 @@ object NodeBuilders {
      * element not having a "combined stable scope". The "combined stable scope" of the result element is a compatible
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
+     *
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope to fix that.
      */
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
@@ -384,9 +386,6 @@ object NodeBuilders {
 
       new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibleScope(extraElemScope), children.toVector)
         .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
-        .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of the element's stableScope
-        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibleScope(extraElemScope))
-        .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
     def plusAttribute(attrQName: QName, attrValue: String): ElemInKnownScope = {
@@ -410,6 +409,8 @@ object NodeBuilders {
      * element not having a "combined stable scope". The "combined stable scope" of the result element is a compatible
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
+     *
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope to fix that.
      */
     def withQName(newQName: QName): ElemInKnownScope = {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
@@ -419,9 +420,6 @@ object NodeBuilders {
 
       new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibleScope(extraElemScope), children.toVector)
         .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
-        .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of the element's stableScope
-        .ensuring(_.elem.stableScope == this.elem.stableScope.appendCompatibleScope(extraElemScope))
-        .ensuring(_.elem.stableScope.defaultNamespaceOption == this.elem.stableScope.defaultNamespaceOption)
     }
 
     def plusChildElem(childElem: WrapperType): WrapperType = {

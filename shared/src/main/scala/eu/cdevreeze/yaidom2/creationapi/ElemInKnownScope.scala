@@ -108,7 +108,8 @@ trait ElemInKnownScope {
    * or any of its descendants, an exception is thrown.
    *
    * This method is typically used to introduce one or more prefixes and corresponding namespaces to an element and
-   * all its descendants.
+   * all its descendants. It can also be used to prevent the occurrence of namespace undeclarations, just by passing the
+   * empty StableScope as extra scope.
    */
   def usingExtraScope(extraScope: StableScope): WrapperType
 }

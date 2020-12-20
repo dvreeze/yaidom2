@@ -89,6 +89,8 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
    * its element has a "combined stable scope" that is a compatible sub-scope of the ElemInKnownScope's knownStableScope.
    *
    * This method can be quite expensive if there are many children, or children with many descendant elements.
+   *
+   * The resulting element tree may have namespace undeclarations. Use method usingExtraScope to fix that.
    */
   def elem(
       qname: QName,
@@ -119,8 +121,6 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
 
     new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector)
       .pipe(e => ElemInKnownScope.from(e, newKnownStableScope)) // expensive, but it checks internal consistency
-      .usingExtraScope(StableScope.empty) // make sure the element and its descendants have a super-scope of targetScope
-      .ensuring(_.elem.stableScope == targetScope)
   }
 }
 
