@@ -91,6 +91,9 @@ class IXbrlTest extends AnyFunSuite {
     val xbrliUnit2: nodebuilder.Elem = makeXbrliUnit("ID-PURE", q"xbrli:pure", StableScope.empty)
     val xbrliUnit3: nodebuilder.Elem = makeXbrliUnit("GBP", q"iso4217:GBP", StableScope.empty)
 
+    // Note that there are some surprising attributes below (for those knowing XBRL but not so much iXBRL):
+    // Attribute xsi:schemaLocation here uses only lower-case characters; same for contextRef etc.
+
     val xhtml: nodebuilder.Elem =
       emptyElem(q"html")
         .plusChildElem(

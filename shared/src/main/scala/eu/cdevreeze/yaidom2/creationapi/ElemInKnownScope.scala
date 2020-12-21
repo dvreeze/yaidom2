@@ -77,6 +77,8 @@ trait ElemInKnownScope {
 
   def withQName(newQName: QName): WrapperType
 
+  // Convenience methods to prevent having to unwrap child elements
+
   /**
    * Returns `plusChild(childElem.elem)`, ignoring the child's known scope.
    */
@@ -101,6 +103,14 @@ trait ElemInKnownScope {
    * Returns `plusChildren(childElemSeq.map(_.elem))`, ignoring the known scopes of the passed children.
    */
   def plusChildElems(childElemSeq: Seq[WrapperType]): WrapperType
+
+  // Note that we could add convenience methods combining calls to method
+  // plusChildElem with a call to ElemCreationApi methods like emptyElem, textElem etc.
+  // These convenience methods could be called plusEmptyChildElem, plusTextChildElem etc.
+  // It was decided not to add those methods (which would also increase "type tangle"),
+  // since their bang-for-the-buck is limited.
+
+  // "Namespace declaration management"
 
   /**
    * Appends the given extra stable scope to this element's stable scope, and makes sure there are no namespace undeclarations
