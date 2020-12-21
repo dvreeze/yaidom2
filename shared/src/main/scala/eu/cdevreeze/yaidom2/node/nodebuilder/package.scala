@@ -196,7 +196,7 @@ package eu.cdevreeze.yaidom2.node
  *     .havingSameScopeInDescendantsOrSelf
  *     .elem
  * }}}
- * Note the ad-hoc insertion of the namespace with prefix "ht", and the "finishing touch" with method "havingSameScopeInDescendantsOrSelf".
+ * Note the ad-hoc insertion of the namespace with prefix "pt", and the "finishing touch" with method "havingSameScopeInDescendantsOrSelf".
  *
  * The element creation API based on [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]], which in turn is based on
  * [[eu.cdevreeze.yaidom2.core.StableScope]], is backed by a small "mathematical theory". This theory shows for example that
