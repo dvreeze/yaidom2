@@ -218,8 +218,7 @@ class IXbrlTest extends AnyFunSuite {
       .from(elm)
       .transformDescendantElemsOrSelf {
         case e @ resolved.Elem(EName(Some(XhtmlNs), "html"), _, _) =>
-          // e.copy(attributes = e.attributes.filterNot(Set(e"version", e"{$XsiNs}schemaLocation")))
-          e.copy(attributes = ListMap.empty)
+          e.copy(attributes = e.attributes.filter(kv => !Set(e"version", e"{$XsiNs}schemalocation").contains(kv._1)))
         case e => e
       }
       .transformDescendantElemsOrSelf { e =>
