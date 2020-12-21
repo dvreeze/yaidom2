@@ -15,7 +15,7 @@ val crossScalaVer = Seq(scalaVer)
 ThisBuild / name         := "yaidom2"
 ThisBuild / description  := "Extensible XML query API with multiple DOM-like implementations, 2nd generation"
 ThisBuild / organization := "eu.cdevreeze.yaidom2"
-ThisBuild / version      := "0.12.0"
+ThisBuild / version      := "0.13.0-SNAPSHOT"
 
 ThisBuild / scalaVersion       := scalaVer
 ThisBuild / crossScalaVersions := crossScalaVer
