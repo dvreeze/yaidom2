@@ -122,6 +122,93 @@ package eu.cdevreeze.yaidom2.node
  * Building snippets of XML this way probably leads to a mess of namespace declarations and undeclarations,
  * yet without introducing any namespace conflicts. This is ok, but must be fixed in a final step. To that
  * end, use function [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope.havingSameScopeInDescendantsOrSelf]].
+ * The snippets of XML created above are used in a complete X(HT)ML document as follows:
+ * {{{
+ * val xbrliContext1: nodebuilder.Elem =
+ *   makeXbrliContext("DUR-1", LocalDate.parse("2005-12-31"), LocalDate.parse("2006-12-31"))
+ * val xbrliContext2: nodebuilder.Elem =
+ *   makeXbrliContext("NFC1", LocalDate.parse("2005-01-01"), LocalDate.parse("2005-12-31"))
+ *
+ * val xbrliUnit1: nodebuilder.Elem = makeXbrliUnit("u1", q"iso4217:GBP", StableScope.empty)
+ * val xbrliUnit2: nodebuilder.Elem = makeXbrliUnit("ID-PURE", q"xbrli:pure", StableScope.empty)
+ * val xbrliUnit3: nodebuilder.Elem = makeXbrliUnit("GBP", q"iso4217:GBP", StableScope.empty)
+ *
+ * val xhtml: nodebuilder.Elem =
+ *   emptyElem(q"html")
+ *     .plusChildElem(
+ *       elem(
+ *         q"head",
+ *         Seq(
+ *           emptyElem(q"meta", ListMap(q"content" -> "text/html; charset=UTF-8", q"http-equiv" -> "Content-Type"))
+ *             .elem,
+ *           textElem(q"title", "Basic Inline XBRL Example").elem
+ *         )
+ *       )
+ *     )
+ *     .plusChildElem(
+ *       emptyElem(q"body", ListMap(q"xml:lang" -> "en"))
+ *         .plusChildElem(
+ *           emptyElem(q"div", ListMap(q"style" -> "display:none"))
+ *             .plusChildElem(
+ *               emptyElem(q"ix:header")
+ *                 .plusChildElem(
+ *                   elem(
+ *                     q"ix:references",
+ *                     Seq(emptyElem(
+ *                       q"link:schemaref",
+ *                       ListMap(
+ *                         q"xlink:href" -> "../../schemas/ch/pt/2004-12-01/uk-gaap-pt-2004-12-01.xsd",
+ *                         q"xlink:type" -> "simple")).elem)
+ *                   )
+ *                 )
+ *                 .plusChildElem(
+ *                   emptyElem(q"ix:resources")
+ *                     .plusChild(xbrliContext1)
+ *                     .plusChild(xbrliContext2)
+ *                     .plusChild(xbrliUnit1)
+ *                     .plusChild(xbrliUnit2)
+ *                     .plusChild(xbrliUnit3)
+ *                 )
+ *             )
+ *         )
+ *         .plusChildElem(
+ *           elem(
+ *             q"ix:nonnumeric",
+ *             ListMap(q"contextref" -> "DUR-1", q"name" -> "pt:DescriptionAddressAssociate"),
+ *             Seq(
+ *               elem(
+ *                 q"b",
+ *                 Seq(
+ *                   nodebuilder.NodeBuilders.Text("   A string of text.   "),
+ *                   elem(
+ *                     q"ix:exclude",
+ *                     Seq(
+ *                       textElem(q"i", "   A number. 1,234,456.78   ").elem
+ *                     )
+ *                   ).elem,
+ *                   nodebuilder.NodeBuilders.Text("   More text>   "),
+ *                 )
+ *               ).elem
+ *             )
+ *           ).usingExtraScope(StableScope.from("pt" -> "http://www.xbrl.org/uk/fr/gaap/pt/2004-12-01"))
+ *         )
+ *     )
+ *     .havingSameScopeInDescendantsOrSelf
+ *     .elem
+ * }}}
+ * Note the ad-hoc insertion of the namespace with prefix "ht", and the "finishing touch" with method "havingSameScopeInDescendantsOrSelf".
+ *
+ * The element creation API based on [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]], which in turn is based on
+ * [[eu.cdevreeze.yaidom2.core.StableScope]], is backed by a small "mathematical theory". This theory shows for example that
+ * each such element can have all namespace declarations at the root level, without exception.
+ *
+ * One way to look at the use of the element creation API, as shown above, is as follows: all intermediate
+ * results are of type [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope]], where
+ * each instance holds an element (of type [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]])
+ * and a known [[eu.cdevreeze.yaidom2.core.StableScope]], where the "combined stable scope" of the element
+ * is always a "compatible sub-scope" of the latter stable scope. When method
+ * [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope.usingExtraScope]] is called
+ * (directly or indirectly) both the element scope and known scope may "grow".
  *
  * @author Chris de Vreeze
  */

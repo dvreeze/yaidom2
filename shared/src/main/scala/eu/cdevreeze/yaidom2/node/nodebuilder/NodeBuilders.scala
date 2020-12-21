@@ -512,6 +512,18 @@ object NodeBuilders {
     def unsafeFrom(elem: Elem, knownStableScope: StableScope): ElemInKnownScope = {
       new ElemInKnownScope(elem, knownStableScope)
     }
+
+    /**
+     * Returns `new ElemInKnownScope(elem, elem.combinedStableScope)`. This is a safe construction
+     * method not requiring any validation (but the method will throw if function combinedStableScope does).
+     *
+     * This method comes in handy when wanting to use the ElemInKnownScope API, having only an element
+     * and no known stable scope.
+     */
+    def from(elem: Elem): ElemInKnownScope = {
+      val knownStableScope = elem.combinedStableScope
+      new ElemInKnownScope(elem, knownStableScope)
+    }
   }
 
   // Companion objects for Node and Elem
