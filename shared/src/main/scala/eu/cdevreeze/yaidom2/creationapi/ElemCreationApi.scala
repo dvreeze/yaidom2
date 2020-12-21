@@ -152,10 +152,11 @@ object ElemCreationApi {
    */
   def minimizeStableScope(stableScope: StableScope, elemQName: QName, attributeQNames: Set[QName]): StableScope = {
     require(
-      elemQName.prefixOption.forall(pref => stableScope.keySet.contains(pref)),
-      s"Can not resolve element QName $elemQName in scope ${stableScope.scope}")
+      elemQName.prefixOption.filterNot(_ == "xml").forall(pref => stableScope.keySet.contains(pref)),
+      s"Can not resolve element QName $elemQName in scope ${stableScope.scope}"
+    )
 
-    attributeQNames.flatMap(_.prefixOption).foreach { pref =>
+    attributeQNames.flatMap(_.prefixOption).filterNot(_ == "xml").foreach { pref =>
       require(
         stableScope.keySet.contains(pref.ensuring(_.nonEmpty)),
         s"Can not resolve attribute QName prefix $pref in scope ${stableScope.scope}")

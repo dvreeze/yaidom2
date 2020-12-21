@@ -59,8 +59,6 @@ package object core {
   implicit class ENameHelper(private val sc: StringContext) extends AnyVal {
 
     def e(args: Any*): EName = {
-      require(args.forall(!_.toString.contains(':')), s"No colon allowed in the variables")
-
       // See https://docs.scala-lang.org/overviews/core/string-interpolation.html
 
       val strings = sc.parts.iterator
