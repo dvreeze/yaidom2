@@ -64,7 +64,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.2" % Test,
 
-    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.10.0")
+    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.11.0")
   )
   .jsSettings(
     // Do we need this jsEnv?
@@ -74,7 +74,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     Test / parallelExecution := false,
 
-    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.10.0")
+    mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.11.0")
   )
 
 lazy val yaidom2JVM = yaidom2.jvm
