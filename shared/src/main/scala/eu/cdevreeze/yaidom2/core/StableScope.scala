@@ -151,6 +151,12 @@ final case class StableScope private (scope: Scope) {
    * Calls the equivalent of  `appendCompatibleScopeOption(otherStableScope).get`.
    *
    * The resulting StableScope is always a compatible super-scope of the parameter StableScope and of this StableScope.
+   *
+   * The reason of having this method as well as similar method `appendNonConflictingScope` is as follows: if for example
+   * 2 complete element scopes are added and it is important that they both agree on the presence or absence of the default
+   * namespace, method `appendCompatibleScope` is used; if only a few extra prefix-namespace mappings are added to this
+   * stable scope, then method `appendNonConflictingScope` can be used. Note that if method `appendCompatibleScope`
+   * succeeds (that is, does not throw), method `appendNonConflictingScope` would give the same result, but not vice versa.
    */
   def appendCompatibleScope(otherStableScope: StableScope): StableScope = {
     appendCompatibleScopeOption(otherStableScope)
@@ -198,6 +204,12 @@ final case class StableScope private (scope: Scope) {
    * Calls the equivalent of  `appendNonConflictingScopeOption(otherStableScope).get`.
    *
    * The resulting StableScope, is always a super-scope of the parameter StableScope and a compatible super-scope of this StableScope.
+   *
+   * The reason of having this method as well as similar method `appendCompatibleScope` is as follows: if for example
+   * 2 complete element scopes are added and it is important that they both agree on the presence or absence of the default
+   * namespace, method `appendCompatibleScope` is used; if only a few extra prefix-namespace mappings are added to this
+   * stable scope, then method `appendNonConflictingScope` can be used. Note that if method `appendCompatibleScope`
+   * succeeds (that is, does not throw), method `appendNonConflictingScope` would give the same result, but not vice versa.
    */
   def appendNonConflictingScope(otherStableScope: StableScope): StableScope = {
     appendNonConflictingScopeOption(otherStableScope)

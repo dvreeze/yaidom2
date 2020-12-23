@@ -88,7 +88,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
    * knownStableScope. Of course, the returned ElemInKnownScope instance must also be internally consistent, in that
    * its element has a "combined stable scope" that is a compatible sub-scope of the ElemInKnownScope's knownStableScope.
    *
-   * This method can be quite expensive if there are many children, or children with many descendant elements.
+   * This method can be quite expensive if there are many children.
    *
    * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
    * to fix that.
@@ -123,7 +123,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
     val newKnownStableScope: StableScope = startKnownStableScope.appendCompatibleScope(newCombinedStableScope)
 
     new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector, newCombinedStableScope)
-      .pipe(e => ElemInKnownScope.from(e, newKnownStableScope)) // expensive, but it checks internal consistency
+      .pipe(e => ElemInKnownScope(e, newKnownStableScope))
   }
 }
 

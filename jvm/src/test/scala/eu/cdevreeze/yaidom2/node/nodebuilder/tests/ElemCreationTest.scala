@@ -202,15 +202,14 @@ class ElemCreationTest extends AnyFunSuite {
         .elem
         .transformDescendantElems {
           case e @ nodebuilder.Elem(QName(Some("xbrli"), "segment"), _, _, _) =>
-            nodebuilder.ElemInKnownScope
-              .from(e, knownStableScope)
+            nodebuilder
+              .ElemInKnownScope(e, knownStableScope)
               .usingExtraScope(extraStableScope.filterKeysCompatibly(Set("gaap")))
               .plusChild(createExplicitMemberElem(q"gaap:EntityAxis", q"gaap:ABCCompanyDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:BusinessSegmentAxis", q"gaap:ConsolidatedGroupDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:VerificationAxis", q"gaap:UnqualifiedOpinionMember"))
               .plusChild(createExplicitMemberElem(q"gaap:PremiseAxis", q"gaap:ActualMember"))
               .plusChild(createExplicitMemberElem(q"gaap:ReportDateAxis", q"gaap:ReportedAsOfMarch182008Member"))
-              .validated
               .elem
           case e => e
         }
@@ -428,7 +427,6 @@ class ElemCreationTest extends AnyFunSuite {
       .plusAttributeOption(q"unitRef", originalFact.attrOption("unitRef"))
       .plusAttributeOption(q"decimals", originalFact.attrOption("decimals"))
       .plusAttributeOption(q"id", originalFact.attrOption("id"))
-      .validated
       .elem
   }
 

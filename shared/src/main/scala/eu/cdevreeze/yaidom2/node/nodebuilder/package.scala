@@ -41,6 +41,7 @@ package eu.cdevreeze.yaidom2.node
  *
  * // Assume we have a knownStableScope of type StableScope, to start element creation with.
  * // The decision whether or not to use a default namespace is visible in this StableScope.
+ * // Here it is assumed that there is a default namespace, namely "http://www.w3.org/1999/xhtml".
  * // Commonly needed namespaces in the document to create should also be there.
  *
  * val elemCreator: nodebuilder.NodeBuilderCreator = nodebuilder.NodeBuilderCreator(knownStableScope)
