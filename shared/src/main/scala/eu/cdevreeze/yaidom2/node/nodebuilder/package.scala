@@ -104,12 +104,12 @@ package eu.cdevreeze.yaidom2.node
  *    emptyElem(q"xbrli:unit")
  *      .plusAttribute(q"id", id)
  *      .plusChildElem(textElem(q"xbrli:measure", measure.toString))
- *      .usingExtraScope(neededScopeForMeasure)
+ *      .usingExtraScopeDeeply(neededScopeForMeasure)
  *      .elem
  *  }
  * }}}
  *
- * The call to method "usingExtraScope" introduces the namespace needed to resolve the QName content of
+ * The call to method "usingExtraScopeDeeply" introduces the namespace needed to resolve the QName content of
  * the "xbrli:measure" element, and makes sure the the "xbrli:unit" element and its desdendants have that
  * namespace in scope.
  *
@@ -191,7 +191,7 @@ package eu.cdevreeze.yaidom2.node
  *                 )
  *               ).elem
  *             )
- *           ).usingExtraScope(StableScope.from("pt" -> "http://www.xbrl.org/uk/fr/gaap/pt/2004-12-01"))
+ *           ).usingExtraScopeDeeply(StableScope.from("pt" -> "http://www.xbrl.org/uk/fr/gaap/pt/2004-12-01"))
  *         )
  *     )
  *     .havingSameScopeInDescendantsOrSelf
@@ -208,7 +208,7 @@ package eu.cdevreeze.yaidom2.node
  * each instance holds an element (of type [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]])
  * and a known [[eu.cdevreeze.yaidom2.core.StableScope]], where the "combined stable scope" of the element
  * is always a "compatible sub-scope" of the latter stable scope. When method
- * [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope.usingExtraScope]] is called
+ * [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope.usingExtraScopeDeeply]] is called
  * (directly or indirectly) both the element scope and known scope may "grow".
  *
  * @author Chris de Vreeze

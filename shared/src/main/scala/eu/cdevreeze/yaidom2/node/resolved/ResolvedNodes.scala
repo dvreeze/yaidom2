@@ -434,7 +434,7 @@ object ResolvedNodes {
       plusChildren(childElemSeq.map(_.elem))
     }
 
-    def usingExtraScope(extraScope: StableScope): ElemInKnownScope = {
+    def usingExtraScopeDeeply(extraScope: StableScope): ElemInKnownScope = {
       elem.pipe(e => ElemInKnownScope(e, knownStableScope.appendNonConflictingScope(extraScope)))
     }
 

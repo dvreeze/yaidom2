@@ -148,7 +148,7 @@ class IXbrlTest extends AnyFunSuite {
                     )
                   ).elem
                 )
-              ).usingExtraScope(StableScope.from("pt" -> "http://www.xbrl.org/uk/fr/gaap/pt/2004-12-01"))
+              ).usingExtraScopeDeeply(StableScope.from("pt" -> "http://www.xbrl.org/uk/fr/gaap/pt/2004-12-01"))
             )
         )
         .havingSameScopeInDescendantsOrSelf
@@ -212,7 +212,7 @@ class IXbrlTest extends AnyFunSuite {
     emptyElem(q"xbrli:unit")
       .plusAttribute(q"id", id)
       .plusChildElem(textElem(q"xbrli:measure", measure.toString))
-      .usingExtraScope(neededScopeForMeasure)
+      .usingExtraScopeDeeply(neededScopeForMeasure)
       .elem
   }
 

@@ -90,7 +90,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
    *
    * This method can be quite expensive if there are many children.
    *
-   * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
+   * The resulting element tree may have namespace undeclarations. Use method usingExtraScopeDeeply or withoutNamespaceUndeclarations
    * to fix that.
    */
   def elem(

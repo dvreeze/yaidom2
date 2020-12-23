@@ -142,13 +142,13 @@ class ElemCreationTest extends AnyFunSuite {
     val identifier: nodebuilder.Elem =
       textElem(q"identifier", "1234567890")
         .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
-        .usingExtraScope(customScope)
+        .usingExtraScopeDeeply(customScope)
         .elem
 
     val entity: nodebuilder.Elem =
       emptyElem(q"xbrli:entity", StableScope.from("xbrli" -> XbrliNs))
         .plusChild(identifier)
-        .usingExtraScope(identifier.stableScope)
+        .usingExtraScopeDeeply(identifier.stableScope)
         .elem
 
     assertResult(Seq("test")) {
@@ -186,8 +186,8 @@ class ElemCreationTest extends AnyFunSuite {
   test("testCreationAndEquivalenceOfXbrlContext") {
     def createExplicitMemberElem(dimension: QName, member: QName): nodebuilder.Elem = {
       textElem(q"xbrldi:explicitMember", member.toString)
-        .usingExtraScope(extraStableScope.filterKeysCompatibly(dimension.prefixOption.toSet))
-        .usingExtraScope(extraStableScope.filterKeysCompatibly(member.prefixOption.toSet))
+        .usingExtraScopeDeeply(extraStableScope.filterKeysCompatibly(dimension.prefixOption.toSet))
+        .usingExtraScopeDeeply(extraStableScope.filterKeysCompatibly(member.prefixOption.toSet))
         .plusAttribute(q"dimension", dimension.toString)
         .elem
     }
@@ -204,7 +204,7 @@ class ElemCreationTest extends AnyFunSuite {
           case e @ nodebuilder.Elem(QName(Some("xbrli"), "segment"), _, _, _) =>
             nodebuilder
               .ElemInKnownScope(e, knownStableScope)
-              .usingExtraScope(extraStableScope.filterKeysCompatibly(Set("gaap")))
+              .usingExtraScopeDeeply(extraStableScope.filterKeysCompatibly(Set("gaap")))
               .plusChild(createExplicitMemberElem(q"gaap:EntityAxis", q"gaap:ABCCompanyDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:BusinessSegmentAxis", q"gaap:ConsolidatedGroupDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:VerificationAxis", q"gaap:UnqualifiedOpinionMember"))

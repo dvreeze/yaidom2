@@ -121,7 +121,7 @@ trait ElemInKnownScope {
    * all its descendants. It can also be used to prevent the occurrence of namespace undeclarations, just by passing the
    * empty StableScope as extra scope.
    */
-  def usingExtraScope(extraScope: StableScope): WrapperType
+  def usingExtraScopeDeeply(extraScope: StableScope): WrapperType
 }
 
 object ElemInKnownScope {

@@ -56,7 +56,7 @@ object NodeBuilders {
    * "element creation API" methods.
    *
    * On creation it is not validated whether the elemnt tree has no (prefixed) namespace undeclarations, which are disallowed
-   * in XML 1.0. This can be fixed afterwards with calls to methods such as usingExtraScope, withoutNamespaceUndeclarations or
+   * in XML 1.0. This can be fixed afterwards with calls to methods such as usingExtraScopeDeeply, withoutNamespaceUndeclarations or
    * havingSameScopeInDescendantsOrSelf.
    *
    * Implementation note: this class used a ListMap for the attributes instead of VectorMap (via the SeqMap API), due to Scala issue
@@ -268,7 +268,7 @@ object NodeBuilders {
      * The "combined stable scope" of the result element is `this.combinedStableScope.appendNonConflictingScope(extraScope)`.
      * Hence it is trivial to deduce that the result element is internally consistent.
      */
-    def usingExtraScope(extraScope: StableScope): ThisElem = {
+    def usingExtraScopeDeeply(extraScope: StableScope): ThisElem = {
       // Throws if unsafely appending fails
       val newElemScope: StableScope = this.stableScope.appendNonConflictingScope(extraScope)
       // We already know the new combined stable scope, without having to inspect the descdendant-or-self elements
@@ -278,7 +278,7 @@ object NodeBuilders {
         children.collect {
           case che: NodeBuilders.Elem =>
             // Recursive call
-            che.usingExtraScope(newElemScope)
+            che.usingExtraScopeDeeply(newElemScope)
           case n => n
         }
 
@@ -287,18 +287,18 @@ object NodeBuilders {
 
     /**
      * Returns an equivalent Elem, without any namespace undeclarations.
-     * That is, returns `usingExtraScope(StableScope.empty)`.
+     * That is, returns `usingExtraScopeDeeply(StableScope.empty)`.
      */
     def withoutNamespaceUndeclarations: ThisElem = {
-      usingExtraScope(StableScope.empty)
+      usingExtraScopeDeeply(StableScope.empty)
     }
 
     /**
      * Returns an equivalent Elem, without any namespace (un)declarations in the descendants.
-     * That is, returns `usingExtraScope(elem.combinedStableScope)`.
+     * That is, returns `usingExtraScopeDeeply(elem.combinedStableScope)`.
      */
     def havingSameScopeInDescendantsOrSelf: ThisElem = {
-      usingExtraScope(this.combinedStableScope)
+      usingExtraScopeDeeply(this.combinedStableScope)
     }
 
     // Private methods
@@ -359,27 +359,14 @@ object NodeBuilders {
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
      *
-     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScopeDeeply or withoutNamespaceUndeclarations
      * to fix that.
      */
     def withChildren(newChildren: Seq[Node]): ElemInKnownScope = {
-      assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
+      val newElem = elem.withChildren(newChildren)
+      val newKnownStableScope: StableScope = knownStableScope.appendCompatibleScope(newElem.combinedStableScope)
 
-      val newChildElems: Seq[Elem] = newChildren.collect { case e: Elem => e }
-      val combinedStableScopesOfChildren: Seq[StableScope] = newChildElems.map(_.combinedStableScope).distinct
-
-      // The code below throws if appending compatibly fails. Note that newKnownStableScope is a compatible super-scope of knownStableScope.
-      // It is also a compatible super-scope of the "combined stable scope" of the returned element.
-
-      val newCombinedStableScope: StableScope = combinedStableScopesOfChildren.foldLeft(elem.stableScope) {
-        case (accKnownScope, currScope) =>
-          accKnownScope.appendCompatibleScope(currScope)
-      }
-
-      val newKnownStableScope: StableScope = knownStableScope.appendCompatibleScope(newCombinedStableScope)
-
-      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector, newCombinedStableScope)
-        .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+      ElemInKnownScope(newElem, newKnownStableScope)
     }
 
     def plusChild(child: Node): ElemInKnownScope = {
@@ -412,7 +399,7 @@ object NodeBuilders {
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
      *
-     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScopeDeeply or withoutNamespaceUndeclarations
      * to fix that.
      */
     def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
@@ -452,7 +439,7 @@ object NodeBuilders {
      * sub-scope of the returned new "known stable scope". The latter is a compatible super-scope of this element's known
      * stable scope.
      *
-     * The resulting element tree may have namespace undeclarations. Use method usingExtraScope or withoutNamespaceUndeclarations
+     * The resulting element tree may have namespace undeclarations. Use method usingExtraScopeDeeply or withoutNamespaceUndeclarations
      * to fix that.
      */
     def withQName(newQName: QName): ElemInKnownScope = {
@@ -503,24 +490,24 @@ object NodeBuilders {
      * Hence it is trivial to deduce that the result ElemInKnownScope is internally consistent,
      * and that `this.knownStableScope` is a compatible sub-scope of the result known scope.
      */
-    def usingExtraScope(extraScope: StableScope): ElemInKnownScope = {
-      new ElemInKnownScope(elem.usingExtraScope(extraScope), knownStableScope.appendNonConflictingScope(extraScope))
+    def usingExtraScopeDeeply(extraScope: StableScope): ElemInKnownScope = {
+      new ElemInKnownScope(elem.usingExtraScopeDeeply(extraScope), knownStableScope.appendNonConflictingScope(extraScope))
     }
 
     /**
      * Returns an equivalent ElemInKnownScope, without any namespace undeclarations.
-     * That is, returns `usingExtraScope(StableScope.empty)`.
+     * That is, returns `usingExtraScopeDeeply(StableScope.empty)`.
      */
     def withoutNamespaceUndeclarations: ElemInKnownScope = {
-      usingExtraScope(StableScope.empty)
+      usingExtraScopeDeeply(StableScope.empty)
     }
 
     /**
      * Returns an equivalent ElemInKnownScope, without any namespace (un)declarations in the descendants.
-     * That is, returns `usingExtraScope(elem.combinedStableScope)`.
+     * That is, returns `usingExtraScopeDeeply(elem.combinedStableScope)`.
      */
     def havingSameScopeInDescendantsOrSelf: ElemInKnownScope = {
-      usingExtraScope(elem.combinedStableScope)
+      usingExtraScopeDeeply(elem.combinedStableScope)
     }
   }
 
