@@ -63,10 +63,18 @@ object NodeBuilders {
       val qname: QName,
       val attributesByQName: ListMap[QName, String],
       val stableScope: StableScope,
-      val children: Vector[Node] // For querying, ArraySeq would be optimal, but not for (functional) updates
+      val children: Vector[Node], // For querying, ArraySeq would be optimal, but not for (functional) updates
+      val combinedStableScope: StableScope
   ) extends CanBeDocumentChild
       with AbstractScopedElem
       with AbstractUpdatableElem {
+
+    assert(stableScope.isCompatibleSubScopeOf(combinedStableScope))
+    assert(
+      findAllChildElems
+        .map(_.combinedStableScope)
+        .distinct
+        .foldLeft(stableScope) { case (acc, sc) => acc.appendCompatibleScope(sc) } == combinedStableScope)
 
     type ThisElem = Elem
 
@@ -83,18 +91,6 @@ object NodeBuilders {
     }
 
     def scope: Scope = stableScope.scope
-
-    /**
-     * Returns the combined stable scope of all descendant-or-self elements, by compatibly appending them.
-     * If there are stable scope incompatibilities, this element is corrupt, and an exception is thrown. Hence this
-     * method is also an important consistency check if called.
-     */
-    def combinedStableScope: StableScope = {
-      findAllDescendantElems.map(_.stableScope).distinct.foldLeft(this.stableScope) {
-        case (accScope, currScope) =>
-          accScope.appendCompatibleScope(currScope)
-      }
-    }
 
     /**
      * Expensive internal consistency check based on function `combinedStableScope`, returning this element itself if
@@ -316,7 +312,7 @@ object NodeBuilders {
       val combinedScope: StableScope = elem.combinedStableScope // may throw
       require(
         combinedScope.isCompatibleSubScopeOf(knownStableScope),
-        s"Stable scope ${elem.stableScope.scope} is not a compatible sub-scope of known scope ${knownStableScope.scope}"
+        s"Stable scope ${combinedScope.scope} is not a compatible sub-scope of known scope ${knownStableScope.scope}"
       ).pipe(_ => this)
     }
 
@@ -333,17 +329,19 @@ object NodeBuilders {
       assert(elem.stableScope.isCompatibleSubScopeOf(knownStableScope))
 
       val newChildElems: Seq[Elem] = newChildren.collect { case e: Elem => e }
-      val scopesOfDescendants: Seq[StableScope] = newChildElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
+      val combinedStableScopesOfChildren: Seq[StableScope] = newChildElems.map(_.combinedStableScope).distinct
 
       // The code below throws if appending compatibly fails. Note that newKnownStableScope is a compatible super-scope of knownStableScope.
       // It is also a compatible super-scope of the "combined stable scope" of the returned element.
 
-      val newKnownStableScope: StableScope = scopesOfDescendants.foldLeft(knownStableScope) {
+      val newCombinedStableScope: StableScope = combinedStableScopesOfChildren.foldLeft(elem.stableScope) {
         case (accKnownScope, currScope) =>
           accKnownScope.appendCompatibleScope(currScope)
       }
 
-      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector)
+      val newKnownStableScope: StableScope = knownStableScope.appendCompatibleScope(newCombinedStableScope)
+
+      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, elem.stableScope, newChildren.toVector, newCombinedStableScope)
         .pipe(e => ElemInKnownScope.from(e, newKnownStableScope)) // expensive, but it checks internal consistency
     }
 
@@ -386,8 +384,13 @@ object NodeBuilders {
       val extraElemScope: StableScope =
         ElemCreationApi.minimizeStableScope(knownStableScope, elem.qname, newAttributes.keySet)
 
-      new NodeBuilders.Elem(elem.qname, newAttributes, elem.stableScope.appendCompatibleScope(extraElemScope), children.toVector)
-        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
+      new NodeBuilders.Elem(
+        elem.qname,
+        newAttributes,
+        elem.stableScope.appendCompatibleScope(extraElemScope),
+        children.toVector,
+        elem.combinedStableScope.appendCompatibleScope(extraElemScope)
+      ).pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
     }
 
     def plusAttribute(attrQName: QName, attrValue: String): ElemInKnownScope = {
@@ -421,8 +424,13 @@ object NodeBuilders {
       val extraElemScope: StableScope =
         ElemCreationApi.minimizeStableScope(knownStableScope, newQName, Set.empty)
 
-      new NodeBuilders.Elem(newQName, elem.attributesByQName, elem.stableScope.appendCompatibleScope(extraElemScope), children.toVector)
-        .pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
+      new NodeBuilders.Elem(
+        newQName,
+        elem.attributesByQName,
+        elem.stableScope.appendCompatibleScope(extraElemScope),
+        children.toVector,
+        elem.combinedStableScope.appendCompatibleScope(extraElemScope)
+      ).pipe(e => ElemInKnownScope.unsafeFrom(e, knownStableScope))
     }
 
     def plusChildElem(childElem: WrapperType): WrapperType = {
@@ -481,6 +489,7 @@ object NodeBuilders {
     private def usingExtraScope(extraScope: StableScope, knownScope: StableScope): ElemInKnownScope = {
       // Throws if unsafely appending fails
       val newElemScope: StableScope = elem.stableScope.appendNonConflictingScope(extraScope)
+      val newCombinedElemScope: StableScope = elem.combinedStableScope.appendNonConflictingScope(extraScope)
 
       assert(newElemScope.isCompatibleSubScopeOf(knownScope))
 
@@ -495,7 +504,7 @@ object NodeBuilders {
           case n => n
         }
 
-      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, newElemScope, newChildNodes.toVector)
+      new NodeBuilders.Elem(elem.qname, elem.attributesByQName, newElemScope, newChildNodes.toVector, newCombinedElemScope)
         .pipe(e => ElemInKnownScope.unsafeFrom(e, knownScope))
     }
   }
@@ -639,7 +648,13 @@ object NodeBuilders {
         Node.unsafeFrom(node)
       }
 
-      new Elem(elm.qname, elm.attributesByQName, stableScope, creationDslChildren.to(Vector))
+      // May throw
+      val combinedStableScope: StableScope =
+        creationDslChildren.collect { case e: Elem => e }.map(_.combinedStableScope).foldLeft(stableScope) {
+          case (accScope, sc) => accScope.appendCompatibleScope(sc)
+        }
+
+      new Elem(elm.qname, elm.attributesByQName, stableScope, creationDslChildren.to(Vector), combinedStableScope)
     }
   }
 }

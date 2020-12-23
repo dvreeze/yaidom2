@@ -100,18 +100,6 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
       neededExtraStableScope: StableScope): WrapperType = {
     val startKnownStableScope: StableScope = knownStableScope.appendNonConflictingScope(neededExtraStableScope)
 
-    val childElems: Seq[ElemType] = children.collect { case e: NodeBuilders.Elem => e }
-    val scopesOfDescendants: Seq[StableScope] = childElems.flatMap(_.findAllDescendantElemsOrSelf).map(_.stableScope).distinct
-
-    // The code below throws if appending compatibly fails. Note that newKnownStableScope is a compatible super-scope of knownStableScope.
-    // It is also a super-scope of neededExtraStableScope. It is also a compatible super-scope of the "combined stable scope"
-    // of the returned element.
-
-    val newKnownStableScope: StableScope = scopesOfDescendants.foldLeft(startKnownStableScope) {
-      case (accKnownScope, currScope) =>
-        accKnownScope.appendCompatibleScope(currScope)
-    }
-
     // For element name and attributes, startKnownStableScope should be enough context passed to function minimizeStableScope.
     // Note that targetScope does not necessarily "contain" the descendant element scopes. Also note that targetScope is a
     // compatible sub-scope of newKnownStableScope, and so is the "combined stable scope" of the returned element.
@@ -120,7 +108,21 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
       .minimizeStableScope(startKnownStableScope, qname, attributesByQName.keySet)
       .appendNonConflictingScope(neededExtraStableScope)
 
-    new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector)
+    val childElems: Seq[ElemType] = children.collect { case e: NodeBuilders.Elem => e }
+    val combinedStableScopesOfChildren: Seq[StableScope] = childElems.map(_.combinedStableScope).distinct
+
+    // The code below throws if appending compatibly fails. Note that newKnownStableScope is a compatible super-scope of knownStableScope.
+    // It is also a super-scope of neededExtraStableScope. It is also a compatible super-scope of the "combined stable scope"
+    // of the returned element.
+
+    val newCombinedStableScope: StableScope = combinedStableScopesOfChildren.foldLeft(targetScope) {
+      case (accKnownScope, currScope) =>
+        accKnownScope.appendCompatibleScope(currScope)
+    }
+
+    val newKnownStableScope: StableScope = startKnownStableScope.appendCompatibleScope(newCombinedStableScope)
+
+    new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector, newCombinedStableScope)
       .pipe(e => ElemInKnownScope.from(e, newKnownStableScope)) // expensive, but it checks internal consistency
   }
 }
