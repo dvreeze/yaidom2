@@ -24,24 +24,12 @@ import scala.collection.immutable.ListMap
 /**
  * Element creation API, using stable scopes underneath.
  *
- * All element creation functions return an `ElemInKnownScope`, which combines an element with a known stable scope,
- * which must be a compatible super-scope of the element's combined stable scope, if applicable.
- *
- * Each element creation function (if no exception is thrown) returns an `ElemInKnownScope`, whose known stable scope
- * is a compatible super-scope of the known stable scope of this element creation API (which acts as a "starting scope").
- *
  * For element creation functions that take an extra `neededExtraStableScope` stable scope parameter, expression
- * `knownStableScope.appendNonConflictingScope(neededExtraStableScope)` must not throw an exception, and this result scope
- * is part of the returned `ElemInKnownScope`. Indeed it is a compatible super-scope of `knownStableScope`.
+ * `knownStableScope.appendNonConflictingScope(neededExtraStableScope)` must not throw an exception.
  *
  * @author Chris de Vreeze
  */
 trait ElemCreationApi {
-
-  /**
-   * The element wrapper type, holding an element and a known scope.
-   */
-  type WrapperType <: ElemInKnownScope
 
   type NodeType
 
@@ -51,95 +39,71 @@ trait ElemCreationApi {
 
   /**
    * Creates an empty element with the given QName.
-   * See the trait level API documentation for the semantics.
    */
-  def emptyElem(qname: QName): WrapperType
+  def emptyElem(qname: QName): ElemType
 
   /**
    * Creates an empty element with the given QName.
-   * See the trait level API documentation for the semantics.
    */
-  def emptyElem(qname: QName, neededExtraStableScope: StableScope): WrapperType
+  def emptyElem(qname: QName, neededExtraStableScope: StableScope): ElemType
 
   /**
    * Creates an empty element with the given QName and given attributes.
-   * See the trait level API documentation for the semantics.
    */
-  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String]): WrapperType
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String]): ElemType
 
   /**
    * Creates an empty element with the given QName and given attributes.
-   * See the trait level API documentation for the semantics.
    */
-  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String], neededExtraStableScope: StableScope): WrapperType
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String], neededExtraStableScope: StableScope): ElemType
 
   /**
    * Creates an element with the given QName and single text child node with the given text content.
-   * See the trait level API documentation for the semantics.
    */
-  def textElem(qname: QName, txt: String): WrapperType
+  def textElem(qname: QName, txt: String): ElemType
 
   /**
    * Creates an element with the given QName and single text child node with the given text content.
-   * See the trait level API documentation for the semantics.
    */
-  def textElem(qname: QName, txt: String, neededExtraStableScope: StableScope): WrapperType
+  def textElem(qname: QName, txt: String, neededExtraStableScope: StableScope): ElemType
 
   /**
    * Creates an element with the given QName, attributes and single text child node with the given text content.
-   * See the trait level API documentation for the semantics.
    */
-  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String): WrapperType
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String): ElemType
 
   /**
    * Creates an element with the given QName, attributes and single text child node with the given text content.
-   * See the trait level API documentation for the semantics.
    */
-  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String, neededExtraStableScope: StableScope): WrapperType
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String, neededExtraStableScope: StableScope): ElemType
 
   /**
    * Creates an element with the given name and children.
-   * See the trait level API documentation for the semantics.
-   *
-   * The resulting element tree's stable scopes have all been appended to the "known stable scope".
    *
    * This may be an expensive operation (because of the number or depth of the children).
    */
-  def elem(qname: QName, children: Seq[NodeType]): WrapperType
+  def elem(qname: QName, children: Seq[NodeType]): ElemType
 
   /**
    * Creates an element with the given name and children.
-   * See the trait level API documentation for the semantics.
-   *
-   * The resulting element tree's stable scopes have all been appended to the "known stable scope".
    *
    * This may be an expensive operation (because of the number or depth of the children).
    */
-  def elem(qname: QName, children: Seq[NodeType], neededExtraStableScope: StableScope): WrapperType
+  def elem(qname: QName, children: Seq[NodeType], neededExtraStableScope: StableScope): ElemType
 
   /**
    * Creates an element with the given name, attributes and children.
-   * See the trait level API documentation for the semantics.
-   *
-   * The resulting element tree's stable scopes have all been appended to the "known stable scope".
    *
    * This may be an expensive operation (because of the number or depth of the children).
    */
-  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType]): WrapperType
+  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType]): ElemType
 
   /**
    * Creates an element with the given name, attributes and children.
-   * See the trait level API documentation for the semantics.
-   *
-   * The resulting element tree's stable scopes have all been appended to the "known stable scope".
    *
    * This may be an expensive operation (because of the number or depth of the children).
    */
-  def elem(
-      qname: QName,
-      attributesByQName: ListMap[QName, String],
-      children: Seq[NodeType],
-      neededExtraStableScope: StableScope): WrapperType
+  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType], neededExtraStableScope: StableScope): ElemType
 }
 
 object ElemCreationApi {
@@ -168,11 +132,10 @@ object ElemCreationApi {
   }
 
   /**
-   * This API type, restricting Wrapper, Node and Elem to the passed type parameters.
+   * This API type, restricting Node and Elem to the passed type parameters.
    *
-   * @tparam W The wrapper self type
    * @tparam N The node type
    * @tparam E The element type
    */
-  type Aux[W, N, E] = ElemCreationApi { type WrapperType = W; type NodeType = N; type ElemType = E }
+  type Aux[N, E] = ElemCreationApi { type NodeType = N; type ElemType = E }
 }

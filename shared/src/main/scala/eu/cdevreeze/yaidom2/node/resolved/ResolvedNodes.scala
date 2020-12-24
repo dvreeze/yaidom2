@@ -17,10 +17,6 @@
 package eu.cdevreeze.yaidom2.node.resolved
 
 import eu.cdevreeze.yaidom2.core.EName
-import eu.cdevreeze.yaidom2.core.QName
-import eu.cdevreeze.yaidom2.core.Scope
-import eu.cdevreeze.yaidom2.core.StableScope
-import eu.cdevreeze.yaidom2.creationapi
 import eu.cdevreeze.yaidom2.creationapi.ClarkNodeFactories
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
@@ -29,7 +25,6 @@ import eu.cdevreeze.yaidom2.updateapi.internal.AbstractUpdatableElem
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
-import scala.util.chaining._
 
 /**
  * "Resolved" nodes.
@@ -214,6 +209,30 @@ object ResolvedNodes {
 
     // Other methods
 
+    def plusChild(child: Node): ThisElem = {
+      withChildren(this.children.appended(child))
+    }
+
+    def plusChildOption(childOption: Option[Node]): ThisElem = {
+      withChildren(this.children.appendedAll(childOption.toSeq))
+    }
+
+    def plusChild(index: Int, child: Node): ThisElem = {
+      withChildren(this.children.patch(index, Seq(child), 0))
+    }
+
+    def plusChildOption(index: Int, childOption: Option[Node]): ThisElem = {
+      withChildren(this.children.patch(index, childOption.toSeq, 0))
+    }
+
+    def plusChildren(childSeq: Seq[Node]): ThisElem = {
+      withChildren(this.children.appendedAll(childSeq))
+    }
+
+    def minusChild(index: Int): ThisElem = {
+      withChildren(this.children.patch(index, Seq.empty, 1))
+    }
+
     /**
      * Returns a copy where inter-element whitespace has been removed, throughout the node tree.
      *
@@ -332,125 +351,6 @@ object ResolvedNodes {
    * "Resolved" text node
    */
   final case class Text(text: String) extends Node with ClarkNodes.Text
-
-  // Wrapper of element in known scope
-
-  final case class ElemInKnownScope(elem: Elem, knownStableScope: StableScope) extends creationapi.ElemInKnownScope {
-
-    type WrapperType = ElemInKnownScope
-
-    type NodeType = Node
-
-    type ElemType = Elem
-
-    def children: Seq[Node] = elem.children
-
-    def withChildren(newChildren: Seq[Node]): ElemInKnownScope = {
-      Elem(elem.name, elem.attributes, newChildren.toVector)
-        .pipe(e => ElemInKnownScope(e, knownStableScope))
-    }
-
-    def plusChild(child: Node): ElemInKnownScope = {
-      withChildren(this.children.appended(child))
-    }
-
-    def plusChildOption(childOption: Option[Node]): ElemInKnownScope = {
-      withChildren(this.children.appendedAll(childOption.toSeq))
-    }
-
-    def plusChild(index: Int, child: Node): ElemInKnownScope = {
-      withChildren(this.children.patch(index, Seq(child), 0))
-    }
-
-    def plusChildOption(index: Int, childOption: Option[Node]): ElemInKnownScope = {
-      withChildren(this.children.patch(index, childOption.toSeq, 0))
-    }
-
-    def plusChildren(childSeq: Seq[Node]): ElemInKnownScope = {
-      withChildren(this.children.appendedAll(childSeq))
-    }
-
-    def minusChild(index: Int): ElemInKnownScope = {
-      withChildren(this.children.patch(index, Seq.empty, 1))
-    }
-
-    def withAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
-      val newAttrs: ListMap[EName, String] = convertAttributes(newAttributes, knownStableScope)
-
-      Elem(elem.name, newAttrs, children.toVector)
-        .pipe(e => ElemInKnownScope(e, knownStableScope))
-    }
-
-    def plusAttribute(attrQName: QName, attrValue: String): ElemInKnownScope = {
-      plusAttributes(ListMap(attrQName -> attrValue))
-    }
-
-    def plusAttributeOption(attrQName: QName, attrValueOption: Option[String]): ElemInKnownScope = {
-      attrValueOption.map(v => plusAttribute(attrQName, v)).getOrElse(this)
-    }
-
-    def plusAttributes(newAttributes: ListMap[QName, String]): ElemInKnownScope = {
-      val attrsToAdd: ListMap[EName, String] = convertAttributes(newAttributes, knownStableScope)
-      val newAttrs: ListMap[EName, String] = elem.attributes.concat(attrsToAdd)
-
-      Elem(elem.name, newAttrs, children.toVector)
-        .pipe(e => ElemInKnownScope(e, knownStableScope))
-    }
-
-    def minusAttribute(attrQName: QName): ElemInKnownScope = {
-      val attrScope: Scope = knownStableScope.scope.withoutDefaultNamespace
-      val attrName: EName = attrScope
-        .resolveQNameOption(attrQName)
-        .getOrElse(sys.error(s"Attribute name '$attrQName' should resolve to an EName in scope [$attrScope]"))
-
-      Elem(elem.name, elem.attributes.filterNot(_._1 == attrName), children.toVector)
-        .pipe(e => ElemInKnownScope(e, knownStableScope))
-    }
-
-    def withQName(newQName: QName): ElemInKnownScope = {
-      val newName: EName = knownStableScope.resolveQName(newQName)
-
-      Elem(newName, elem.attributes, elem.children)
-        .pipe(e => ElemInKnownScope(e, knownStableScope))
-    }
-
-    def plusChildElem(childElem: WrapperType): WrapperType = {
-      plusChild(childElem.elem)
-    }
-
-    def plusChildElemOption(childElemOption: Option[WrapperType]): WrapperType = {
-      plusChildOption(childElemOption.map(_.elem))
-    }
-
-    def plusChildElem(index: Int, childElem: WrapperType): WrapperType = {
-      plusChild(index, childElem.elem)
-    }
-
-    def plusChildElemOption(index: Int, childElemOption: Option[WrapperType]): WrapperType = {
-      plusChildOption(index, childElemOption.map(_.elem))
-    }
-
-    def plusChildElems(childElemSeq: Seq[WrapperType]): WrapperType = {
-      plusChildren(childElemSeq.map(_.elem))
-    }
-
-    def usingExtraScopeDeeply(extraScope: StableScope): ElemInKnownScope = {
-      elem.pipe(e => ElemInKnownScope(e, knownStableScope.appendNonConflictingScope(extraScope)))
-    }
-
-    private def convertAttributes(attributesByQName: ListMap[QName, String], stableScope: StableScope): ListMap[EName, String] = {
-      val attrScope = stableScope.scope.withoutDefaultNamespace
-
-      attributesByQName.collect {
-        case (attQName, attValue) =>
-          val attEName = attrScope
-            .resolveQNameOption(attQName)
-            .getOrElse(sys.error(s"Attribute name '$attQName' should resolve to an EName in scope [$attrScope]"))
-
-          attEName -> attValue
-      }
-    }
-  }
 
   // Next the functional query (and creation) API
 

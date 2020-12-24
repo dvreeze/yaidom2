@@ -22,7 +22,6 @@ import eu.cdevreeze.yaidom2.core.StableScope
 import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 
 import scala.collection.immutable.ListMap
-import scala.util.chaining._
 
 /**
  * "Resolved" element creation API.
@@ -31,53 +30,51 @@ import scala.util.chaining._
  */
 final class ResolvedElemCreator(val knownStableScope: StableScope) extends ElemCreationApi {
 
-  type WrapperType = ResolvedNodes.ElemInKnownScope
-
   type NodeType = ResolvedNodes.Node
 
   type ElemType = ResolvedNodes.Elem
 
-  def emptyElem(qname: QName): WrapperType = {
+  def emptyElem(qname: QName): ElemType = {
     emptyElem(qname, ListMap.empty, StableScope.empty)
   }
 
-  def emptyElem(qname: QName, neededExtraStableScope: StableScope): WrapperType = {
+  def emptyElem(qname: QName, neededExtraStableScope: StableScope): ElemType = {
     emptyElem(qname, ListMap.empty, neededExtraStableScope)
   }
 
-  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String]): WrapperType = {
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String]): ElemType = {
     emptyElem(qname, attributesByQName, StableScope.empty)
   }
 
-  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String], neededExtraStableScope: StableScope): WrapperType = {
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String], neededExtraStableScope: StableScope): ElemType = {
     elem(qname, attributesByQName, Vector.empty, neededExtraStableScope)
   }
 
-  def textElem(qname: QName, txt: String): WrapperType = {
+  def textElem(qname: QName, txt: String): ElemType = {
     textElem(qname, ListMap.empty, txt, StableScope.empty)
   }
 
-  def textElem(qname: QName, txt: String, neededExtraStableScope: StableScope): WrapperType = {
+  def textElem(qname: QName, txt: String, neededExtraStableScope: StableScope): ElemType = {
     textElem(qname, ListMap.empty, txt, neededExtraStableScope)
   }
 
-  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String): WrapperType = {
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String): ElemType = {
     textElem(qname, attributesByQName, txt, StableScope.empty)
   }
 
-  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String, neededExtraStableScope: StableScope): WrapperType = {
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String, neededExtraStableScope: StableScope): ElemType = {
     elem(qname, attributesByQName, Vector(Text(txt)), neededExtraStableScope)
   }
 
-  def elem(qname: QName, children: Seq[NodeType]): WrapperType = {
+  def elem(qname: QName, children: Seq[NodeType]): ElemType = {
     elem(qname, ListMap.empty, children, StableScope.empty)
   }
 
-  def elem(qname: QName, children: Seq[NodeType], neededExtraStableScope: StableScope): WrapperType = {
+  def elem(qname: QName, children: Seq[NodeType], neededExtraStableScope: StableScope): ElemType = {
     elem(qname, ListMap.empty, children, neededExtraStableScope)
   }
 
-  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType]): WrapperType = {
+  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType]): ElemType = {
     elem(qname, attributesByQName, children, StableScope.empty)
   }
 
@@ -85,14 +82,13 @@ final class ResolvedElemCreator(val knownStableScope: StableScope) extends ElemC
       qname: QName,
       attributesByQName: ListMap[QName, String],
       children: Seq[NodeType],
-      neededExtraStableScope: StableScope): WrapperType = {
+      neededExtraStableScope: StableScope): ElemType = {
     val newKnownStableScope: StableScope = knownStableScope.appendNonConflictingScope(neededExtraStableScope)
 
     val ename: EName = newKnownStableScope.resolveQName(qname)
 
     ResolvedNodes
       .Elem(ename, convertAttributes(attributesByQName, newKnownStableScope), children.toVector)
-      .pipe(e => ElemInKnownScope(e, newKnownStableScope))
   }
 
   private def convertAttributes(attributesByQName: ListMap[QName, String], stableScope: StableScope): ListMap[EName, String] = {

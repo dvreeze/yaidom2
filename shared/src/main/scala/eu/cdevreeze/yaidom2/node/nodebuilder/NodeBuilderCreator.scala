@@ -22,7 +22,6 @@ import eu.cdevreeze.yaidom2.creationapi.ElemCreationApi
 import eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Text
 
 import scala.collection.immutable.ListMap
-import scala.util.chaining._
 
 /**
  * "Creation DSL" element creation API, implementing ElemCreationApi.
@@ -31,64 +30,59 @@ import scala.util.chaining._
  */
 final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCreationApi {
 
-  type WrapperType = NodeBuilders.ElemInKnownScope
-
   type NodeType = NodeBuilders.Node
 
   type ElemType = NodeBuilders.Elem
 
-  def emptyElem(qname: QName): WrapperType = {
+  def emptyElem(qname: QName): ElemType = {
     emptyElem(qname, ListMap.empty, StableScope.empty)
   }
 
-  def emptyElem(qname: QName, neededExtraStableScope: StableScope): WrapperType = {
+  def emptyElem(qname: QName, neededExtraStableScope: StableScope): ElemType = {
     emptyElem(qname, ListMap.empty, neededExtraStableScope)
   }
 
-  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String]): WrapperType = {
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String]): ElemType = {
     emptyElem(qname, attributesByQName, StableScope.empty)
   }
 
-  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String], neededExtraStableScope: StableScope): WrapperType = {
+  def emptyElem(qname: QName, attributesByQName: ListMap[QName, String], neededExtraStableScope: StableScope): ElemType = {
     elem(qname, attributesByQName, Vector.empty, neededExtraStableScope)
   }
 
-  def textElem(qname: QName, txt: String): WrapperType = {
+  def textElem(qname: QName, txt: String): ElemType = {
     textElem(qname, ListMap.empty, txt, StableScope.empty)
   }
 
-  def textElem(qname: QName, txt: String, neededExtraStableScope: StableScope): WrapperType = {
+  def textElem(qname: QName, txt: String, neededExtraStableScope: StableScope): ElemType = {
     textElem(qname, ListMap.empty, txt, neededExtraStableScope)
   }
 
-  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String): WrapperType = {
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String): ElemType = {
     textElem(qname, attributesByQName, txt, StableScope.empty)
   }
 
-  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String, neededExtraStableScope: StableScope): WrapperType = {
+  def textElem(qname: QName, attributesByQName: ListMap[QName, String], txt: String, neededExtraStableScope: StableScope): ElemType = {
     elem(qname, attributesByQName, Vector(Text(txt)), neededExtraStableScope)
   }
 
-  def elem(qname: QName, children: Seq[NodeType]): WrapperType = {
+  def elem(qname: QName, children: Seq[NodeType]): ElemType = {
     elem(qname, ListMap.empty, children, StableScope.empty)
   }
 
-  def elem(qname: QName, children: Seq[NodeType], neededExtraStableScope: StableScope): WrapperType = {
+  def elem(qname: QName, children: Seq[NodeType], neededExtraStableScope: StableScope): ElemType = {
     elem(qname, ListMap.empty, children, neededExtraStableScope)
   }
 
-  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType]): WrapperType = {
+  def elem(qname: QName, attributesByQName: ListMap[QName, String], children: Seq[NodeType]): ElemType = {
     elem(qname, attributesByQName, children, StableScope.empty)
   }
 
   /**
-   * Creates an ElemInKnownScope whose element has the given QName, attributes (by QName) and child nodes.
-   * That returned element has a stable scope that is a super-scope of neededExtraStableScope. The resulting knownStableScope
-   * is also a super-scope of neededExtraStableScope, and is also a compatible super-scope of this NodeBuilderCreator's
-   * knownStableScope. Of course, the returned ElemInKnownScope instance must also be internally consistent, in that
-   * its element has a "combined stable scope" that is a compatible sub-scope of the ElemInKnownScope's knownStableScope.
+   * Creates an element that has the given QName, attributes (by QName) and child nodes.
+   * That returned element has a stable scope that is a super-scope of neededExtraStableScope.
    *
-   * This method can be quite expensive if there are many children.
+   * This method can be expensive if there are many children.
    *
    * The resulting element tree may have namespace undeclarations. Use method usingExtraScopeDeeply or withoutNamespaceUndeclarations
    * to fix that.
@@ -97,7 +91,7 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
       qname: QName,
       attributesByQName: ListMap[QName, String],
       children: Seq[NodeType],
-      neededExtraStableScope: StableScope): WrapperType = {
+      neededExtraStableScope: StableScope): ElemType = {
     val startKnownStableScope: StableScope = knownStableScope.appendNonConflictingScope(neededExtraStableScope)
 
     // For element name and attributes, startKnownStableScope should be enough context passed to function minimizeStableScope.
@@ -108,22 +102,9 @@ final class NodeBuilderCreator(val knownStableScope: StableScope) extends ElemCr
       .minimizeStableScope(startKnownStableScope, qname, attributesByQName.keySet)
       .appendNonConflictingScope(neededExtraStableScope)
 
-    val childElems: Seq[ElemType] = children.collect { case e: NodeBuilders.Elem => e }
-    val combinedStableScopesOfChildren: Seq[StableScope] = childElems.map(_.combinedStableScope).distinct
+    val elemWithoutChildren: Elem = new Elem(qname, attributesByQName, targetScope, Vector.empty, targetScope)
 
-    // The code below throws if appending compatibly fails. Note that newKnownStableScope is a compatible super-scope of knownStableScope.
-    // It is also a super-scope of neededExtraStableScope. It is also a compatible super-scope of the "combined stable scope"
-    // of the returned element.
-
-    val newCombinedStableScope: StableScope = combinedStableScopesOfChildren.foldLeft(targetScope) {
-      case (accKnownScope, currScope) =>
-        accKnownScope.appendCompatibleScope(currScope)
-    }
-
-    val newKnownStableScope: StableScope = startKnownStableScope.appendCompatibleScope(newCombinedStableScope)
-
-    new NodeBuilders.Elem(qname, attributesByQName, targetScope, children.toVector, newCombinedStableScope)
-      .pipe(e => ElemInKnownScope(e, newKnownStableScope))
+    elemWithoutChildren.withChildren(children)
   }
 }
 

@@ -84,8 +84,10 @@ class IXbrlTest extends AnyFunSuite {
   test("testCreateIxbrlContent") {
     // See inlineXBRL-1.1-conformanceSuite-2020-04-08/tests/nonNumeric/PASS-element-ix-nonNumeric-complete.html
 
-    val xbrliContext1: nodebuilder.Elem = makeXbrliContext("DUR-1", LocalDate.parse("2005-12-31"), LocalDate.parse("2006-12-31"))
-    val xbrliContext2: nodebuilder.Elem = makeXbrliContext("NFC1", LocalDate.parse("2005-01-01"), LocalDate.parse("2005-12-31"))
+    val xbrliContext1: nodebuilder.Elem =
+      makeXbrliContext("DUR-1", LocalDate.parse("2005-12-31"), LocalDate.parse("2006-12-31"))
+    val xbrliContext2: nodebuilder.Elem =
+      makeXbrliContext("NFC1", LocalDate.parse("2005-01-01"), LocalDate.parse("2005-12-31"))
 
     val xbrliUnit1: nodebuilder.Elem = makeXbrliUnit("u1", q"iso4217:GBP", StableScope.empty)
     val xbrliUnit2: nodebuilder.Elem = makeXbrliUnit("ID-PURE", q"xbrli:pure", StableScope.empty)
@@ -96,30 +98,30 @@ class IXbrlTest extends AnyFunSuite {
 
     val xhtml: nodebuilder.Elem =
       emptyElem(q"html")
-        .plusChildElem(
+        .plusChild(
           elem(
             q"head",
             Seq(
-              emptyElem(q"meta", ListMap(q"content" -> "text/html; charset=UTF-8", q"http-equiv" -> "Content-Type")).elem,
-              textElem(q"title", "Basic Inline XBRL Example").elem
+              emptyElem(q"meta", ListMap(q"content" -> "text/html; charset=UTF-8", q"http-equiv" -> "Content-Type")),
+              textElem(q"title", "Basic Inline XBRL Example")
             )
           )
         )
-        .plusChildElem(
+        .plusChild(
           emptyElem(q"body", ListMap(q"xml:lang" -> "en"))
-            .plusChildElem(
+            .plusChild(
               emptyElem(q"div", ListMap(q"style" -> "display:none"))
-                .plusChildElem(
+                .plusChild(
                   emptyElem(q"ix:header")
-                    .plusChildElem(
+                    .plusChild(
                       elem(
                         q"ix:references",
                         Seq(emptyElem(
                           q"link:schemaref",
-                          ListMap(q"xlink:href" -> "../../schemas/ch/pt/2004-12-01/uk-gaap-pt-2004-12-01.xsd", q"xlink:type" -> "simple")).elem)
+                          ListMap(q"xlink:href" -> "../../schemas/ch/pt/2004-12-01/uk-gaap-pt-2004-12-01.xsd", q"xlink:type" -> "simple")))
                       )
                     )
-                    .plusChildElem(
+                    .plusChild(
                       emptyElem(q"ix:resources")
                         .plusChild(xbrliContext1)
                         .plusChild(xbrliContext2)
@@ -129,7 +131,7 @@ class IXbrlTest extends AnyFunSuite {
                     )
                 )
             )
-            .plusChildElem(
+            .plusChild(
               elem(
                 q"ix:nonnumeric",
                 ListMap(q"contextref" -> "DUR-1", q"name" -> "pt:DescriptionAddressAssociate"),
@@ -141,18 +143,17 @@ class IXbrlTest extends AnyFunSuite {
                       elem(
                         q"ix:exclude",
                         Seq(
-                          textElem(q"i", "   A number. 1,234,456.78   ").elem
+                          textElem(q"i", "   A number. 1,234,456.78   ")
                         )
-                      ).elem,
+                      ),
                       nodebuilder.NodeBuilders.Text("   More text>   "),
                     )
-                  ).elem
+                  )
                 )
               ).usingExtraScopeDeeply(StableScope.from("pt" -> "http://www.xbrl.org/uk/fr/gaap/pt/2004-12-01"))
             )
         )
         .havingSameScopeInDescendantsOrSelf
-        .elem
 
     assertResult(true) {
       xhtml.findAllDescendantElemsOrSelf.map(_.stableScope).distinct.sizeIs == 1
@@ -188,22 +189,21 @@ class IXbrlTest extends AnyFunSuite {
   private def makeXbrliContext(id: String, startDate: LocalDate, endDate: LocalDate): nodebuilder.Elem = {
     emptyElem(q"xbrli:context")
       .plusAttribute(q"id", id)
-      .plusChildElem(
+      .plusChild(
         elem(
           q"xbrli:entity",
-          Seq(textElem(q"xbrli:identifier", ListMap(q"scheme" -> "test"), "Test Co 1").elem)
+          Seq(textElem(q"xbrli:identifier", ListMap(q"scheme" -> "test"), "Test Co 1"))
         )
       )
-      .plusChildElem(
+      .plusChild(
         elem(
           q"xbrli:period",
           Seq(
-            textElem(q"xbrli:startdate", startDate.toString).elem,
-            textElem(q"xbrli:enddate", endDate.toString).elem,
+            textElem(q"xbrli:startdate", startDate.toString),
+            textElem(q"xbrli:enddate", endDate.toString),
           )
         )
       )
-      .elem
   }
 
   private def makeXbrliUnit(id: String, measure: QName, neededScopeForMeasure: StableScope): nodebuilder.Elem = {
@@ -211,9 +211,8 @@ class IXbrlTest extends AnyFunSuite {
 
     emptyElem(q"xbrli:unit")
       .plusAttribute(q"id", id)
-      .plusChildElem(textElem(q"xbrli:measure", measure.toString))
+      .plusChild(textElem(q"xbrli:measure", measure.toString))
       .usingExtraScopeDeeply(neededScopeForMeasure)
-      .elem
   }
 
   private def toComparableResolvedElem(elm: ScopedNodes.Elem): resolved.Elem = {

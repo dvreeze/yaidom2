@@ -254,4 +254,18 @@ object StableScope {
 
   /** Returns `from(Map[String, String](m: _*))` */
   def from(m: (String, String)*): StableScope = from(ListMap[String, String](m: _*))
+
+  /**
+   * Returns the compatible sub-scope of the given known scope that is needed for resolving the given QNames.
+   * Throws an exception if not all QNames can be resolved.
+   */
+  def neededCompatibleSubScope(qnames: Set[QName], knownScope: StableScope): StableScope = {
+    val prefixes: Set[String] = qnames.flatMap(_.prefixOption) - "xml"
+
+    knownScope
+      .filterKeysCompatibly(prefixes)
+      .ensuring(
+        sc => qnames.forall(qn => sc.resolveQNameOption(qn).nonEmpty),
+        s"Not every QName in $qnames could be resolved in scope ${knownScope.scope}")
+  }
 }

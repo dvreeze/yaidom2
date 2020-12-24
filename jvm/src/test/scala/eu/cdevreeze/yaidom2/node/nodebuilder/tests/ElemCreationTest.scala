@@ -33,7 +33,6 @@ import net.sf.saxon.s9api.Processor
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.immutable.ListMap
-import scala.util.chaining._
 
 class ElemCreationTest extends AnyFunSuite {
 
@@ -80,36 +79,36 @@ class ElemCreationTest extends AnyFunSuite {
   test("testUseDefaultNamespaceAndPrefixDuringElementCreation") {
     // Using the default namespace (same namespace as for prefix "xbrli")
 
-    val identifier: nodebuilder.ElemInKnownScope =
+    val identifier: nodebuilder.Elem =
       textElem(q"identifier", "1234567890")
         .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
 
     // Here using the "xbrli" prefix instead
 
-    val entity: nodebuilder.ElemInKnownScope = emptyElem(q"xbrli:entity").plusChildElem(identifier)
+    val entity: nodebuilder.Elem = emptyElem(q"xbrli:entity").plusChild(identifier)
 
     assertResult(knownStableScope.filterKeysCompatibly(Set(""))) {
-      identifier.elem.stableScope
+      identifier.stableScope
     }
     assertResult(knownStableScope.filterKeysCompatibly(Set.empty)) {
-      identifier.elem.stableScope
+      identifier.stableScope
     }
 
     assertResult(knownStableScope.filterKeysCompatibly(Set("", "xbrli"))) {
-      entity.elem.stableScope
+      entity.stableScope
     }
     assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
-      entity.elem.stableScope
+      entity.stableScope
     }
 
     assertResult(knownStableScope.filterKeysCompatibly(Set.empty)) {
-      entity.elem
+      entity
         .findChildElem(named(XbrliNs, "identifier"))
         .map(_.stableScope)
         .getOrElse(StableScope.empty)
     }
     assertResult(knownStableScope.filterKeysCompatibly(Set("xbrli"))) {
-      entity.withoutNamespaceUndeclarations.elem
+      entity.withoutNamespaceUndeclarations
         .findChildElem(named(XbrliNs, "identifier"))
         .map(_.stableScope)
         .getOrElse(StableScope.empty)
@@ -124,14 +123,12 @@ class ElemCreationTest extends AnyFunSuite {
           Vector(
             resolvedElemCreator
               .textElem(q"xbrli:identifier", ListMap(q"scheme" -> "http://www.sec.gov/CIK"), "1234567890")
-              .elem
           )
         )
-        .elem
     }
 
     assertResult(expectedResolvedEntity) {
-      resolved.Elem.from(entity.elem)
+      resolved.Elem.from(entity)
     }
   }
 
@@ -143,13 +140,11 @@ class ElemCreationTest extends AnyFunSuite {
       textElem(q"identifier", "1234567890")
         .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
         .usingExtraScopeDeeply(customScope)
-        .elem
 
     val entity: nodebuilder.Elem =
       emptyElem(q"xbrli:entity", StableScope.from("xbrli" -> XbrliNs))
         .plusChild(identifier)
         .usingExtraScopeDeeply(identifier.stableScope)
-        .elem
 
     assertResult(Seq("test")) {
       entity.scope.prefixesForNamespace(testNs)
@@ -172,10 +167,9 @@ class ElemCreationTest extends AnyFunSuite {
       val resolvedElemCreator: ResolvedElemCreator = ResolvedElemCreator(knownStableScope)
       import resolvedElemCreator._
 
-      emptyElem(q"xbrli:entity").plusChildElem {
-        textElem(q"xbrli:identifier", "1234567890")
-          .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
-      }.elem
+      emptyElem(q"xbrli:entity").plusChild {
+        textElem(q"xbrli:identifier", ListMap(q"scheme" -> "http://www.sec.gov/CIK"), "1234567890")
+      }
     }
 
     assertResult(expectedResolvedEntity) {
@@ -189,36 +183,30 @@ class ElemCreationTest extends AnyFunSuite {
         .usingExtraScopeDeeply(extraStableScope.filterKeysCompatibly(dimension.prefixOption.toSet))
         .usingExtraScopeDeeply(extraStableScope.filterKeysCompatibly(member.prefixOption.toSet))
         .plusAttribute(q"dimension", dimension.toString)
-        .elem
     }
 
     val xbrliEntity: nodebuilder.Elem = {
       emptyElem(q"xbrli:entity")
-        .plusChildElem {
+        .plusChild {
           textElem(q"xbrli:identifier", "1234567890")
             .plusAttribute(q"scheme", "http://www.sec.gov/CIK")
         }
-        .plusChildElem(emptyElem(q"xbrli:segment"))
-        .elem
+        .plusChild(emptyElem(q"xbrli:segment"))
         .transformDescendantElems {
           case e @ nodebuilder.Elem(QName(Some("xbrli"), "segment"), _, _, _) =>
-            nodebuilder
-              .ElemInKnownScope(e, knownStableScope)
-              .usingExtraScopeDeeply(extraStableScope.filterKeysCompatibly(Set("gaap")))
+            e.usingExtraScopeDeeply(extraStableScope.filterKeysCompatibly(Set("gaap")))
               .plusChild(createExplicitMemberElem(q"gaap:EntityAxis", q"gaap:ABCCompanyDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:BusinessSegmentAxis", q"gaap:ConsolidatedGroupDomain"))
               .plusChild(createExplicitMemberElem(q"gaap:VerificationAxis", q"gaap:UnqualifiedOpinionMember"))
               .plusChild(createExplicitMemberElem(q"gaap:PremiseAxis", q"gaap:ActualMember"))
               .plusChild(createExplicitMemberElem(q"gaap:ReportDateAxis", q"gaap:ReportedAsOfMarch182008Member"))
-              .elem
           case e => e
         }
     }
 
     val xbrliPeriod: nodebuilder.Elem =
       emptyElem(q"xbrli:period")
-        .plusChildElem(textElem(q"xbrli:instant", "2005-12-31"))
-        .elem
+        .plusChild(textElem(q"xbrli:instant", "2005-12-31"))
 
     val xbrliContext: nodebuilder.Elem =
       emptyElem(q"xbrli:context")
@@ -226,7 +214,6 @@ class ElemCreationTest extends AnyFunSuite {
         .plusChild(xbrliEntity)
         .plusChild(xbrliPeriod)
         .withoutNamespaceUndeclarations
-        .elem
 
     val originalContext: SaxonNodes.Elem =
       saxonDocument.documentElement
@@ -246,7 +233,7 @@ class ElemCreationTest extends AnyFunSuite {
 
   test("testCreationAndEquivalenceOfXbrlInstance") {
     val schemaRef: nodebuilder.Elem =
-      emptyElem(q"link:schemaRef", ListMap(q"xlink:type" -> "simple", q"xlink:href" -> "gaap.xsd")).elem
+      emptyElem(q"link:schemaRef", ListMap(q"xlink:type" -> "simple", q"xlink:href" -> "gaap.xsd"))
 
     val linkbaseRef: nodebuilder.Elem =
       emptyElem(
@@ -256,7 +243,7 @@ class ElemCreationTest extends AnyFunSuite {
           q"xlink:href" -> "gaap-formula.xml",
           q"xlink:arcrole" -> "http://www.w3.org/1999/xlink/properties/linkbase"
         )
-      ).elem
+      )
 
     val contexts: Seq[nodebuilder.Elem] = saxonDocument.documentElement
       .filterChildElems(named(XbrliNs, "context"))
@@ -283,19 +270,11 @@ class ElemCreationTest extends AnyFunSuite {
         .plusChildren(facts)
         .plusChildren(footnoteLinks)
         .withoutNamespaceUndeclarations
-        .elem
 
     def transformElementTree(rootElem: resolved.Elem): resolved.Elem = {
       rootElem.transformDescendantElemsOrSelf {
         case e @ resolved.Elem(EName(Some(XbrliNs), "xbrl"), _, _) =>
-          e.pipe(
-              e =>
-                resolved
-                  .ElemInKnownScope(
-                    e,
-                    knownStableScope.appendNonConflictingScope(StableScope.from("xsi" -> "http://www.w3.org/2001/XMLSchema-instance"))))
-            .minusAttribute(q"xsi:schemaLocation")
-            .elem
+          e.copy(attributes = e.attributes.filterNot(_._1 == e"{http://www.w3.org/2001/XMLSchema-instance}schemaLocation"))
         case e @ resolved.Elem(EName(Some(XbrliNs), "measure"), _, _) =>
           e.withChildren(Seq(resolved.Text(QName.parse(e.text).localPart)))
         case e => e
@@ -427,7 +406,6 @@ class ElemCreationTest extends AnyFunSuite {
       .plusAttributeOption(q"unitRef", originalFact.attrOption("unitRef"))
       .plusAttributeOption(q"decimals", originalFact.attrOption("decimals"))
       .plusAttributeOption(q"id", originalFact.attrOption("id"))
-      .elem
   }
 
   private def createFootnoteLink(originalFootnoteLink: ScopedNodes.Elem): nodebuilder.Elem = {

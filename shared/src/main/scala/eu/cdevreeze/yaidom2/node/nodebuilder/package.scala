@@ -56,29 +56,26 @@ package eu.cdevreeze.yaidom2.node
  * def makeXbrliContext(id: String, startDate: LocalDate, endDate: LocalDate): nodebuilder.Elem = {
  *   emptyElem(q"xbrli:context")
  *     .plusAttribute(q"id", id)
- *     .plusChildElem(
+ *     .plusChild(
  *       elem(
  *         q"xbrli:entity",
- *         Seq(textElem(q"xbrli:identifier", ListMap(q"scheme" -> "test"), "Test Co 1").elem)
+ *         Seq(textElem(q"xbrli:identifier", ListMap(q"scheme" -> "test"), "Test Co 1"))
  *       )
  *     )
- *     .plusChildElem(
+ *     .plusChild(
  *       elem(
  *         q"xbrli:period",
  *         Seq(
- *           textElem(q"xbrli:startdate", startDate.toString).elem,
- *           textElem(q"xbrli:enddate", endDate.toString).elem,
+ *           textElem(q"xbrli:startdate", startDate.toString),
+ *           textElem(q"xbrli:enddate", endDate.toString),
  *         )
  *       )
  *     )
- *     .elem
  * }
  * }}}
  *
- * Note that 2 "elem" functions are used here: one in [[eu.cdevreeze.yaidom2.creationapi.ElemCreationApi]]
- * and one in [[eu.cdevreeze.yaidom2.creationapi.ElemInKnownScope]] (the latter for "unwrapping", returning
- * a [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]]). Also note that element and attribute names
- * in this element creation API must be of type [[eu.cdevreeze.yaidom2.core.QName]] instead of String.
+ * Note that element and attribute names in this element creation API must be of type [[eu.cdevreeze.yaidom2.core.QName]]
+ * instead of String.
  *
  * The result of the code above could be XML (as nodebuilder.Elem) like this:
  * {{{
@@ -97,16 +94,15 @@ package eu.cdevreeze.yaidom2.node
  * to introduce namespaces in an ad-hoc manner (hopefully having a corresponding prefix as well from some
  * input to the program):
  * {{{
- *  def makeXbrliUnit(id: String, measure: QName, neededScopeForMeasure: StableScope): nodebuilder.Elem = {
- *    require(
- *      knownStableScope.appendNonConflictingScope(neededScopeForMeasure).resolveQNameOption(measure).nonEmpty)
+ * def makeXbrliUnit(id: String, measure: QName, neededScopeForMeasure: StableScope): nodebuilder.Elem = {
+ *   require(knownStableScope.appendNonConflictingScope(neededScopeForMeasure).resolveQNameOption(measure)
+ *     .nonEmpty)
  *
- *    emptyElem(q"xbrli:unit")
- *      .plusAttribute(q"id", id)
- *      .plusChildElem(textElem(q"xbrli:measure", measure.toString))
- *      .usingExtraScopeDeeply(neededScopeForMeasure)
- *      .elem
- *  }
+ *   emptyElem(q"xbrli:unit")
+ *     .plusAttribute(q"id", id)
+ *     .plusChild(textElem(q"xbrli:measure", measure.toString))
+ *     .usingExtraScopeDeeply(neededScopeForMeasure)
+ * }
  * }}}
  *
  * The call to method "usingExtraScopeDeeply" introduces the namespace needed to resolve the QName content of
@@ -122,7 +118,7 @@ package eu.cdevreeze.yaidom2.node
  *
  * Building snippets of XML this way probably leads to a mess of namespace declarations and undeclarations,
  * yet without introducing any namespace conflicts. This is ok, but must be fixed in a final step. To that
- * end, use function [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope.havingSameScopeInDescendantsOrSelf]].
+ * end, use function [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem.havingSameScopeInDescendantsOrSelf]].
  * The snippets of XML created above are used in a complete X(HT)ML document as follows:
  * {{{
  * val xbrliContext1: nodebuilder.Elem =
@@ -134,35 +130,39 @@ package eu.cdevreeze.yaidom2.node
  * val xbrliUnit2: nodebuilder.Elem = makeXbrliUnit("ID-PURE", q"xbrli:pure", StableScope.empty)
  * val xbrliUnit3: nodebuilder.Elem = makeXbrliUnit("GBP", q"iso4217:GBP", StableScope.empty)
  *
+ * // Note that there are some surprising attributes below (for those knowing XBRL but not so much iXBRL):
+ * // Attribute xsi:schemaLocation here uses only lower-case characters; same for contextRef etc.
+ *
  * val xhtml: nodebuilder.Elem =
  *   emptyElem(q"html")
- *     .plusChildElem(
+ *     .plusChild(
  *       elem(
  *         q"head",
  *         Seq(
- *           emptyElem(q"meta", ListMap(q"content" -> "text/html; charset=UTF-8", q"http-equiv" -> "Content-Type"))
- *             .elem,
- *           textElem(q"title", "Basic Inline XBRL Example").elem
+ *           emptyElem(
+ *             q"meta",
+ *             ListMap(q"content" -> "text/html; charset=UTF-8", q"http-equiv" -> "Content-Type")),
+ *           textElem(q"title", "Basic Inline XBRL Example")
  *         )
  *       )
  *     )
- *     .plusChildElem(
+ *     .plusChild(
  *       emptyElem(q"body", ListMap(q"xml:lang" -> "en"))
- *         .plusChildElem(
+ *         .plusChild(
  *           emptyElem(q"div", ListMap(q"style" -> "display:none"))
- *             .plusChildElem(
+ *             .plusChild(
  *               emptyElem(q"ix:header")
- *                 .plusChildElem(
+ *                 .plusChild(
  *                   elem(
  *                     q"ix:references",
  *                     Seq(emptyElem(
  *                       q"link:schemaref",
  *                       ListMap(
  *                         q"xlink:href" -> "../../schemas/ch/pt/2004-12-01/uk-gaap-pt-2004-12-01.xsd",
- *                         q"xlink:type" -> "simple")).elem)
+ *                         q"xlink:type" -> "simple")))
  *                   )
  *                 )
- *                 .plusChildElem(
+ *                 .plusChild(
  *                   emptyElem(q"ix:resources")
  *                     .plusChild(xbrliContext1)
  *                     .plusChild(xbrliContext2)
@@ -172,7 +172,7 @@ package eu.cdevreeze.yaidom2.node
  *                 )
  *             )
  *         )
- *         .plusChildElem(
+ *         .plusChild(
  *           elem(
  *             q"ix:nonnumeric",
  *             ListMap(q"contextref" -> "DUR-1", q"name" -> "pt:DescriptionAddressAssociate"),
@@ -184,32 +184,25 @@ package eu.cdevreeze.yaidom2.node
  *                   elem(
  *                     q"ix:exclude",
  *                     Seq(
- *                       textElem(q"i", "   A number. 1,234,456.78   ").elem
+ *                       textElem(q"i", "   A number. 1,234,456.78   ")
  *                     )
- *                   ).elem,
+ *                   ),
  *                   nodebuilder.NodeBuilders.Text("   More text>   "),
  *                 )
- *               ).elem
+ *               )
  *             )
  *           ).usingExtraScopeDeeply(StableScope.from("pt" -> "http://www.xbrl.org/uk/fr/gaap/pt/2004-12-01"))
  *         )
  *     )
  *     .havingSameScopeInDescendantsOrSelf
- *     .elem
  * }}}
  * Note the ad-hoc insertion of the namespace with prefix "pt", and the "finishing touch" with method "havingSameScopeInDescendantsOrSelf".
+ * Also note that this namespace prefix was "inserted" afterwards, which is ok, because it is not an element or attribute QName
+ * that would have to be resolved immediately on construction of the element.
  *
  * The element creation API based on [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]], which in turn is based on
  * [[eu.cdevreeze.yaidom2.core.StableScope]], is backed by a small "mathematical theory". This theory shows for example that
  * each such element can have all namespace declarations at the root level, without exception.
- *
- * One way to look at the use of the element creation API, as shown above, is as follows: all intermediate
- * results are of type [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope]], where
- * each instance holds an element (of type [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]])
- * and a known [[eu.cdevreeze.yaidom2.core.StableScope]], where the "combined stable scope" of the element
- * is always a "compatible sub-scope" of the latter stable scope. When method
- * [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.ElemInKnownScope.usingExtraScopeDeeply]] is called
- * (directly or indirectly) both the element scope and known scope may "grow".
  *
  * @author Chris de Vreeze
  */
@@ -234,10 +227,4 @@ package object nodebuilder {
   val Node = NodeBuilders.Node
 
   val Elem = NodeBuilders.Elem
-
-  // Wrappers
-
-  type ElemInKnownScope = NodeBuilders.ElemInKnownScope
-
-  val ElemInKnownScope = NodeBuilders.ElemInKnownScope
 }
