@@ -200,6 +200,131 @@ package eu.cdevreeze.yaidom2.node
  * Also note that this namespace prefix was "inserted" afterwards, which is ok, because it is not an element or attribute QName
  * that would have to be resolved immediately on construction of the element.
  *
+ * Often it is needed to take control of inserting prefix-namespace mappings (whether already known or not).
+ * See the following example, in which several methods are used to insert "sub-scopes", in order to resolve
+ * element or attribute QNames instead of having exceptions thrown:
+ * {{{
+ * val LinkNs = "http://www.xbrl.org/2003/linkbase"
+ * val RefNs = "http://www.xbrl.org/2006/ref"
+ * val XLinkNs = "http://www.w3.org/1999/xlink"
+ * val XsiNs = "http://www.w3.org/2001/XMLSchema-instance"
+ *
+ * val nodeBuilderDoc: nodebuilder.Document = {
+ *   val scope = StableScope.from("link" -> LinkNs, "ref" -> RefNs, "xlink" -> XLinkNs, "xsi" -> XsiNs)
+ *   val elemCreator = NodeBuilderCreator(scope)
+ *
+ *   import elemCreator._
+ *
+ *   // Below, note the different ways in which created elements are made aware of extra namespaces.
+ *   // The ElemCreationApi methods pretty much "take care of themselves" when it comes to namespaces
+ *   // of element and attribute QNames. Therefore we did not have to introduce the "ref" namespaces below.
+ *   // For the creationapi.Elem methods this is not quite the case, as seen below.
+ *
+ *   val elm: nodebuilder.Elem = emptyElem(q"link:namespace")
+ *     .withNeededExtraScope(Set(q"xsi:schemaLocation"), scope)
+ *     .plusAttribute(
+ *       q"xsi:schemaLocation",
+ *       "http://www.xbrl.org/2006/ref http://www.xbrl.org/2006/ref-2006-02-27.xsd")
+ *     .plusChild {
+ *       emptyElem(q"link:referenceLink")
+ *         .withNeededExtraScope(Set(q"xlink:type"), scope)
+ *         .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/link")
+ *         .plusAttribute(q"xlink:type", "extended")
+ *         .plusChild {
+ *           emptyElem(q"link:loc")
+ *             .withExtraScope(scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_LiabilitiesOtherAxis")
+ *             .plusAttribute(q"xlink:label", "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
+ *             .plusAttribute(q"xlink:type", "locator")
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:loc")
+ *             .withExtraScope(scope.filterKeysCompatibly(_ == "xlink"))
+ *             .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_LoansAdvancesGuaranteesAxis")
+ *             .plusAttribute(q"xlink:label", "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
+ *             .plusAttribute(q"xlink:type", "locator")
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:loc", scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(
+ *               q"xlink:href",
+ *               "jenv-bw2-axes.xsd#jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis")
+ *             .plusAttribute(q"xlink:label", "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
+ *             .plusAttribute(q"xlink:type", "locator")
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:reference")
+ *             .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(q"id", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
+ *             .plusAttribute(q"xlink:label", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
+ *             .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
+ *             .plusAttribute(q"xlink:type", "resource")
+ *             .plusChild(textElem(q"ref:Article", "383e"))
+ *             .plusChild(textElem(q"ref:IssueDate", "2019-01-01"))
+ *             .plusChild(textElem(q"ref:Name", "Burgerlijk wetboek boek 2"))
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:reference")
+ *             .usingExtraScopeDeeply(scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(q"id", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
+ *             .plusAttribute(q"xlink:label", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
+ *             .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
+ *             .plusAttribute(q"xlink:type", "resource")
+ *             .plusChild(textElem(q"ref:Chapter", "115"))
+ *             .plusChild(textElem(q"ref:IssueDate", "2019-01-01"))
+ *             .plusChild(textElem(q"ref:Name", "Richtlijnen voor de jaarverslaggeving"))
+ *             .plusChild(textElem(q"ref:Paragraph", "214"))
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:reference")
+ *             .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(q"id", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
+ *             .plusAttribute(q"xlink:label", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
+ *             .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
+ *             .plusAttribute(q"xlink:type", "resource")
+ *             .plusChild(textElem(q"ref:Chapter", "610"))
+ *             .plusChild(textElem(q"ref:IssueDate", "2019-01-01"))
+ *             .plusChild(textElem(q"ref:Name", "Richtlijnen voor de jaarverslaggeving"))
+ *             .plusChild(textElem(q"ref:Paragraph", "106"))
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:referenceArc")
+ *             .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
+ *             .plusAttribute(q"xlink:from", "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
+ *             .plusAttribute(q"xlink:to", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
+ *             .plusAttribute(q"xlink:type", "arc")
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:referenceArc")
+ *             .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
+ *             .plusAttribute(q"xlink:from", "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
+ *             .plusAttribute(q"xlink:to", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
+ *             .plusAttribute(q"xlink:type", "arc")
+ *         }
+ *         .plusChild {
+ *           emptyElem(q"link:referenceArc")
+ *             .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
+ *             .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
+ *             .plusAttribute(q"xlink:from", "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
+ *             .plusAttribute(q"xlink:to", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
+ *             .plusAttribute(q"xlink:type", "arc")
+ *         }
+ *     }
+ *     .ensuring(_.findAllDescendantElemsOrSelf.map(_.stableScope).distinct.sizeIs > 1)
+ *     .ensuring(_.combinedStableScope == scope)
+ *     .withoutNamespaceUndeclarations
+ *     .ensuring(_.findAllDescendantElemsOrSelf.map(_.stableScope).distinct.sizeIs > 1)
+ *     .ensuring(_.combinedStableScope == scope)
+ *     .havingSameScopeInDescendantsOrSelf
+ *     .ensuring(_.findAllDescendantElemsOrSelf.map(_.stableScope).distinct.sizeIs == 1)
+ *     .ensuring(_.combinedStableScope == scope)
+ *
+ *   nodebuilder.Document(Some(new URI("http://bogus-host/bogus-uri/bogus.xml")), elm)
+ * }
+ * }}}
+ *
  * The element creation API based on [[eu.cdevreeze.yaidom2.node.nodebuilder.NodeBuilders.Elem]], which in turn is based on
  * [[eu.cdevreeze.yaidom2.core.StableScope]], is backed by a small "mathematical theory". This theory shows for example that
  * each such element can have all namespace declarations at the root level, without exception.

@@ -113,32 +113,42 @@ abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], 
 
     import elemCreator._
 
-    val elm: nodebuilder.Elem = emptyElem(q"link:namespace", scope)
+    // Below, note the different ways in which created elements are made aware of extra namespaces.
+    // The ElemCreationApi methods pretty much "take care of themselves" when it comes to namespaces
+    // of element and attribute QNames. Therefore we did not have to introduce the "ref" namespaces below.
+    // For the creationapi.Elem methods this is not quite the case, as seen below.
+
+    val elm: nodebuilder.Elem = emptyElem(q"link:namespace")
+      .withNeededExtraScope(Set(q"xsi:schemaLocation"), scope)
       .plusAttribute(q"xsi:schemaLocation", "http://www.xbrl.org/2006/ref http://www.xbrl.org/2006/ref-2006-02-27.xsd")
       .plusChild {
-        emptyElem(q"link:referenceLink", scope)
+        emptyElem(q"link:referenceLink")
+          .withNeededExtraScope(Set(q"xlink:type"), scope)
           .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/link")
           .plusAttribute(q"xlink:type", "extended")
           .plusChild {
-            emptyElem(q"link:loc", scope)
+            emptyElem(q"link:loc")
+              .withExtraScope(scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_LiabilitiesOtherAxis")
               .plusAttribute(q"xlink:label", "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
               .plusAttribute(q"xlink:type", "locator")
           }
           .plusChild {
-            emptyElem(q"link:loc", scope)
+            emptyElem(q"link:loc")
+              .withExtraScope(scope.filterKeysCompatibly(_ == "xlink"))
               .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_LoansAdvancesGuaranteesAxis")
               .plusAttribute(q"xlink:label", "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
               .plusAttribute(q"xlink:type", "locator")
           }
           .plusChild {
-            emptyElem(q"link:loc", scope)
+            emptyElem(q"link:loc", scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"xlink:href", "jenv-bw2-axes.xsd#jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis")
               .plusAttribute(q"xlink:label", "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
               .plusAttribute(q"xlink:type", "locator")
           }
           .plusChild {
-            emptyElem(q"link:reference", scope)
+            emptyElem(q"link:reference")
+              .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"id", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
               .plusAttribute(q"xlink:label", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
               .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
@@ -148,7 +158,8 @@ abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], 
               .plusChild(textElem(q"ref:Name", "Burgerlijk wetboek boek 2"))
           }
           .plusChild {
-            emptyElem(q"link:reference", scope)
+            emptyElem(q"link:reference")
+              .usingExtraScopeDeeply(scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"id", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
               .plusAttribute(q"xlink:label", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
               .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
@@ -159,7 +170,8 @@ abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], 
               .plusChild(textElem(q"ref:Paragraph", "214"))
           }
           .plusChild {
-            emptyElem(q"link:reference", scope)
+            emptyElem(q"link:reference")
+              .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"id", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
               .plusAttribute(q"xlink:label", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
               .plusAttribute(q"xlink:role", "http://www.xbrl.org/2003/role/reference")
@@ -170,28 +182,38 @@ abstract class ScopedDocumentRoundtrippingTest[E <: ScopedNodes.Elem.Aux[_, E], 
               .plusChild(textElem(q"ref:Paragraph", "106"))
           }
           .plusChild {
-            emptyElem(q"link:referenceArc", scope)
+            emptyElem(q"link:referenceArc")
+              .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
               .plusAttribute(q"xlink:from", "jenv-bw2-dim_LiabilitiesOtherAxis_loc")
               .plusAttribute(q"xlink:to", "jenv-bw2-dim_RJ_2019-01-01_610_106_ref")
               .plusAttribute(q"xlink:type", "arc")
           }
           .plusChild {
-            emptyElem(q"link:referenceArc", scope)
+            emptyElem(q"link:referenceArc")
+              .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
               .plusAttribute(q"xlink:from", "jenv-bw2-dim_LoansAdvancesGuaranteesAxis_loc")
               .plusAttribute(q"xlink:to", "jenv-bw2-dim_BW2_2019-01-01_383e_ref")
               .plusAttribute(q"xlink:type", "arc")
           }
           .plusChild {
-            emptyElem(q"link:referenceArc", scope)
+            emptyElem(q"link:referenceArc")
+              .withNeededExtraScope(Set(q"xlink:type"), scope.filterKeysCompatibly(Set("xlink")))
               .plusAttribute(q"xlink:arcrole", "http://www.xbrl.org/2003/arcrole/concept-reference")
               .plusAttribute(q"xlink:from", "jenv-bw2-dim_ReceivablesOtherRelatedPartiesCurrentAxis_loc")
               .plusAttribute(q"xlink:to", "jenv-bw2-dim_RJ_2019-01-01_115_214_ref")
               .plusAttribute(q"xlink:type", "arc")
           }
       }
+      .ensuring(_.findAllDescendantElemsOrSelf.map(_.stableScope).distinct.sizeIs > 1)
+      .ensuring(_.combinedStableScope == scope)
       .withoutNamespaceUndeclarations
+      .ensuring(_.findAllDescendantElemsOrSelf.map(_.stableScope).distinct.sizeIs > 1)
+      .ensuring(_.combinedStableScope == scope)
+      .havingSameScopeInDescendantsOrSelf
+      .ensuring(_.findAllDescendantElemsOrSelf.map(_.stableScope).distinct.sizeIs == 1)
+      .ensuring(_.combinedStableScope == scope)
 
     nodebuilder.Document(Some(new URI("http://bogus-host/bogus-uri/bogus.xml")), elm)
   }
