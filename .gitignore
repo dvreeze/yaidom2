@@ -13,6 +13,7 @@ temp/
 .history
 scalastyle-config.xml
 node_modules/
+.bsp/
 
 # /project/
 /project/boot
