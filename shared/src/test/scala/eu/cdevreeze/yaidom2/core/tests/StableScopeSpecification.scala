@@ -156,29 +156,29 @@ class StableScopeSpecification extends Properties("StableScope") {
 
   // "Definitions"
 
-  property("optionallyFrom") = forAll { scope: Scope =>
+  property("optionallyFrom") = forAll { (scope: Scope) =>
     StableScope.optionallyFrom(scope) == {
       if (scope.withoutDefaultNamespace.isInvertible) Some(StableScope.from(scope)) else None
     }
   }
 
-  property("StableScope-Scope") = forAll { scope: StableScope =>
+  property("StableScope-Scope") = forAll { (scope: StableScope) =>
     scope.scope.withoutDefaultNamespace.isInvertible
   }
 
-  property("defaultNamespaceOption") = forAll { scope: StableScope =>
+  property("defaultNamespaceOption") = forAll { (scope: StableScope) =>
     scope.defaultNamespaceOption == scope.scope.defaultNamespaceOption
   }
 
-  property("keySet") = forAll { scope: StableScope =>
+  property("keySet") = forAll { (scope: StableScope) =>
     scope.keySet == scope.scope.keySet
   }
 
-  property("namespaces") = forAll { scope: StableScope =>
+  property("namespaces") = forAll { (scope: StableScope) =>
     scope.namespaces == scope.scope.namespaces
   }
 
-  property("isCompatibleWith") = forAll { scopePair: (StableScope, StableScope) =>
+  property("isCompatibleWith") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.isCompatibleWith(scope2) == {
@@ -186,7 +186,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("isCompatibleWith-2") = forAll { scopePair: (StableScope, StableScope) =>
+  property("isCompatibleWith-2") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.isCompatibleWith(scope2) == {
@@ -195,7 +195,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("doesNotConflictWith") = forAll { scopePair: (StableScope, StableScope) =>
+  property("doesNotConflictWith") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.doesNotConflictWith(scope2) == {
@@ -203,28 +203,28 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("filterCompatibly") = forAll { scope: StableScope =>
+  property("filterCompatibly") = forAll { (scope: StableScope) =>
     val p: ((String, String)) => Boolean = { _._1.length % 2 == 0 }
 
     scope.filterCompatibly(p) == StableScope
       .from(scope.scope.filter(p).append(scope.scope.retainingDefaultNamespace))
   }
 
-  property("filterKeysCompatibly") = forAll { scope: StableScope =>
+  property("filterKeysCompatibly") = forAll { (scope: StableScope) =>
     val p: String => Boolean = { _.length % 2 == 0 }
 
     scope.filterKeysCompatibly(p) == StableScope
       .from(scope.scope.filterKeys(p).append(scope.scope.retainingDefaultNamespace))
   }
 
-  property("filterNamespacesCompatibly") = forAll { scope: StableScope =>
+  property("filterNamespacesCompatibly") = forAll { (scope: StableScope) =>
     val p: String => Boolean = { _.length % 2 == 0 }
 
     scope.filterNamespacesCompatibly(p) == StableScope
       .from(scope.scope.filterNamespaces(p).append(scope.scope.retainingDefaultNamespace))
   }
 
-  property("isCompatibleSubScopeOf") = forAll { scopePair: (StableScope, StableScope) =>
+  property("isCompatibleSubScopeOf") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.isCompatibleSubScopeOf(scope2) == {
@@ -232,7 +232,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("isCompatibleSuperScopeOf") = forAll { scopePair: (StableScope, StableScope) =>
+  property("isCompatibleSuperScopeOf") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.isCompatibleSuperScopeOf(scope2) == {
@@ -240,13 +240,13 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("canAppendCompatibleScope") = forAll { scopePair: (StableScope, StableScope) =>
+  property("canAppendCompatibleScope") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.canAppendCompatibleScope(scope2) == scope1.isCompatibleWith(scope2)
   }
 
-  property("canAppendNonConflictingScope") = forAll { scopePair: (StableScope, StableScope) =>
+  property("canAppendNonConflictingScope") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.canAppendNonConflictingScope(scope2) == {
@@ -254,7 +254,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("appendCompatibleScopeOption") = forAll { scopePair: (StableScope, StableScope) =>
+  property("appendCompatibleScopeOption") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.appendCompatibleScopeOption(scope2) == {
@@ -266,7 +266,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("appendNonConflictingScopeOption") = forAll { scopePair: (StableScope, StableScope) =>
+  property("appendNonConflictingScopeOption") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.appendNonConflictingScopeOption(scope2) == {
@@ -282,25 +282,25 @@ class StableScopeSpecification extends Properties("StableScope") {
 
   // A StableScope can be created if the Scope without default namespace is invertible
 
-  property("optionallyFrom-defined") = forAll { scope: Scope =>
+  property("optionallyFrom-defined") = forAll { (scope: Scope) =>
     StableScope.optionallyFrom(scope).nonEmpty == scope.withoutDefaultNamespace.isInvertible
   }
 
   // The result of "filtering compatibly" is a compatible sub-scope of the original scope
 
-  property("filterCompatibly-isCompatibleSubScopeOf") = forAll { scope: StableScope =>
+  property("filterCompatibly-isCompatibleSubScopeOf") = forAll { (scope: StableScope) =>
     val p: ((String, String)) => Boolean = { _._1.length % 2 == 0 }
 
     scope.filterCompatibly(p).isCompatibleSubScopeOf(scope)
   }
 
-  property("filterKeysCompatibly-isCompatibleSubScopeOf") = forAll { scope: StableScope =>
+  property("filterKeysCompatibly-isCompatibleSubScopeOf") = forAll { (scope: StableScope) =>
     val p: String => Boolean = { _.length % 2 == 0 }
 
     scope.filterKeysCompatibly(p).isCompatibleSubScopeOf(scope)
   }
 
-  property("filterNamespacesCompatibly-isCompatibleSubScopeOf") = forAll { scope: StableScope =>
+  property("filterNamespacesCompatibly-isCompatibleSubScopeOf") = forAll { (scope: StableScope) =>
     val p: String => Boolean = { _.length % 2 == 0 }
 
     scope.filterNamespacesCompatibly(p).isCompatibleSubScopeOf(scope)
@@ -308,7 +308,7 @@ class StableScopeSpecification extends Properties("StableScope") {
 
   // Function isCompatibleSubScopeOf means what the name says it does
 
-  property("isCompatibleSubScopeOf-subScopeOf-isCompatibleWith") = forAll { scopePair: (StableScope, StableScope) =>
+  property("isCompatibleSubScopeOf-subScopeOf-isCompatibleWith") = forAll { (scopePair: (StableScope, StableScope)) =>
     val (scope1, scope2) = scopePair
 
     scope1.isCompatibleSubScopeOf(scope2) == {
@@ -316,7 +316,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("appendCompatibleScope-appendNonConflictingScope") = forAll { scopePair: (StableScope, StableScope) =>
+  property("appendCompatibleScope-appendNonConflictingScope") = forAll { (scopePair: (StableScope, StableScope)) =>
     scopePair._1.isCompatibleWith(scopePair._2) ==> {
       val (scope1, scope2) = scopePair
 
@@ -324,7 +324,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("appendCompatibleScope-isCompatibleSuperScopeOf") = forAll { scopePair: (StableScope, StableScope) =>
+  property("appendCompatibleScope-isCompatibleSuperScopeOf") = forAll { (scopePair: (StableScope, StableScope)) =>
     scopePair._1.canAppendCompatibleScope(scopePair._2) ==> {
       val (scope1, scope2) = scopePair
 
@@ -335,7 +335,7 @@ class StableScopeSpecification extends Properties("StableScope") {
     }
   }
 
-  property("appendCompatibleScope-isCompatibleSuperScopeOf") = forAll { scopePair: (StableScope, StableScope) =>
+  property("appendCompatibleScope-isCompatibleSuperScopeOf") = forAll { (scopePair: (StableScope, StableScope)) =>
     scopePair._1.canAppendNonConflictingScope(scopePair._2) ==> {
       val (scope1, scope2) = scopePair
 
@@ -351,7 +351,7 @@ class StableScopeSpecification extends Properties("StableScope") {
   // Two compatible sub-scopes of a superscope can be compatibly appended to each other and
   // the result is also a compatible sub-scope of the superscope.
 
-  property("append-subscopes") = forAll { scopeTriple: StableScopeAndTwoCompatibleSubScopes =>
+  property("append-subscopes") = forAll { (scopeTriple: StableScopeAndTwoCompatibleSubScopes) =>
     val StableScopeAndTwoCompatibleSubScopes(superScope, scope1, scope2) = scopeTriple
 
     require(scope1.isCompatibleSubScopeOf(superScope))
@@ -364,7 +364,7 @@ class StableScopeSpecification extends Properties("StableScope") {
   // If a non-conflicting scope can be added to a scope, it can also be added to a compatible sub-scope of that scope,
   // resulting in a compatible sub-scope of the "new" superscope.
 
-  property("append-to-subscope") = forAll { scopeTriple: StableScopeAndCompatibleSuperScopeAndExtraScope =>
+  property("append-to-subscope") = forAll { (scopeTriple: StableScopeAndCompatibleSuperScopeAndExtraScope) =>
     val StableScopeAndCompatibleSuperScopeAndExtraScope(StableScopeAndCompatibleSuperScope(scope, superScope), extraScope) = scopeTriple
 
     require(scope.isCompatibleSubScopeOf(superScope))
@@ -376,11 +376,11 @@ class StableScopeSpecification extends Properties("StableScope") {
 
   // Other properties
 
-  property("isCompatibleWith-retainingDefaultNamespace") = forAll { scope: StableScope =>
+  property("isCompatibleWith-retainingDefaultNamespace") = forAll { (scope: StableScope) =>
     scope.isCompatibleWith(StableScope.from(scope.scope.retainingDefaultNamespace))
   }
 
-  property("isCompatibleSuperScopeOf-retainingDefaultNamespace") = forAll { scope: StableScope =>
+  property("isCompatibleSuperScopeOf-retainingDefaultNamespace") = forAll { (scope: StableScope) =>
     scope.isCompatibleSuperScopeOf(StableScope.from(scope.scope.retainingDefaultNamespace))
   }
 }

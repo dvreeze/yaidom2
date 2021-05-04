@@ -36,7 +36,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     elem.findParentElem(pred) == elem.findParentElem.filter(pred)
   }
 
-  property("findParentElem") = forAll { elem: E =>
+  property("findParentElem") = forAll { (elem: E) =>
     elem.findParentElem == elem.findParentElem(_ => true)
   }
 
@@ -45,7 +45,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
       elem.findParentElem.toList.flatMap(_.filterAncestorElemsOrSelf(pred))
   }
 
-  property("findAllAncestorElems") = forAll { elem: E =>
+  property("findAllAncestorElems") = forAll { (elem: E) =>
     elem.findAllAncestorElems == elem.filterAncestorElems(_ => true)
   }
 
@@ -55,7 +55,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
       Seq(elem).filter(pred) ++ elem.findParentElem.toList.flatMap(_.filterAncestorElemsOrSelf(pred))
   }
 
-  property("findAllAncestorElemsOrSelf") = forAll { elem: E =>
+  property("findAllAncestorElemsOrSelf") = forAll { (elem: E) =>
     elem.findAllAncestorElemsOrSelf == elem.filterAncestorElemsOrSelf(_ => true)
   }
 
@@ -67,20 +67,20 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     elem.findAncestorElemOrSelf(pred) == elem.filterAncestorElemsOrSelf(pred).headOption
   }
 
-  property("findAllPrecedingSiblingElems") = forAll { elem: E =>
+  property("findAllPrecedingSiblingElems") = forAll { (elem: E) =>
     elem.findAllPrecedingSiblingElems ==
       elem.findParentElem.toList.flatMap(_.findAllChildElems.takeWhile(_ != elem)).reverse
   }
 
-  property("docUri") = forAll { elem: E =>
+  property("docUri") = forAll { (elem: E) =>
     elem.docUri == elem.docUriOption.getOrElse(emptyUri)
   }
 
-  property("baseUri") = forAll { elem: E =>
+  property("baseUri") = forAll { (elem: E) =>
     elem.baseUri == elem.baseUriOption.getOrElse(emptyUri)
   }
 
-  property("baseUriOption") = forAll { elem: E =>
+  property("baseUriOption") = forAll { (elem: E) =>
     elem.baseUriOption == {
       // Recursive call
       val parentBaseUriOption: Option[URI] =
@@ -91,7 +91,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     }
   }
 
-  property("rootElem") = forAll { elem: E =>
+  property("rootElem") = forAll { (elem: E) =>
     elem.rootElem == elem.findAncestorElemOrSelf(_.findParentElem.isEmpty).get
   }
 
@@ -137,7 +137,7 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
       (elem.filterDescendantElems(pred).flatMap(_.findAncestorElem(_ == elem)).distinct == Seq(elem))
   }
 
-  property("an-ancestor-or-self-of-descendant-or-self-is-this") = forAll { elem: E =>
+  property("an-ancestor-or-self-of-descendant-or-self-is-this") = forAll { (elem: E) =>
     elem.findAllDescendantElemsOrSelf.flatMap(_.findAncestorElemOrSelf(_ == elem)).distinct == Seq(elem)
   }
 
@@ -162,14 +162,14 @@ trait BackingElemApiSpecification[N, E <: BackingNodes.Elem.Aux[N, E]] extends S
     elem.select(ancestorElemsOrSelf(pred)) == elem.filterAncestorElemsOrSelf(pred)
   }
 
-  property("select-siblings-or-self") = forAll { elem: E =>
+  property("select-siblings-or-self") = forAll { (elem: E) =>
     val elemSteps = elemStepFactory
     import elemSteps._
 
     elem.select(parentElem() / childElems()) == elem.findParentElem.toList.flatMap(_.findAllChildElems)
   }
 
-  property("own-navigation-path-followed-from-root-returns-same-element") = forAll { elem: E =>
+  property("own-navigation-path-followed-from-root-returns-same-element") = forAll { (elem: E) =>
     elem.rootElem.getDescendantElemOrSelf(elem.ownNavigationPathRelativeToRootElem) == elem
   }
 

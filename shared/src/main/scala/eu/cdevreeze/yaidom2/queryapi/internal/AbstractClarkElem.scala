@@ -19,6 +19,7 @@ package eu.cdevreeze.yaidom2.queryapi.internal
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.ElemStep
 import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
+import eu.cdevreeze.yaidom2.queryapi.ClarkNodes.Node
 
 /**
  * Abstract partially implemented ClarkNodes.Elem, for re-usable (but overridable) partial element implementations in yaidom2.
@@ -34,7 +35,9 @@ import eu.cdevreeze.yaidom2.queryapi.ClarkNodes
  */
 trait AbstractClarkElem extends AbstractElem with ClarkNodes.Elem {
 
-  type ThisElem <: AbstractClarkElem.Aux[ThisNode, ThisElem]
+  type ThisElem <: AbstractClarkElem.Aux[_, ThisElem]
+
+  type ThisNode >: ThisElem <: Node
 
   // ClarkElemApi
 

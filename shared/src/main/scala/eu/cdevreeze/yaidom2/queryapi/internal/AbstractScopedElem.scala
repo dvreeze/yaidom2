@@ -19,6 +19,7 @@ package eu.cdevreeze.yaidom2.queryapi.internal
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.core.QName
 import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
+import eu.cdevreeze.yaidom2.queryapi.ScopedNodes.Node
 
 /**
  * Abstract partially implemented ScopedNodes.Elem, for re-usable (but overridable) partial element implementations in yaidom2.
@@ -34,7 +35,9 @@ import eu.cdevreeze.yaidom2.queryapi.ScopedNodes
  */
 trait AbstractScopedElem extends AbstractClarkElem with ScopedNodes.Elem {
 
-  type ThisElem <: AbstractScopedElem.Aux[ThisNode, ThisElem]
+  type ThisElem <: AbstractScopedElem.Aux[_, ThisElem]
+
+  type ThisNode >: ThisElem <: Node
 
   // ScopedElemApi
 

@@ -36,9 +36,9 @@ import scala.collection.immutable.ListMap
  */
 trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElemApi {
 
-  type ThisNode >: ThisElem <: ClarkNodes.Node
+  type ThisElem <: AbstractUpdatableElem.Aux[_, ThisElem]
 
-  type ThisElem <: AbstractUpdatableElem.Aux[ThisNode, ThisElem]
+  type ThisNode >: ThisElem <: ClarkNodes.Node
 
   def updateChildElem(navigationStep: Int)(f: ThisElem => ThisElem): ThisElem = {
     updateChildElems(Set(navigationStep)) { (elm, _) =>
@@ -126,6 +126,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
   }
 
   def updateDescendantElemsWithNodeSeq(navigationPaths: Set[Seq[Int]])(f: (ThisElem, Seq[Int]) => Seq[ThisNode]): ThisElem = {
+    // scalastyle:off
     val navigationPathsByFirstStep: Map[Int, Set[Seq[Int]]] =
       navigationPaths.filter(_.nonEmpty).groupBy(_.head)
 
@@ -133,8 +134,8 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
       case (che, step) =>
         che.updateDescendantElemsOrSelfWithNodeSeq(navigationPathsByFirstStep(step).map(_.drop(1))) {
           case (e, p) =>
-            f(e, p.prepended(step))
-        }
+            f(e, p.prepended(step)).asInstanceOf[Seq[che.ThisNode]]
+        }.asInstanceOf[Seq[ThisNode]]
     }
   }
 
@@ -176,6 +177,7 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
    */
   protected def updateDescendantElemsOrSelfWithNodeSeq(navigationPaths: Set[Seq[Int]])(
       f: (ThisElem, Seq[Int]) => Seq[ThisNode]): Seq[ThisNode] = {
+    // scalastyle:off
     val navigationPathsByFirstStep: Map[Int, Set[Seq[Int]]] =
       navigationPaths.filter(_.nonEmpty).groupBy(_.head)
 
@@ -185,8 +187,8 @@ trait AbstractUpdatableElem extends AbstractTransformableElem with UpdatableElem
           // Recursive (but non-tail-recursive) call
           che.updateDescendantElemsOrSelfWithNodeSeq(navigationPathsByFirstStep(step).map(_.drop(1))) {
             case (e, p) =>
-              f(e, p.prepended(step))
-          }
+              f(e, p.prepended(step)).asInstanceOf[Seq[che.ThisNode]]
+          }.asInstanceOf[Seq[ThisNode]]
       }
 
     if (navigationPaths.contains(Seq.empty)) f(descendantUpdateResult, Seq.empty) else Seq(descendantUpdateResult)

@@ -22,6 +22,7 @@ import scala.collection.immutable.ArraySeq
 
 import eu.cdevreeze.yaidom2.core.EName
 import eu.cdevreeze.yaidom2.queryapi.BackingNodes
+import eu.cdevreeze.yaidom2.queryapi.BackingNodes.Node
 
 /**
  * Abstract partially implemented BackingNodes.Elem, for re-usable (but overridable) partial element implementations in yaidom2.
@@ -37,7 +38,9 @@ import eu.cdevreeze.yaidom2.queryapi.BackingNodes
  */
 trait AbstractBackingElem extends AbstractScopedElem with BackingNodes.Elem {
 
-  type ThisElem <: AbstractBackingElem.Aux[ThisNode, ThisElem]
+  type ThisElem <: AbstractBackingElem.Aux[_, ThisElem]
+
+  type ThisNode >: ThisElem <: Node
 
   import AbstractBackingElem.emptyUri
   import AbstractBackingElem.XmlBaseEName
@@ -77,7 +80,7 @@ trait AbstractBackingElem extends AbstractScopedElem with BackingNodes.Elem {
     val parentElemOption = findParentElem
 
     if (parentElemOption.isEmpty) {
-      ArraySeq.empty
+      Seq.empty
     } else {
       parentElemOption.get.findAllChildElems.takeWhile(_ != self).reverse
     }

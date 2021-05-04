@@ -26,11 +26,11 @@ trait ScopedElemApiSpecification[N, E <: ScopedNodes.Elem.Aux[N, E]] extends Cla
 
   protected def elemStepFactory: ScopedElemStepFactoryApi.Aux[E]
 
-  property("resolved-qname") = forAll { elem: E =>
+  property("resolved-qname") = forAll { (elem: E) =>
     elem.scope.resolveQName(elem.qname) == elem.name
   }
 
-  property("resolved-attributes") = forAll { elem: E =>
+  property("resolved-attributes") = forAll { (elem: E) =>
     elem.attributesByQName.map { case (a, v) => elem.scope.withoutDefaultNamespace.resolveQName(a) -> v } ==
       elem.attributes
   }

@@ -29,7 +29,7 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
     elem.filterChildElems(pred) == elem.findAllChildElems.filter(pred)
   }
 
-  property("findAllChildElems") = forAll { elem: E =>
+  property("findAllChildElems") = forAll { (elem: E) =>
     elem.findAllChildElems == elem.filterChildElems(_ => true)
   }
 
@@ -37,7 +37,7 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
     elem.filterDescendantElems(pred) == elem.findAllChildElems.flatMap(_.filterDescendantElemsOrSelf(pred))
   }
 
-  property("findAllDescendantElems") = forAll { elem: E =>
+  property("findAllDescendantElems") = forAll { (elem: E) =>
     elem.findAllDescendantElems == elem.filterDescendantElems(_ => true)
   }
 
@@ -47,7 +47,7 @@ trait ElemApiSpecification[E <: ElemApi.Aux[E]] extends ElemApiSpecificationData
       Seq(elem).filter(pred) ++ elem.findAllChildElems.flatMap(_.filterDescendantElemsOrSelf(pred))
   }
 
-  property("findAllDescendantElemsOrSelf") = forAll { elem: E =>
+  property("findAllDescendantElemsOrSelf") = forAll { (elem: E) =>
     elem.findAllDescendantElemsOrSelf == elem.filterDescendantElemsOrSelf(_ => true)
   }
 

@@ -34,9 +34,9 @@ import eu.cdevreeze.yaidom2.updateapi.TransformableElemApi
  */
 trait AbstractTransformableElem extends AbstractClarkElem with TransformableElemApi {
 
-  type ThisNode >: ThisElem <: ClarkNodes.Node
+  type ThisElem <: AbstractTransformableElem.Aux[_, ThisElem]
 
-  type ThisElem <: AbstractTransformableElem.Aux[ThisNode, ThisElem]
+  type ThisNode >: ThisElem <: ClarkNodes.Node
 
   def transformDescendantElemsOrSelf(f: ThisElem => ThisElem): ThisElem = {
     // Recursive calls
@@ -48,12 +48,23 @@ trait AbstractTransformableElem extends AbstractClarkElem with TransformableElem
   }
 
   def transformDescendantElemsOrSelfToNodeSeq(f: ThisElem => Seq[ThisNode]): Seq[ThisNode] = {
-    // Recursive calls
-    f(transformChildElemsToNodeSeq(_.transformDescendantElemsOrSelfToNodeSeq(f)))
+    // scalastyle:off
+    val childResult: ThisElem = transformChildElemsToNodeSeq { (che: ThisElem) =>
+      // Recursive calls
+      che.transformDescendantElemsOrSelfToNodeSeq { (de: ThisElem) =>
+        f(de.asInstanceOf[che.ThisElem]).asInstanceOf[Seq[che.ThisNode]]
+      }.asInstanceOf[Seq[ThisNode]]
+    }
+    f(childResult)
   }
 
   def transformDescendantElemsToNodeSeq(f: ThisElem => Seq[ThisNode]): ThisElem = {
-    transformChildElemsToNodeSeq(_.transformDescendantElemsOrSelfToNodeSeq(f))
+    // scalastyle:off
+    transformChildElemsToNodeSeq { (che: ThisElem) =>
+      che.transformDescendantElemsOrSelfToNodeSeq { (de: ThisElem) =>
+        f(de.asInstanceOf[che.ThisElem]).asInstanceOf[Seq[che.ThisNode]]
+      }.asInstanceOf[Seq[ThisNode]]
+    }
   }
 }
 

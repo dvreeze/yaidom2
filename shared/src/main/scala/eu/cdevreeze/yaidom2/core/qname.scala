@@ -87,6 +87,6 @@ object QName {
   def unapply(qname: QName): Option[(Option[String], String)] = qname match {
     case UnprefixedName(localPart) => Some((None, localPart))
     case PrefixedName(prefix, localPart) => Some((Some(prefix), localPart))
-    case _ => None
+    case null => None
   }
 }

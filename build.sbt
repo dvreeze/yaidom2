@@ -9,8 +9,8 @@
 
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalaVer = "2.13.4"
-val crossScalaVer = Seq(scalaVer)
+val scalaVer = "2.13.5"
+val crossScalaVer = Seq(scalaVer, "3.0.0-RC3")
 
 ThisBuild / description  := "Extensible XML query API with multiple DOM-like implementations, 2nd generation"
 ThisBuild / organization := "eu.cdevreeze.yaidom2"
@@ -19,7 +19,12 @@ ThisBuild / version      := "0.14.0-SNAPSHOT"
 ThisBuild / scalaVersion       := scalaVer
 ThisBuild / crossScalaVersions := crossScalaVer
 
-ThisBuild / scalacOptions ++= Seq("-Wconf:cat=unused-imports:w,cat=unchecked:w,cat=deprecation:w,cat=feature:w,cat=lint:w")
+ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case (Some((3, _))) =>
+    Seq("unchecked", "-source:3.0-migration")
+  case _ =>
+    Seq("-Wconf:cat=unused-imports:w,cat=unchecked:w,cat=deprecation:w,cat=feature:w,cat=lint:w")
+})
 
 ThisBuild / Test / publishArtifact := false
 ThisBuild / publishMavenStyle := true
@@ -36,11 +41,11 @@ ThisBuild / publishTo := {
 ThisBuild / pomExtra := pomData
 ThisBuild / pomIncludeRepository := { _ => false }
 
-ThisBuild / libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M3"
+ThisBuild / libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-RC1"
 
-ThisBuild / libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.3" % Test
+ThisBuild / libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.8" % Test
 
-ThisBuild / libraryDependencies += "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.3.0" % Test
+ThisBuild / libraryDependencies += "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.8.0" % Test
 
 lazy val root = project.in(file("."))
   .aggregate(yaidom2JVM, yaidom2JS)
@@ -61,7 +66,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
 
     libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-8",
 
-    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.2" % Test,
+    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.4" % Test,
 
     mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.12.0")
   )
@@ -69,7 +74,7 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
     // Do we need this jsEnv?
     jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
 
-    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "1.1.0",
+    libraryDependencies += ("org.scala-js" %%% "scalajs-dom" % "1.1.0").cross(CrossVersion.for3Use2_13), // Hopefully soon not needed anymore
 
     Test / parallelExecution := false,
 

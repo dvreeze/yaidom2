@@ -29,33 +29,33 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
 
   // "Definitions" of ClarkElemApi methods
 
-  property("localName") = forAll { elem: E =>
+  property("localName") = forAll { (elem: E) =>
     elem.localName == elem.name.localPart
   }
 
-  property("namespaceOption") = forAll { elem: E =>
+  property("namespaceOption") = forAll { (elem: E) =>
     elem.namespaceOption == elem.name.namespaceUriOption
   }
 
-  property("namespaceAsString") = forAll { elem: E =>
+  property("namespaceAsString") = forAll { (elem: E) =>
     elem.namespaceAsString == elem.name.namespaceUriOption.getOrElse("")
   }
 
-  property("attrOption") = forAll { elem: E =>
+  property("attrOption") = forAll { (elem: E) =>
     val attrNames: Seq[EName] = elem.attributes.keySet.union(bogusAttributeNames).toSeq
 
     attrNames.map(attrName => elem.attrOption(attrName)) ==
       attrNames.map(attrName => elem.attributes.get(attrName))
   }
 
-  property("attrOption-taking-nsOption-and-localName") = forAll { elem: E =>
+  property("attrOption-taking-nsOption-and-localName") = forAll { (elem: E) =>
     val attrNames: Seq[EName] = elem.attributes.keySet.union(bogusAttributeNames).toSeq
 
     attrNames.map(attrName => elem.attrOption(attrName.namespaceUriOption, attrName.localPart)) ==
       attrNames.map(attrName => elem.attrOption(attrName))
   }
 
-  property("attrOption-taking-ns-and-localName") = forAll { elem: E =>
+  property("attrOption-taking-ns-and-localName") = forAll { (elem: E) =>
     val attrNames: Seq[EName] =
       elem.attributes.keySet.union(bogusAttributeNames).toSeq.filter(_.namespaceUriOption.nonEmpty)
 
@@ -63,7 +63,7 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
       attrNames.map(attrName => elem.attrOption(attrName))
   }
 
-  property("attrOption-no-ns") = forAll { elem: E =>
+  property("attrOption-no-ns") = forAll { (elem: E) =>
     val attrNames: Seq[EName] =
       elem.attributes.keySet.union(bogusAttributeNames).toSeq.filter(_.namespaceUriOption.isEmpty)
 
@@ -71,49 +71,49 @@ trait ClarkElemApiSpecification[N, E <: ClarkNodes.Elem.Aux[N, E]] extends ElemA
       attrNames.map(attrName => elem.attrOption(attrName))
   }
 
-  property("attr") = forAll { elem: E =>
+  property("attr") = forAll { (elem: E) =>
     val attrNames: Seq[EName] = elem.attributes.keySet.toSeq
 
     attrNames.map(attrName => elem.attr(attrName)) ==
       attrNames.map(attrName => elem.attributes(attrName))
   }
 
-  property("attr-taking-nsOption-and-localName") = forAll { elem: E =>
+  property("attr-taking-nsOption-and-localName") = forAll { (elem: E) =>
     val attrNames: Seq[EName] = elem.attributes.keySet.toSeq
 
     attrNames.map(attrName => elem.attr(attrName.namespaceUriOption, attrName.localPart)) ==
       attrNames.map(attrName => elem.attr(attrName))
   }
 
-  property("attr-taking-ns-and-localName") = forAll { elem: E =>
+  property("attr-taking-ns-and-localName") = forAll { (elem: E) =>
     val attrNames: Seq[EName] = elem.attributes.keySet.toSeq.filter(_.namespaceUriOption.nonEmpty)
 
     attrNames.map(attrName => elem.attr(attrName.namespaceUriOption.get, attrName.localPart)) ==
       attrNames.map(attrName => elem.attr(attrName))
   }
 
-  property("attr-no-ns") = forAll { elem: E =>
+  property("attr-no-ns") = forAll { (elem: E) =>
     val attrNames: Seq[EName] = elem.attributes.keySet.toSeq.filter(_.namespaceUriOption.isEmpty)
 
     attrNames.map(attrName => elem.attr(attrName.localPart)) ==
       attrNames.map(attrName => elem.attr(attrName))
   }
 
-  property("text") = forAll { elem: E =>
+  property("text") = forAll { (elem: E) =>
     elem.text == elem.children.collect { case t: ClarkNodes.Text => t.text }.mkString
   }
 
-  property("normalizedText") = forAll { elem: E =>
+  property("normalizedText") = forAll { (elem: E) =>
     elem.normalizedText == normalizeString(elem.text)
   }
 
-  property("trimmedText") = forAll { elem: E =>
+  property("trimmedText") = forAll { (elem: E) =>
     elem.trimmedText == elem.text.trim
   }
 
   // Other properties
 
-  property("element-children") = forAll { elem: E =>
+  property("element-children") = forAll { (elem: E) =>
     elem.findAllChildElems == elem.children.collect { case e: ClarkNodes.Elem => e }
   }
 
