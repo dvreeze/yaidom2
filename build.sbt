@@ -9,7 +9,7 @@
 
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalaVer = "3.0.0-RC3"
+val scalaVer = "3.0.0"
 val crossScalaVer = Seq(scalaVer, "2.13.5")
 
 ThisBuild / description  := "Extensible XML query API with multiple DOM-like implementations, 2nd generation"
@@ -41,11 +41,11 @@ ThisBuild / publishTo := {
 ThisBuild / pomExtra := pomData
 ThisBuild / pomIncludeRepository := { _ => false }
 
-ThisBuild / libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-RC1"
+ThisBuild / libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.0.0"
 
-ThisBuild / libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.8" % Test
+ThisBuild / libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.9" % Test
 
-ThisBuild / libraryDependencies += "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.8.0" % Test
+ThisBuild / libraryDependencies += "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.9.0" % Test
 
 lazy val root = project.in(file("."))
   .aggregate(yaidom2JVM, yaidom2JS)
@@ -67,6 +67,10 @@ lazy val yaidom2 = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.9.1-8",
 
     libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.4" % Test,
+
+    libraryDependencies += "org.typelevel" %%% "cats-core" % "2.6.1" % Test,
+
+    libraryDependencies += "org.typelevel" %%% "cats-free" % "2.6.1" % Test,
 
     mimaPreviousArtifacts := Set("eu.cdevreeze.yaidom2" %%% "yaidom2" % "0.12.0")
   )
