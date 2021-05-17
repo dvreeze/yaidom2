@@ -96,6 +96,41 @@ class CofreeTest extends AnyFunSuite {
     }
   }
 
+  test("unfoldTree-pure") {
+    // Like the unfoldTree test, but losing children/descendants in the node values themselves, so that
+    // the cata folding operation must restore the entire tree by itself.
+
+    val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
+    val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
+
+    // Unfold followed by map (twice)
+    val resolvedTree: ResolvedTree = Cofree
+      .unfold[Seq, saxon.Node](doc.documentElement)(n => findAllChildren(n))
+      .map(resolved.Node.from)
+      .map {
+        case e: resolved.Elem => e.withChildren(Seq.empty)
+        case n                => n
+      }
+
+    assertResult(resolved.Elem.from(doc.documentElement).withChildren(Seq.empty)) {
+      resolvedTree.head
+    }
+
+    // Method cata can be seen as a fold operation
+    val resolvedTreeEval: Eval[resolved.Node] = Cofree.cata[Seq, resolved.Node, resolved.Node](resolvedTree) {
+      (node: resolved.Node, mappedChildren: Seq[resolved.Node]) =>
+        val mappedNode: resolved.Node = node match {
+          case e: resolved.Elem => e.withChildren(mappedChildren)
+          case n                => n
+        }
+        Eval.now(mappedNode)
+    }
+
+    assertResult(resolved.Node.from(doc.documentElement)) {
+      resolvedTreeEval.value
+    }
+  }
+
   test("addAncestry") {
     // Adding the reverse-ancestry-or-self without defining a separate custom recursive node type for that.
 
