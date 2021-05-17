@@ -208,6 +208,28 @@ class CofreeTest extends AnyFunSuite {
     }
   }
 
+  test("map-as-coflatMap") {
+    val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
+    val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
+
+    // Unfold is recursive construction
+    val saxonTree: SaxonTree = Cofree.unfold[Seq, saxon.Node](doc.documentElement)(n => findAllChildren(n))
+
+    val resolvedTree: ResolvedTree = saxonTree.map { (n: saxon.Node) =>
+      // Not necessarily an element node, but possibly a text node
+      resolved.Node.from(n)
+    }
+
+    // Simulating method map with method coflatMap, ignoring all but the head in the mapping function
+    val resolvedTree2: ResolvedTree = saxonTree.coflatMap { (t: SaxonTree) =>
+      resolved.Node.from(t.head)
+    }
+
+    assertResult(Tree.findAllDescendantsOrSelf(resolvedTree2).map(_.head)) {
+      Tree.findAllDescendantsOrSelf(resolvedTree).map(_.head)
+    }
+  }
+
   test("addAncestry-using-transform-recursively") {
     // Adding the reverse-ancestry-or-self without defining a separate custom recursive node type for that.
 
