@@ -50,6 +50,7 @@ class CofreeTest extends AnyFunSuite {
       saxonTree.head
     }
 
+    // Method cata can be seen as a fold operation
     val resolvedTreeEval: Eval[resolved.Node] = Cofree.cata[Seq, saxon.Node, resolved.Node](saxonTree) {
       (node: saxon.Node, mappedChildren: Seq[resolved.Node]) =>
         val mappedNode: resolved.Node = resolved.Node.from(node).pipe {
@@ -80,6 +81,7 @@ class CofreeTest extends AnyFunSuite {
       saxonNodeTree.head.underlyingNode
     }
 
+    // Method cata can be seen as a fold operation
     val resolvedTreeEval: Eval[resolved.Node] = Cofree.cata[Seq, Node[saxon.Node], resolved.Node](saxonNodeTree) {
       (node: Node[saxon.Node], mappedChildren: Seq[resolved.Node]) =>
         val mappedNode: resolved.Node = resolved.Node.from(node.underlyingNode).pipe {
@@ -100,9 +102,9 @@ class CofreeTest extends AnyFunSuite {
     val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
     val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
 
-    // Unfold is recursive construction
     val resolvedDocElem: resolved.Elem = resolved.Elem.from(doc.documentElement)
 
+    // Creating the tree with ancestry directly, using unfold
     val resolvedTreeWithAncestry: Tree[ResolvedNodeWithAncestry] =
       Cofree.unfold[Seq, ResolvedNodeWithAncestry](ResolvedNodeWithAncestry(resolvedDocElem, Nil)) { n =>
         findAllChildren(n.node).map(ch => ResolvedNodeWithAncestry(ch, n.node.asInstanceOf[resolved.Elem].name :: n.ancestorNames.toList))
@@ -114,9 +116,132 @@ class CofreeTest extends AnyFunSuite {
 
     assertResult(doc.documentElement.findAllDescendantElemsOrSelf.map(_.findAllAncestorElems.map(_.name)).toSet) {
       Tree
-        .filterDescendantsOrSelf(
-          resolvedTreeWithAncestry,
-          (tree: Tree[ResolvedNodeWithAncestry]) => tree.head.node.isInstanceOf[resolved.Elem])
+        .filterDescendantsOrSelf(resolvedTreeWithAncestry, (t: Tree[ResolvedNodeWithAncestry]) => t.head.node.isInstanceOf[resolved.Elem])
+        .map(_.head.ancestorNames)
+        .toSet
+    }
+  }
+
+  test("map") {
+    val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
+    val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
+
+    // Unfold is recursive construction
+    val saxonTree: SaxonTree = Cofree.unfold[Seq, saxon.Node](doc.documentElement)(n => findAllChildren(n))
+
+    // Method map could be thought of as a generalization of the collection's map function to trees.
+    // It works on individual nodes without taking entire subtrees into account per map function call.
+    // The direction of processing (top-down in document order, or bottom-up) is irrelevant. Per input node value there is a
+    // corresponding output node value, so input and output tree have the same number of (descendant-or-self) nodes.
+    val resolvedTree: ResolvedTree = saxonTree.map { (n: saxon.Node) =>
+      // Not necessarily an element node, but possibly a text node
+      resolved.Node.from(n)
+    }
+
+    // All tree nodes are mapped, and the result tree has the same number of descendant-or-self trees
+    assertResult(doc.documentElement.findAllDescendantElemsOrSelf.size) {
+      Tree.filterDescendantsOrSelf(resolvedTree, (t: ResolvedTree) => t.head.isInstanceOf[resolved.Elem]).map(_.head).size
+    }
+    assertResult(resolved.Elem.from(doc.documentElement)) {
+      resolvedTree.head
+    }
+    assertResult(findAllChildren(doc.documentElement).map(resolved.Node.from)) {
+      Tree.findAllChildren(resolvedTree).map(_.head)
+    }
+    assertResult(doc.documentElement.findAllDescendantElemsOrSelf.map(resolved.Node.from)) {
+      Tree.filterDescendantsOrSelf(resolvedTree, (t: ResolvedTree) => t.head.isInstanceOf[resolved.Elem]).map(_.head)
+    }
+  }
+
+  test("coflatMap") {
+    val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
+    val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
+
+    // Unfold is recursive construction
+    val saxonTree: SaxonTree = Cofree.unfold[Seq, saxon.Node](doc.documentElement)(n => findAllChildren(n))
+
+    // Method coflatMap could be thought of as the equivalent of the map method, except that entire (input)
+    // subtrees are input to the mapping function, instead of just subtree heads. The direction of processing
+    // (top-down in document order, or bottom-up) is irrelevant. Per input subtree there is a corresponding output
+    // subtree, with the same number of descendants, so input and output tree have the same number of (descendant-or-self)
+    // nodes.
+    val resultTree: Tree[Option[Int]] = saxonTree.coflatMap { (t: SaxonTree) =>
+      t.head match {
+        case e: saxon.Elem => Some(e.findAllDescendantElemsOrSelf.size)
+        case _             => None
+      }
+    }
+
+    // All subtrees (at any depth) have been mapped, and the result tree has the same number of descendant-or-self trees
+    assertResult(doc.documentElement.findAllDescendantElemsOrSelf.size) {
+      Tree.filterDescendantsOrSelf(resultTree, (t: Tree[Option[Int]]) => t.head.nonEmpty).size
+    }
+    assertResult(Some(doc.documentElement.findAllDescendantElemsOrSelf.size)) {
+      resultTree.head
+    }
+    assertResult(doc.documentElement.findAllChildElems.map(_.findAllDescendantElemsOrSelf.size)) {
+      Tree.filterChildren(resultTree, (t: Tree[Option[Int]]) => t.head.nonEmpty).map(_.head.get)
+    }
+    assertResult(doc.documentElement.findAllDescendantElemsOrSelf.map(_.findAllDescendantElemsOrSelf.size)) {
+      Tree.filterDescendantsOrSelf(resultTree, (t: Tree[Option[Int]]) => t.head.nonEmpty).map(_.head.get)
+    }
+  }
+
+  test("coflatten") {
+    val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
+    val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
+
+    // Unfold followed by map
+    val resolvedTree: ResolvedTree = Cofree
+      .unfold[Seq, saxon.Node](doc.documentElement)(n => findAllChildren(n))
+      .map(resolved.Node.from)
+
+    // Method coflatten is equal to coflatMap(identity)
+    assertResult(resolvedTree.coflatMap(identity).head.head) {
+      resolvedTree.coflatten.head.head
+    }
+    assertResult(resolvedTree.coflatMap(identity).pipe(Tree.findAllDescendantsOrSelf).map(_.head.head)) {
+      resolvedTree.coflatten.pipe(Tree.findAllDescendantsOrSelf).map(_.head.head)
+    }
+    assertResult(resolved.Node.from(doc.documentElement)) {
+      resolvedTree.coflatten.head.head
+    }
+  }
+
+  test("addAncestry-using-transform-recursively") {
+    // Adding the reverse-ancestry-or-self without defining a separate custom recursive node type for that.
+
+    val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
+    val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
+
+    val resolvedDocElem: resolved.Elem = resolved.Elem.from(doc.documentElement)
+
+    // Unfold followed by map
+    val resolvedTree: ResolvedTree = Cofree
+      .unfold[Seq, saxon.Node](doc.documentElement)(n => findAllChildren(n))
+      .map(resolved.Node.from)
+
+    // Recursive function using method transform
+    def addAncestry(resolvedTree: ResolvedTree, ancestorNames: List[EName]): Tree[ResolvedNodeWithAncestry] = {
+      resolvedTree.transform(
+        { resolvedNode =>
+          ResolvedNodeWithAncestry(resolvedNode, ancestorNames)
+        }, { (t: ResolvedTree) =>
+          addAncestry(t, resolvedTree.head.asInstanceOf[resolved.Elem].name :: ancestorNames)
+        }
+      )
+    }
+
+    // Creating the tree with ancestry
+    val resolvedTreeWithAncestry: Tree[ResolvedNodeWithAncestry] = addAncestry(resolvedTree, Nil)
+
+    assertResult(doc.documentElement.findAllDescendantElemsOrSelf.map(_.findAllAncestorElemsOrSelf.map(_.name)).toSet) {
+      Tree.findAllDescendantsOrSelf(resolvedTreeWithAncestry).map(_.head.ancestorOrSelfNames).toSet
+    }
+
+    assertResult(doc.documentElement.findAllDescendantElemsOrSelf.map(_.findAllAncestorElems.map(_.name)).toSet) {
+      Tree
+        .filterDescendantsOrSelf(resolvedTreeWithAncestry, (t: Tree[ResolvedNodeWithAncestry]) => t.head.node.isInstanceOf[resolved.Elem])
         .map(_.head.ancestorNames)
         .toSet
     }
@@ -131,6 +256,9 @@ object CofreeTest {
   type Tree[A] = Cofree[Seq, A] // Think: case class Tree[A](head: A, tail: Eval[Seq[Tree[A]]])
 
   object Tree {
+
+    // The findXXX methods below are less general in that the tree "content" type remains the same.
+    // They do make sense from a user perspective, though, and their semantics are very clear.
 
     def findAllChildren[A](tree: Tree[A]): Seq[Tree[A]] = tree.tailForced
 
@@ -175,7 +303,7 @@ object CofreeTest {
     }
   }
 
-  // Specific functor, which conceptually hardly differs from Seq.
+  // Specific functor, which conceptually hardly differs from Seq, when used specifically for "Clark nodes".
   // Think of the Node class as a recursive type, where the recursion has been replaced by a type parameter,
   // which typically is or contains type Node itself. Being a type parameter gives its use in Cofree
   // the flexibility to change "tree node types". Still, from an OO perspective, these custom functors
