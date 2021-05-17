@@ -230,6 +230,32 @@ class CofreeTest extends AnyFunSuite {
     }
   }
 
+  test("transform") {
+    val docUri: URI = classOf[EqTest].getResource("/test-xml/airportsGermany.xml").toURI
+    val doc: SaxonDocument = SaxonDocument(processor.newDocumentBuilder().build(new File(docUri)))
+
+    // Unfold is recursive construction
+    val saxonTree: SaxonTree = Cofree.unfold[Seq, saxon.Node](doc.documentElement)(n => findAllChildren(n))
+
+    // Method transform is not recursive. It has as parameters a function for mapping the head and a function
+    // for mapping each subtree in the tail, so each direct child subtree. That's it.
+    // Unlike methods coflatMap, map and coflatten, method transform can change the number of nodes.
+    val childOrSelfTree: ResolvedTree = saxonTree.transform(
+      { saxonNode =>
+        resolved.Node.from(saxonNode)
+      }, { (t: SaxonTree) =>
+        Cofree(resolved.Node.from(t.head), Eval.now(Seq.empty[ResolvedTree])) // losing descendants of children
+      }
+    )
+
+    assertResult(Tree.findAllChildren(saxonTree).size + 1) {
+      Tree.findAllDescendantsOrSelf(childOrSelfTree).size
+    }
+    assertResult(Tree.findAllChildren(saxonTree).prepended(saxonTree).map(_.head).map(resolved.Node.from)) {
+      Tree.findAllDescendantsOrSelf(childOrSelfTree).map(_.head)
+    }
+  }
+
   test("addAncestry-using-transform-recursively") {
     // Adding the reverse-ancestry-or-self without defining a separate custom recursive node type for that.
 
